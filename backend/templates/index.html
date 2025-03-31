@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Generator Orar</title>
+</head>
+<body>
+    <h1>Generează un Orar</h1>
+
+    <textarea id="reguli" rows="10" cols="80">
+Generează un orar pentru o săptămână pentru studenți, respectând următoarele reguli:
+- Licență: 08:00-20:00, Master: 16:00-20:00.
+- Minim 4 ore/zi, maxim 8 ore/zi.
+- Evită pauzele inutile (ferestre).
+- Cursuri pe ani, seminare pe grupe, laboratoare pe subgrupe.
+- Miercuri ora 14:00 trebuie să fie liber.
+Returnează doar un JSON curat cu două chei: Licenta și Master.
+    </textarea>
+
+    <br><br>
+    <button onclick="trimiteReguli()">Generează Orarul</button>
+
+    <h2>Rezultat:</h2>
+    <pre id="rezultat"></pre>
+
+    <script>
+        function trimiteReguli() {
+            const reguli = document.getElementById("reguli").value;
+
+            fetch("/genereaza_orar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ reguli })
+            })
+            .then(response => response.text())  // preluăm răspunsul ca text
+            .then(text => {
+                console.log("Răspuns brut:", text);
+                try {
+                    const data = JSON.parse(text);  // încercăm parsarea JSON
+                    document.getElementById("rezultat").textContent = JSON.stringify(data, null, 2);
+                } catch (e) {
+                    document.getElementById("rezultat").textContent = "Eroare la parsare JSON:\n\n" + text;
+                }
+            })
+            .catch(error => {
+                document.getElementById("rezultat").textContent = "Eroare: " + error;
+            });
+        }
+    </script>
+</body>
+</html>
