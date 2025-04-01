@@ -1,0 +1,61 @@
+browserul:   http://127.0.0.1:5000/
+http://localhost:5173
+
+Comenzi backend:
+cd backend 
+venv\Scripts\activate
+pip install flask
+
+
+python app.py
+
+
+
+comenzi frontend:
+npm run dev
+
+autentificare:email = test@test.com, parolă = 1234
+
+
+
+
+Denumirea la stepper: ...
+
+Functionalitatile 
+
+
+
+
+backend:   http://127.0.0.1:5000
+
+Cheia GPT 4.0:
+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
+
+
+
+
+
+
+Cum introduc regulile, din backend sau fac frontend cu fiecare stepper?
+cum fac cu tabelul?
+Introduc eu denumirea cursurilor, a profesorilor, grupele, ani, divizarea grupelor.
+Fac baza de date, sa mi se duca toate orarele generate in baza de date si sa le pot intoarce daca am nevoie?
+
+
+
+
+
+Schema backend, s. frontend si s. comunicare 
+
+
+Criterii:
+ 
+Disponibilitate sali (grupa pe categorii: curs, seminar si laborator. Aici poti sa te inspiri de pe orar ugal)
+ 
+Criterii de generare orar PDF/Excel:
+- programul zilnic pentru studenții de la licență va fi în intervalul 8.00-20.00, iar pentru cei de la master de la 16.00 la 20.00; acesta va cuprinde minim 4 ore/zi și maxim 8 ore/zi;
+- nu se acceptă mai mult de o pauză (2 ore)/zi. Se recomandă ca studenții să aibă un program fără ferestre. Dacă totuși, din motive obiective (sala nu este disponibilă sau un cadru didactic susține mai multe discipline la același program de studiu etc.) nu se poate evita pauza, aceasta va fi inclusă în cele maxim 8 ore/zi;
+- Cursurile sunt susținute cu anul, seminarele și proiectele cu grupa, iar laboratoarele cu subgrupa.
+coordonatorul pe domeniu va ține o evidență a sălilor pentru activitățile practice.
+se va respecta restricția legată de intervalul orar în care sunt fixate ședințele Consiliului Facultății și anume ziua de miercuri, modulul 4 (ora 14.00). Acest modul va fi liber pentru toate programele de studiu pentru a putea fi folosit pentru diverse activități dedicate studenților (prezentări de firme, workshop-uri etc.);
+- în cuprinsul orarului, la curs se vor specifica: denumirea completă, precum și prescurtarea disciplinei, numele și prenumele cadrului didactic și sala; la celelalte activități – acronimul disciplinei, numele cadrului didactic și sala.

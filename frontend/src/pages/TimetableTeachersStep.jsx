@@ -12,7 +12,7 @@ const TimetableTeachersStep = () => {
     updated[index][field] = value;
     setTeachers(updated);
   };
-
+  
   const addTeacher = () => {
     setTeachers([...teachers, { name: "", email: "" }]);
   };
