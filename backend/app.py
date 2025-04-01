@@ -2,10 +2,7 @@ from flask import Flask, render_template, jsonify, request
 from openai import OpenAI
 import json
 from flask_cors import CORS
-
-# Constante pentru cod blocks
-CODE_BLOCK_JSON = "```json"
-CODE_BLOCK = "```"
+import os
 
 client = OpenAI(api_key="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")
 
@@ -15,6 +12,24 @@ CORS(app)
 @app.route('/')
 def home():
     return render_template("index.html")
+
+def completeaza_ani_lipsa(orar_json):
+    nivele = {
+        "Licenta": ["Anul I", "Anul II", "Anul III", "Anul IV"],
+        "Master": ["Anul I", "Anul II"]
+    }
+    zile = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"]
+
+    for nivel, ani in nivele.items():
+        if nivel not in orar_json:
+            orar_json[nivel] = {}
+        for an in ani:
+            if an not in orar_json[nivel]:
+                orar_json[nivel][an] = {}
+            for zi in zile:
+                if zi not in orar_json[nivel][an]:
+                    orar_json[nivel][an][zi] = {}
+    return orar_json
 
 @app.route('/genereaza_orar', methods=['POST'])
 def genereaza_orar():
@@ -35,15 +50,16 @@ def genereaza_orar():
     orar_raw = response.choices[0].message.content.strip()
 
     try:
-        # Taie tot ce e în afara acoladelor
         start = orar_raw.find('{')
         end = orar_raw.rfind('}') + 1
         json_str = orar_raw[start:end]
-
-        # Înlocuiește eventuale ghilimele greșite
         json_str = json_str.replace("“", "\"").replace("”", "\"").replace("‘", "'").replace("’", "'")
 
         orar_json = json.loads(json_str)
+
+        # Completează anii și zilele lipsă
+        orar_json = completeaza_ani_lipsa(orar_json)
+
         print(">>> Orar generat (parsare reușită) <<<")
         print(json.dumps(orar_json, indent=2, ensure_ascii=False))
         return jsonify(orar_json)

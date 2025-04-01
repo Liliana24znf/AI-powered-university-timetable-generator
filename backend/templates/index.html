@@ -8,13 +8,18 @@
     <h1>Generează un Orar</h1>
 
     <textarea id="reguli" rows="10" cols="80">
-Generează un orar pentru o săptămână pentru studenți, respectând următoarele reguli:
-- Licență: 08:00-20:00, Master: 16:00-20:00.
-- Minim 4 ore/zi, maxim 8 ore/zi.
-- Evită pauzele inutile (ferestre).
-- Cursuri pe ani, seminare pe grupe, laboratoare pe subgrupe.
-- Miercuri ora 14:00 trebuie să fie liber.
-Returnează doar un JSON curat cu două chei: Licenta și Master.
+        Generează un orar pentru o săptămână pentru studenți, structurat pe ani de studiu, respectând următoarele reguli:
+        - Programul zilnic pentru studenții de la licență va fi între 08:00-20:00, iar pentru cei de la master între 16:00-20:00.
+        - Pentru fiecare zi, generează orar pentru TOATE cele 4 ANI de studiu de la licență (Anul I, II, III, IV) și TOATE anii de la master (ex: Anul I, II). Toți anii trebuie să fie incluși, chiar dacă unii nu au activități.
+        - Fiecare zi trebuie să aibă minim 4 ore și maxim 8 ore de activitate.
+        - Nu include pauze între activități.
+        - Folosește denumiri reale de discipline pentru fiecare an de studiu, la care sa scrii daca este curs/laborator/seminar.
+        - Activitățile trebuie să fie distribuite uniform pe parcursul săptămânii.
+        - Nu repeta activitățile în aceeași săptămână.
+        - Activitățile pentru studenții de la licență vor fi diferite de cele pentru studenții de la master.
+        - Structura: cursuri la nivel de an, seminare la nivel de grupă, laboratoare la nivel de subgrupă.
+        - Ziua de miercuri la ora 14:00 trebuie să fie liberă.
+        - Răspunde doar cu un JSON curat, fără explicații, cu structura: { "Licenta": { "Anul I": { "Luni": { interval: activitate }, ... } }, "Master": {...} }
     </textarea>
 
     <br><br>

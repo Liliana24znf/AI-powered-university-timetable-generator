@@ -8,8 +8,9 @@ const GeneratedTimetable = () => {
   const [reguli, setReguli] = useState(`
 Generează un orar pentru o săptămână pentru studenți, structurat pe ani de studiu, respectând următoarele reguli:
 - Programul zilnic pentru studenții de la licență va fi între 08:00-20:00, iar pentru cei de la master între 16:00-20:00.
-- Pentru fiecare zi, generează orar pentru fiecare an în parte (Anul I, Anul II, Anul III, Anul IV).
+- Pentru fiecare zi, generează orar pentru TOATI cei 4 ANI de studiu de la licență (Anul I, II, III, IV) și TOATE anii de la master (ex: Anul I, II). Toți anii trebuie să fie incluși, chiar dacă unii nu au activități.
 - Fiecare zi trebuie să aibă minim 4 ore și maxim 8 ore de activitate.
+- Completeaza toate zilele săptămânii (Luni, Marți, Miercuri, Joi, Vineri), fără a lăsa zile goale.
 - Nu include pauze între activități.
 - Folosește denumiri reale de discipline pentru fiecare an de studiu, la care sa scrii daca este curs/laborator/seminar.
 - Activitățile trebuie să fie distribuite uniform pe parcursul săptămânii.
