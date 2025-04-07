@@ -143,7 +143,7 @@ const Home = () => {
       </section>
 
       <div className="text-center mt-4">
-      <Link to="/orar-generat" className="btn btn-success btn-lg rounded-pill px-5">
+      <Link to="/profesori" className="btn btn-success btn-lg rounded-pill px-5">
         Generează Orarul
       </Link>
       </div>

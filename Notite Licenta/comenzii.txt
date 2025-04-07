@@ -5,14 +5,17 @@ Comenzi backend:
 cd backend 
 venv\Scripts\activate
 pip install flask
-
-
 python app.py
 
 
 
 comenzi frontend:
+cd frontend
 npm run dev
+
+
+
+
 
 autentificare:email = test@test.com, parolă = 1234
 

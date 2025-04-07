@@ -12,6 +12,8 @@ import TimetableTeachersStep from "./pages/TimetableTeachersStep";
 import TimetableCoursesStep from "./pages/TimetableCoursesStep";
 import TimetableRulesStep from "./pages/TimetableRulesStep";
 import GeneratedTimetable from "./pages/GeneratedTimetable";
+import Profesori from "./pages/Profesori.jsx";
+
 
 
 function App() {
@@ -22,6 +24,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />}/>
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profesori" element={<Profesori />} />
         <Route path="/orar-generat" element={<GeneratedTimetable />} />
         <Route path="/timetable" element={<TimetableLayout />}>
           <Route path="universitate" element={<TimetableUniversityStep />} />

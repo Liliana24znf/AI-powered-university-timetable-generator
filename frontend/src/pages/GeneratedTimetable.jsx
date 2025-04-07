@@ -1,10 +1,14 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import * as XLSX from "xlsx";
 import html2pdf from "html2pdf.js";
 
 const GeneratedTimetable = () => {
   const [orar, setOrar] = useState(null);
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const profesori = location.state?.profesori || [];
+
   const [reguli, setReguli] = useState(`
 Generează un orar pentru o săptămână pentru studenți, structurat pe ani de studiu, respectând următoarele reguli:
 - Programul zilnic pentru studenții de la licență va fi între 08:00-20:00, iar pentru cei de la master între 16:00-20:00.
@@ -18,18 +22,28 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
 - Activitățile pentru studenții de la licență vor fi diferite de cele pentru studenții de la master.
 - Structura: cursuri la nivel de an, seminare la nivel de grupă, laboratoare la nivel de subgrupă.
 - Ziua de miercuri la ora 14:00 trebuie să fie liberă.
+- Include în orar exact disciplinele și profesorii introduși mai jos. Nu genera alte activități în afară de cele oferite.
+- Atribuie disciplinele profesorilor conform listei de mai sus. La fiecare activitate afișată în orar, menționează și numele profesorului corespunzător.
 - Răspunde doar cu un JSON curat, fără explicații, cu structura: { "Licenta": { "Anul I": { "Luni": { interval: activitate }, ... } }, "Master": {...} }
   `);
 
   const genereazaOrar = async () => {
     setLoading(true);
+
+    const instructiuniProfesori = profesori.map((p) => {
+      const disciplineList = p.discipline.filter(Boolean).join(", ");
+      return `Profesorul ${p.nume} predă ${disciplineList} (${p.tip}).`;
+    }).join("\n");
+
+    const promptFinal = `${instructiuniProfesori}\n${reguli}`;
+
     try {
       const response = await fetch("http://127.0.0.1:5000/genereaza_orar", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ reguli }),
+        body: JSON.stringify({ reguli: promptFinal }),
       });
 
       const data = await response.json();
@@ -38,11 +52,11 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
     } catch (error) {
       console.error("Eroare la generare orar:", error);
     }
+
     setLoading(false);
   };
 
   const zileOrdine = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"];
-
 
   const exportExcel = () => {
     if (!orar) return;
@@ -86,8 +100,6 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
   };
 
   const renderOrar = () => {
-    const zileOrdine = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"];
-  
     const extrageIntervale = (orarNivel) => {
       const intervaleSet = new Set();
       for (const zi of zileOrdine) {
@@ -100,12 +112,12 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
       }
       return Array.from(intervaleSet).sort();
     };
-  
+
     return (
       <div>
         {Object.entries(orar).map(([nivel, ani]) => {
           const intervale = extrageIntervale(ani);
-  
+
           return (
             <div key={nivel}>
               <h2>{nivel}</h2>
@@ -142,7 +154,6 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
       </div>
     );
   };
-  
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
@@ -181,6 +192,17 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
           <div id="orar-afisat" style={{ marginTop: "20px" }}>
             <h3>📅 Orar Generat</h3>
             {renderOrar()}
+
+            <div style={{ marginTop: "40px" }}>
+              <h4>📋 Profesori incluși:</h4>
+              <ul>
+                {profesori.map((p, idx) => (
+                  <li key={idx}>
+                    <strong>{p.nume}</strong> – {p.tip} – {p.discipline.filter(Boolean).join(", ")}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </>
       )}
