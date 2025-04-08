@@ -17,42 +17,43 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
    - Licență: între 08:00–20:00.
    - Master: între 16:00–20:00.
 
-2. Pentru fiecare zi, generează orar pentru toți cei 4 ani de licență (Anul I, II, III, IV) și toți anii de la master (ex: Anul I, II).
-   Toți anii trebuie să fie incluși, chiar dacă unii nu au activități.
+2. Pentru fiecare zi, generează orar pentru toți cei 4 ani de licență (Anul I, II, III, IV) și toți anii de la master (Anul I, II). Toți anii trebuie să fie incluși, chiar dacă unii nu au activități.
 
-3. Activitățile trebuie să respecte următoarele:
-   - Minimum 4 ore și maximum 8 ore pe zi pentru fiecare an.
-   - Activitățile să fie distribuite uniform pe parcursul săptămânii.
+3. Activitățile:
+   - Min. 4 ore și max. 8 ore / zi / an.
+   - Distribuite uniform pe parcursul săptămânii.
    - Fără pauze între activități.
-   - Nu repeta aceleași activități în săptămână.
+   - Fără repetiții ale aceleiași activități în săptămână.
+   - Durata fiecărei activități este de 2 ore.
+   - Intervalele orare sunt: 08:00–10:00, 10:00–12:00, 12:00–14:00, ..., până la 20:00.
 
-4. Structura activităților:
+4. Structura:
    - Cursuri: nivel de an
    - Seminare: nivel de grupă
    - Laboratoare: nivel de subgrupă
 
-5. Ziua de miercuri la ora 14:00 trebuie să fie liberă.
+5. Miercuri ora 14:00 trebuie să fie liberă.
 
-6. **Folosește doar disciplinele și profesorii transmiși mai jos în mesaj. Nu genera alți profesori sau alte discipline.**
-   - La fiecare activitate afișată în orar, scrie:
-     - Denumirea disciplinei
-     - Tipul activității (Curs / Seminar / Laborator)
-     - Numele profesorului
-     - Codul sălii
+6. Folosește DOAR disciplinele și profesorii transmiși. Nu genera alții.
+   - La fiecare activitate: scrie disciplina, tipul (Curs/Seminar/Laborator), profesorul, sala.
 
-7. Reguli pentru alocarea sălilor:
-   - Sălile care încep cu **GC** sunt doar pentru cursuri.
-   - Sălile care încep cu **GA** sunt doar pentru laboratoare/seminare.
-   - O sală poate fi folosită **o singură dată într-un interval orar** (nu se suprapune).
-   - Folosește doar sălile din lista transmisă. Nu inventa altele.
-   - Dacă nu sunt suficiente săli pentru un interval, nu aloca activitate.
+7. Săli:
+   - GC* → doar cursuri
+   - GA* → doar seminare/laboratoare
+   - Fiecare sală poate fi folosită o singură dată într-un interval orar.
+   - Nu folosi aceeași sală în același interval orar la nivele diferite (ex: Licență și Master).
+   - Nu inventa săli.
 
 8. Profesori:
-   - **Fiecare profesor are specificat un nivel: Licență sau Master.**
-   - Nu aloca un profesor de licență la master și invers.
-   - Nu genera profesori care nu se află în lista transmisă.
+   - Nu muta profesori între niveluri. Dacă e pentru Licență, nu apare la Master și invers.
+   - O disciplină e predată doar de profesorul specificat.
 
-9. Formatul de răspuns trebuie să fie **DOAR JSON valid**. Nu include explicații sau text în plus. Structura JSON:
+9. JSON:
+   - Răspunsul trebuie să fie doar JSON valid.
+   - Structura trebuie să conțină TOATE zilele (Luni–Vineri) pentru fiecare an, chiar dacă unele sunt goale.
+   - Începe cu { și termină cu }.
+
+Structura JSON:
 {
   "Licenta": {
     "Anul I": {
@@ -61,16 +62,15 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
           "activitate": "Curs Matematică",
           "profesor": "Popescu Ion",
           "sala": "GC1"
-        },
-        ...
+        }
       },
-      ...
-    },
-    ...
+      "Marti": {},
+      "Miercuri": {},
+      "Joi": {},
+      "Vineri": {}
+    }
   },
-  "Master": {
-    ...
-  }
+  "Master": { ... }
 }
 
     `);
