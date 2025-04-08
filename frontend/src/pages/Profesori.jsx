@@ -66,7 +66,7 @@ const Profesori = () => {
 
       if (result.success) {
         alert("✅ Profesor salvat cu succes!");
-        setLista([...lista, dateTrimise]);
+        fetchProfesori(); // actualizează lista din baza de date
         setFormular({
           nume: "",
           discipline: [""],
@@ -95,10 +95,26 @@ const Profesori = () => {
     navigate("/orar-generat", { state: { profesori: lista } });
   };
 
+  const fetchProfesori = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/toti_profesorii");
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setLista(data.map(p => ({
+          nume: p.nume,
+          nivel: p.nivel,
+          tipuri: p.tipuri.split(", "),
+          discipline: p.discipline.split(", ")
+        })));
+      }
+    } catch (err) {
+      console.error("Eroare la încărcarea profesorilor:", err);
+    }
+  };
+
   useEffect(() => {
-    const sectiune = document.getElementById("lista-profesori");
-    if (sectiune) sectiune.scrollIntoView({ behavior: "smooth" });
-  }, [lista]);
+    fetchProfesori();
+  }, []);
 
   return (
     <div className="container mt-4">
@@ -214,8 +230,12 @@ const Profesori = () => {
         </div>
       )}
 
-      {/* Continuă */}
-      <div className="mt-4">
+      {/* Butoane finale */}
+      <div className="mt-4 d-flex justify-content-between">
+        <button className="btn btn-outline-primary" onClick={fetchProfesori}>
+          🔄 Reîncarcă profesori
+        </button>
+
         <button className="btn btn-primary" onClick={handleNext}>
           ➡ Continuă la generare orar
         </button>
