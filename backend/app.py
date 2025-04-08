@@ -2,8 +2,8 @@ from flask import Flask, render_template, jsonify, request
 from openai import OpenAI
 import json
 from flask_cors import CORS
-import os
 import mysql.connector
+import os
 
 client = OpenAI(api_key="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")
 
@@ -14,13 +14,20 @@ CORS(app)
 def home():
     return render_template("index.html")
 
+def get_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="licenta"
+    )
+
 def completeaza_ani_lipsa(orar_json):
     nivele = {
         "Licenta": ["Anul I", "Anul II", "Anul III", "Anul IV"],
         "Master": ["Anul I", "Anul II"]
     }
     zile = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"]
-
     for nivel, ani in nivele.items():
         if nivel not in orar_json:
             orar_json[nivel] = {}
@@ -55,10 +62,8 @@ def genereaza_orar():
         end = orar_raw.rfind('}') + 1
         json_str = orar_raw[start:end]
         json_str = json_str.replace("“", "\"").replace("”", "\"").replace("‘", "'").replace("’", "'")
-
         orar_json = json.loads(json_str)
 
-        # Completează anii și zilele lipsă
         orar_json = completeaza_ani_lipsa(orar_json)
 
         print(">>> Orar generat (parsare reușită) <<<")
@@ -70,22 +75,12 @@ def genereaza_orar():
         print(orar_raw)
         return jsonify({"error": "Orarul generat nu este într-un format JSON valid."}), 500
 
-
-# Conectare MySQL
-def get_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="licenta"
-    )
-
 @app.route("/adauga_profesor", methods=["POST"])
 def adauga_profesor():
     data = request.json
     nume = data.get("nume")
     nivel = data.get("nivel")
-    tipuri = ", ".join(data.get("tipuri", []))  # Curs, Seminar etc.
+    tipuri = ", ".join(data.get("tipuri", []))
     discipline = ", ".join(data.get("discipline", []))
 
     try:
@@ -100,31 +95,38 @@ def adauga_profesor():
         conn.close()
         return jsonify({"success": True, "message": "Profesor adăugat cu succes."})
     except Exception as e:
-        print("Eroare MySQL:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/toti_profesorii", methods=["GET"])
+def toti_profesorii():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM profesori")
+        profesori = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(profesori)
+    except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/adauga_sali", methods=["POST"])
 def adauga_sali():
     sali = request.get_json()
-
     try:
         conn = get_connection()
         cursor = conn.cursor()
-
         for sala in sali:
             cursor.execute(
                 "INSERT INTO sali (cod, tip) VALUES (%s, %s)",
                 (sala["cod"], sala["tip"])
             )
-
         conn.commit()
         cursor.close()
         conn.close()
         return jsonify({"success": True, "message": "Săli adăugate cu succes."})
     except Exception as e:
-        print("Eroare MySQL:", e)
         return jsonify({"success": False, "error": str(e)}), 500
-    
 
 @app.route("/sterge_sali", methods=["POST"])
 def sterge_sali():
@@ -138,10 +140,9 @@ def sterge_sali():
         return jsonify({"success": True, "message": "Toate sălile au fost șterse."})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-    
 
-@app.route("/toti_sali", methods=["GET"])
-def toti_sali():
+@app.route("/toate_sali", methods=["GET"])
+def toate_sali():
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
@@ -151,24 +152,7 @@ def toti_sali():
         conn.close()
         return jsonify(sali)
     except Exception as e:
-        print("Eroare MySQL:", e)
         return jsonify({"success": False, "error": str(e)}), 500
-
-
-@app.route("/toti_profesori", methods=["GET"])
-def toti_profesori():
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM profesori")
-        profesori = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(profesori)
-    except Exception as e:
-        print("Eroare MySQL:", e)
-        return jsonify({"success": False, "error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True)
