@@ -21,8 +21,8 @@ const Home = () => {
   return (
     <div style={{ minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column" }}>
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4">
-        <div className="container-fluid">
+      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 w-100">
+      <div className="container-fluid d-flex justify-content-between align-items-center">
           <Link to="/" className="navbar-brand fw-bold fs-4 text-primary">Generator Orare</Link>
           <div className="ms-auto">
             <Link to="/login" className="btn btn-outline-primary">Autentificare</Link>

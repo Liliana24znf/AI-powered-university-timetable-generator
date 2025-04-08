@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Profesori = () => {
   const [lista, setLista] = useState([]);
@@ -27,13 +27,10 @@ const Profesori = () => {
   };
 
   const toggleTipActivitate = (tip) => {
-    const alreadySelected = formular.tipuri.includes(tip);
-    setFormular({
-      ...formular,
-      tipuri: alreadySelected
-        ? formular.tipuri.filter((t) => t !== tip)
-        : [...formular.tipuri, tip],
-    });
+    const tipuri = formular.tipuri.includes(tip)
+      ? formular.tipuri.filter((t) => t !== tip)
+      : [...formular.tipuri, tip];
+    setFormular({ ...formular, tipuri });
   };
 
   const adaugaProfesor = async () => {
@@ -41,7 +38,7 @@ const Profesori = () => {
     const tipuriCurate = formular.tipuri;
 
     if (formular.nume.trim() === "" || disciplineCurate.length === 0 || tipuriCurate.length === 0) {
-      alert("Te rog completează toate câmpurile obligatorii.");
+      alert("⚠️ Te rog completează toate câmpurile.");
       return;
     }
 
@@ -55,44 +52,30 @@ const Profesori = () => {
     try {
       const response = await fetch("http://localhost:5000/adauga_profesor", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dateTrimise),
       });
 
       const result = await response.json();
-      console.log("Răspuns de la server:", result);
-
       if (result.success) {
-        alert("✅ Profesor salvat cu succes!");
-        fetchProfesori(); // actualizează lista din baza de date
-        setFormular({
-          nume: "",
-          discipline: [""],
-          nivel: "Licenta",
-          tipuri: [],
-        });
+        alert("✅ Profesor adăugat cu succes!");
+        fetchProfesori();
+        setFormular({ nume: "", discipline: [""], nivel: "Licenta", tipuri: [] });
       } else {
-        alert("Eroare la salvare: " + result.error);
+        alert("❌ Eroare la salvare: " + result.error);
       }
     } catch (error) {
-      console.error("Eroare la trimitere:", error);
-      alert("Conexiune eșuată cu backend-ul.");
+      console.error("Eroare:", error);
+      alert("❌ Nu s-a putut conecta la backend.");
     }
   };
 
   const stergeProfesor = (index) => {
-    const confirmare = window.confirm("Ești sigur că vrei să ștergi acest profesor?");
-    if (!confirmare) return;
-
-    const updated = [...lista];
-    updated.splice(index, 1);
-    setLista(updated);
-  };
-
-  const handleNext = () => {
-    navigate("/orar-generat", { state: { profesori: lista } });
+    if (window.confirm("Ești sigur că vrei să ștergi acest profesor?")) {
+      const actualizat = [...lista];
+      actualizat.splice(index, 1);
+      setLista(actualizat);
+    }
   };
 
   const fetchProfesori = async () => {
@@ -108,7 +91,7 @@ const Profesori = () => {
         })));
       }
     } catch (err) {
-      console.error("Eroare la încărcarea profesorilor:", err);
+      console.error("Eroare la fetch:", err);
     }
   };
 
@@ -116,130 +99,107 @@ const Profesori = () => {
     fetchProfesori();
   }, []);
 
+  const handleNext = () => {
+    navigate("/orar-generat", { state: { profesori: lista } });
+  };
+
   return (
-    <div className="container mt-4">
-      <h3>📘 Adaugă Profesori</h3>
-
-      {/* Formular */}
-      <div className="card mb-4 p-3 shadow-sm">
-        <div className="mb-2">
-          <label className="form-label">Nume profesor:</label>
-          <input
-            className="form-control"
-            value={formular.nume}
-            onChange={(e) => handleFormChange("nume", e.target.value)}
-            placeholder="Ex: Ionescu Maria"
-          />
+    <div style={{ minHeight: "100vh", width: "170%", display: "flex", flexDirection: "column" }}>
+      {/* NAVBAR */}
+      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 w-100">
+        <div className="container-fluid d-flex justify-content-between align-items-center">
+          <Link to="/" className="navbar-brand text-primary fw-bold fs-4">Generator Orare</Link>
+          <div>
+            <button className="btn btn-outline-primary me-2" onClick={fetchProfesori}>🔄 Reîncarcă</button>
+            <button className="btn btn-primary" onClick={handleNext}>➡ Continuă</button>
+          </div>
         </div>
+      </nav>
 
-        <div className="mb-2">
-          <label className="form-label">Nivel:</label>
-          <select
-            className="form-select"
-            value={formular.nivel}
-            onChange={(e) => handleFormChange("nivel", e.target.value)}
-          >
-            <option value="Licenta">Licență</option>
-            <option value="Master">Master</option>
-          </select>
-        </div>
+      {/* CONȚINUT */}
+      <div className="container-fluid flex-grow-1 d-flex justify-content-between align-items-start p-4 gap-4">
+        {/* Coloana 1: Formular */}
+        <div className="bg-white p-4 shadow-sm rounded" style={{ width: "50%" }}>
 
-        <div className="mb-2">
-          <label className="form-label">Tip activitate:</label>
-          {["Curs", "Seminar", "Laborator"].map((tip) => (
-            <div key={tip} className="form-check form-check-inline">
+          <h4 className="mb-3">🧾 Formular Profesor</h4>
+
+          <div className="mb-2">
+            <label className="form-label">Nume:</label>
+            <input className="form-control" value={formular.nume} onChange={(e) => handleFormChange("nume", e.target.value)} />
+          </div>
+
+          <div className="mb-2">
+            <label className="form-label">Nivel:</label>
+            <select className="form-select" value={formular.nivel} onChange={(e) => handleFormChange("nivel", e.target.value)}>
+              <option value="Licenta">Licență</option>
+              <option value="Master">Master</option>
+            </select>
+          </div>
+
+          <div className="mb-2">
+            <label className="form-label">Tipuri activitate:</label>
+            {["Curs", "Seminar", "Laborator"].map((tip) => (
+              <div key={tip} className="form-check form-check-inline">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  checked={formular.tipuri.includes(tip)}
+                  onChange={() => toggleTipActivitate(tip)}
+                />
+                <label className="form-check-label">{tip}</label>
+              </div>
+            ))}
+          </div>
+
+          <div className="mb-2">
+            <label className="form-label">Discipline:</label>
+            {formular.discipline.map((disc, i) => (
               <input
-                className="form-check-input"
-                type="checkbox"
-                checked={formular.tipuri.includes(tip)}
-                onChange={() => toggleTipActivitate(tip)}
+                key={i}
+                className="form-control mb-1"
+                value={disc}
+                onChange={(e) => handleDisciplinaChange(i, e.target.value)}
               />
-              <label className="form-check-label">{tip}</label>
-            </div>
-          ))}
+            ))}
+            <button className="btn btn-sm btn-outline-secondary mt-2" onClick={adaugaDisciplina}>
+              + Adaugă disciplină
+            </button>
+          </div>
+
+          <div className="d-flex justify-content-between mt-3">
+            <button className="btn btn-success" onClick={adaugaProfesor}>✅ Salvează profesor</button>
+            <button className="btn btn-outline-secondary" onClick={() => setFormular({ nume: "", discipline: [""], nivel: "Licenta", tipuri: [] })}>🔄 Resetare</button>
+          </div>
         </div>
 
-        <div className="mb-2">
-          <label className="form-label">Discipline:</label>
-          {formular.discipline.map((disc, i) => (
-            <input
-              key={i}
-              className="form-control mb-1"
-              value={disc}
-              onChange={(e) => handleDisciplinaChange(i, e.target.value)}
-              placeholder={`Disciplină #${i + 1}`}
-            />
-          ))}
-          <button
-            className="btn btn-sm btn-outline-secondary mt-2"
-            onClick={adaugaDisciplina}
-          >
-            + Adaugă disciplină
-          </button>
-        </div>
+        {/* Spațiu liber central */}
+        <div style={{ width: "25%" }} />
 
-        <div className="d-flex justify-content-between mt-3">
-          <button className="btn btn-success" onClick={adaugaProfesor}>
-            ✅ Salvează profesor
-          </button>
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() =>
-              setFormular({ nume: "", discipline: [""], nivel: "Licenta", tipuri: [] })
-            }
-          >
-            🔄 Resetare formular
-          </button>
-        </div>
-      </div>
 
-      {/* Listă profesori */}
-      {lista.length > 0 && (
-        <div className="card p-3 shadow-sm" id="lista-profesori">
-          <h5>📋 Profesori adăugați:</h5>
+        {/* Coloana 2: Lista Profesori */}
+        <div className="bg-white p-4 shadow-sm rounded" style={{ width: "50%" }}>
+
+          <h5 className="mb-3">📋 Profesori existenți:</h5>
+          {lista.length === 0 && <p className="text-muted">Nu există profesori.</p>}
           <ul className="list-group">
             {lista.map((prof, index) => (
-              <li
-                key={index}
-                className="list-group-item d-flex justify-content-between align-items-start flex-column"
-              >
-                <div>
-                  <strong>{prof.nume}</strong> – {prof.nivel}
-                </div>
+              <li key={index} className="list-group-item d-flex justify-content-between flex-column">
+                <div><strong>{prof.nume}</strong> – {prof.nivel}</div>
                 <div className="mt-1">
-                  {prof.tipuri.map((tip, idx) => (
-                    <span key={idx} className="badge bg-primary me-1">
-                      {tip}
-                    </span>
-                  ))}
-                  {prof.discipline.map((disc, idx) => (
-                    <span key={idx} className="badge bg-secondary me-1">
-                      {disc}
-                    </span>
-                  ))}
+                  {prof.tipuri.map((t, i) => <span key={i} className="badge bg-primary me-1">{t}</span>)}
+                  {prof.discipline.map((d, i) => <span key={i} className="badge bg-secondary me-1">{d}</span>)}
                 </div>
-                <button
-                  className="btn btn-sm btn-danger mt-2 align-self-end"
-                  onClick={() => stergeProfesor(index)}
-                >
-                  Șterge
-                </button>
+                <button className="btn btn-sm btn-danger mt-2 align-self-end" onClick={() => stergeProfesor(index)}>🗑️ Șterge</button>
               </li>
             ))}
           </ul>
         </div>
-      )}
-
-      {/* Butoane finale */}
-      <div className="mt-4 d-flex justify-content-between">
-        <button className="btn btn-outline-primary" onClick={fetchProfesori}>
-          🔄 Reîncarcă profesori
-        </button>
-
-        <button className="btn btn-primary" onClick={handleNext}>
-          ➡ Continuă la generare orar
-        </button>
       </div>
+
+      {/* FOOTER */}
+      <footer className="bg-white text-center text-muted py-3 border-top">
+        <p className="mb-0">&copy; {new Date().getFullYear()} Generator Orare • Toate drepturile rezervate.</p>
+      </footer>
     </div>
   );
 };
