@@ -215,3 +215,6 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
 };
 
 export default GeneratedTimetable;
+
+
+

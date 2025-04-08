@@ -3,6 +3,7 @@ from openai import OpenAI
 import json
 from flask_cors import CORS
 import os
+import mysql.connector
 
 client = OpenAI(api_key="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")
 
@@ -68,6 +69,40 @@ def genereaza_orar():
         print(">>> Răspuns complet GPT <<<")
         print(orar_raw)
         return jsonify({"error": "Orarul generat nu este într-un format JSON valid."}), 500
+
+
+# Conectare MySQL
+def get_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="licenta"
+    )
+
+@app.route("/adauga_profesor", methods=["POST"])
+def adauga_profesor():
+    data = request.json
+    nume = data.get("nume")
+    nivel = data.get("nivel")
+    tipuri = ", ".join(data.get("tipuri", []))  # Curs, Seminar etc.
+    discipline = ", ".join(data.get("discipline", []))
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO profesori (nume, nivel, tipuri, discipline) VALUES (%s, %s, %s, %s)",
+            (nume, nivel, tipuri, discipline)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "message": "Profesor adăugat cu succes."})
+    except Exception as e:
+        print("Eroare MySQL:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
