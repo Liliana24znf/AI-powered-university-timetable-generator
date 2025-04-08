@@ -51,6 +51,7 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
 9. JSON:
    - Răspunsul trebuie să fie doar JSON valid.
    - Structura trebuie să conțină TOATE zilele (Luni–Vineri) pentru fiecare an, chiar dacă unele sunt goale.
+   - TOATE intervalele orare definite trebuie verificate și completate dacă există activități.
    - Începe cu { și termină cu }.
 
 Structura JSON:
@@ -72,6 +73,17 @@ Structura JSON:
   },
   "Master": { ... }
 }
+
+
+10. Obligatoriu:
+   - Pentru fiecare AN (ex: Licență Anul I, II, III, IV și Master Anul I, II) trebuie să existe o intrare în fiecare zi a săptămânii (Luni–Vineri).
+   - Dacă într-o zi nu există activitate pentru acel an, ziua va fi prezentă cu valoare {}.
+   - Nu lăsa zile lipsă din structura JSON.
+
+   NU OMITE NICIO ZI din săptămână (Luni–Vineri) și NICIUN AN. Toți trebuie să fie prezenți cu cel puțin o structură JSON. NU returna niciodată JSON incomplet!
+
+   11. Completează activități pentru TOȚI anii, nu doar Anul I. Fiecare an trebuie să aibă cel puțin 4 ore/zi activități. Nu lăsa anii fără activități.
+
 
     `);
 
@@ -167,22 +179,29 @@ ${reguli}
       }
       return Array.from(intervaleSet).sort();
     };
-
+  
+    const getBadgeClass = (tipActivitate) => {
+      if (tipActivitate.toLowerCase().includes("curs")) return "bg-info";
+      if (tipActivitate.toLowerCase().includes("laborator")) return "bg-success";
+      if (tipActivitate.toLowerCase().includes("seminar")) return "bg-warning";
+      return "bg-secondary";
+    };
+  
     return (
-      <div>
+      <div className="table-responsive">
         {Object.entries(orar).map(([nivel, ani]) => {
           const intervale = extrageIntervale(ani);
-
+  
           return (
             <div key={nivel}>
               <h2>{nivel}</h2>
               {Object.entries(ani).map(([an, zile]) => (
-                <div key={`${nivel}-${an}`} style={{ marginBottom: "40px" }}>
+                <div key={`${nivel}-${an}`} className="mb-4">
                   <h4>📘 {nivel} – {an}</h4>
-                  <table border="1" cellPadding="5" style={{ borderCollapse: "collapse", width: "100%", textAlign: "center" }}>
-                    <thead>
-                      <tr style={{ backgroundColor: "#f0f0f0" }}>
-                        <th style={{ width: "150px" }}>Interval</th>
+                  <table className="table table-bordered text-center align-middle">
+                    <thead className="table-light">
+                      <tr>
+                        <th>Interval</th>
                         {zileOrdine.map((zi) => (
                           <th key={zi}>{zi}</th>
                         ))}
@@ -192,22 +211,22 @@ ${reguli}
                       {intervale.map((interval) => (
                         <tr key={interval}>
                           <td><strong>{interval}</strong></td>
-                          {zileOrdine.map((zi) => (
-                            <td key={`${zi}-${interval}`}>
-                            {(() => {
-                              const activitateObj = zile?.[zi]?.[interval];
-                              if (!activitateObj) return "";
-                              return (
-                                <>
-                                  <div><strong>{activitateObj.activitate}</strong></div>
-                                  <div>{activitateObj.profesor}</div>
-                                  <div>{activitateObj.sala}</div>
-                                </>
-                              );
-                            })()}
-                          </td>
-                          
-                          ))}
+                          {zileOrdine.map((zi) => {
+                            const activitate = zile?.[zi]?.[interval];
+                            return (
+                              <td key={`${zi}-${interval}`}>
+                                {activitate ? (
+                                  <div>
+                                    <span className={`badge ${getBadgeClass(activitate.activitate)} mb-1`}>
+                                      {activitate.activitate}
+                                    </span>
+                                    <div>{activitate.profesor}</div>
+                                    <div className="text-muted">{activitate.sala}</div>
+                                  </div>
+                                ) : ""}
+                              </td>
+                            );
+                          })}
                         </tr>
                       ))}
                     </tbody>
@@ -220,69 +239,94 @@ ${reguli}
       </div>
     );
   };
+  
+
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h2>Generare Orar cu GPT-4</h2>
-
-      <h4>📝 Editare reguli:</h4>
-      <textarea
-        value={reguli}
-        onChange={(e) => setReguli(e.target.value)}
-        rows={10}
-        cols={80}
-        style={{ fontSize: "14px", width: "100%", maxWidth: "800px" }}
-      />
-      <br />
-      <button onClick={genereazaOrar} style={{ marginTop: "10px" }}>
-        Generează Orar
-      </button>
-      <button onClick={() => setOrar(null)} style={{ marginLeft: "10px" }}>
-        Resetează Orar
-      </button>
-      <button onClick={() => setReguli("")} style={{ marginLeft: "10px" }}>
-        Resetează Reguli
-      </button>
-
-      {loading && <p>⏳ Se generează orarul...</p>}
-
-      {orar && (
-        <>
-          <div style={{ marginTop: "20px" }}>
-            <button onClick={exportExcel}>Exportă în Excel</button>
-            <button onClick={exportPDF} style={{ marginLeft: "10px" }}>
-              Exportă în PDF
+    <div style={{ minHeight: "100vh", width: "270%", display: "flex", flexDirection: "column" }}>
+      {/* NAVBAR */}
+      <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm px-4">
+        <div className="container-fluid justify-content-between">
+          <span className="navbar-brand fw-bold text-white fs-4">
+            Generator Orare
+          </span>
+          <div>
+            <button className="btn btn-light me-2" onClick={exportExcel}>
+              ⬇ Export Excel
+            </button>
+            <button className="btn btn-light" onClick={exportPDF}>
+              🖨️ Export PDF
             </button>
           </div>
-
-          <div id="orar-afisat" style={{ marginTop: "20px" }}>
-            <h3>📅 Orar Generat</h3>
-            {renderOrar()}
-
-            <div style={{ marginTop: "40px" }}>
-              <h4>📋 Profesori incluși:</h4>
-              <ul>
-                {profesori.map((p, idx) => (
-                  <li key={idx}>
-                    <strong>{p.nume}</strong> – {p.nivel} – {p.tipuri.join("/")} – {p.discipline.join(", ")}
-                  </li>
-                ))}
-              </ul>
-
-              <h4>🏫 Săli disponibile:</h4>
-              <ul>
-                {sali.map((s, i) => (
-                  <li key={i}>{s.cod} – {s.tip}</li>
-                ))}
-              </ul>
+        </div>
+      </nav>
+  
+      {/* CONȚINUT */}
+      <div className="container py-4">
+        <h2 className="mb-3">📅 Generare Orar cu GPT-4</h2>
+  
+        <div className="mb-3">
+          <label className="form-label fw-semibold">📝 Editare reguli:</label>
+          <textarea
+            className="form-control"
+            value={reguli}
+            onChange={(e) => setReguli(e.target.value)}
+            rows={10}
+          />
+        </div>
+  
+        <div className="d-flex flex-wrap gap-2 mb-4">
+          <button className="btn btn-success" onClick={genereazaOrar}>
+            ⚙️ Generează Orar
+          </button>
+          <button className="btn btn-outline-secondary" onClick={() => setOrar(null)}>
+            🔄 Resetează Orar
+          </button>
+          <button className="btn btn-outline-danger" onClick={() => setReguli("")}>
+            🗑️ Resetează Reguli
+          </button>
+        </div>
+  
+        {loading && <p>⏳ Se generează orarul...</p>}
+  
+        {orar && (
+          <>
+            <div id="orar-afisat">
+              <h4 className="mt-4">📋 Orar Generat:</h4>
+              {renderOrar()}
+  
+              <div className="mt-5">
+                <h5>👨‍🏫 Profesori incluși:</h5>
+                <ul className="list-group mb-4">
+                  {profesori.map((p, idx) => (
+                    <li key={idx} className="list-group-item">
+                      <strong>{p.nume}</strong> – {p.nivel} – {p.tipuri.join("/")} – {p.discipline.join(", ")}
+                    </li>
+                  ))}
+                </ul>
+  
+                <h5>🏫 Săli disponibile:</h5>
+                <ul className="list-group">
+                  {sali.map((s, i) => (
+                    <li key={i} className="list-group-item">
+                      {s.cod} – {s.tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
-        </>
-      )}
-
-      {!orar && !loading && (
-        <p>📭 Nu a fost generat niciun orar încă. Apasă „Generează Orar”.</p>
-      )}
+          </>
+        )}
+  
+        {!orar && !loading && (
+          <p className="text-muted">📭 Nu a fost generat niciun orar încă. Apasă „Generează Orar”.</p>
+        )}
+      </div>
+  
+      {/* FOOTER */}
+      <footer className="bg-white text-center text-muted py-3 border-top mt-auto">
+        <p className="mb-0">© {new Date().getFullYear()} Generator Orare</p>
+      </footer>
     </div>
   );
 };
