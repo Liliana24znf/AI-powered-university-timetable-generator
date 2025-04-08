@@ -12,22 +12,68 @@ const GeneratedTimetable = () => {
 
   const [reguli, setReguli] = useState(`
 Generează un orar pentru o săptămână pentru studenți, structurat pe ani de studiu, respectând următoarele reguli:
-- Programul zilnic pentru studenții de la licență va fi între 08:00-20:00, iar pentru cei de la master între 16:00-20:00.
-- Pentru fiecare zi, generează orar pentru TOȚI cei 4 ANI de studiu de la licență (Anul I, II, III, IV) și TOATE anii de la master (ex: Anul I, II). Toți anii trebuie să fie incluși, chiar dacă unii nu au activități.
-- Fiecare zi trebuie să aibă minim 4 ore și maxim 8 ore de activitate.
-- Completează toate zilele săptămânii (Luni, Marți, Miercuri, Joi, Vineri), fără a lăsa zile goale.
-- Nu include pauze între activități.
-- Folosește denumiri reale de discipline pentru fiecare an de studiu, la care să scrii dacă este curs/laborator/seminar.
-- Activitățile trebuie să fie distribuite uniform pe parcursul săptămânii.
-- Nu repeta activitățile în aceeași săptămână.
-- Activitățile pentru studenții de la licență vor fi diferite de cele pentru studenții de la master.
-- Structura: cursuri la nivel de an, seminare la nivel de grupă, laboratoare la nivel de subgrupă.
-- Ziua de miercuri la ora 14:00 trebuie să fie liberă.
-- Include în orar doar disciplinele și profesorii de mai jos. Nu genera alte activități în afară de cele oferite.
-- Fiecare activitate trebuie să aibă o sală alocată din lista de săli disponibile. Cursurile folosesc săli prefixate cu GC, iar laboratoarele/seminarele cu GA.
-- La fiecare activitate afișează și numele profesorului și codul sălii.
-- Răspunde DOAR cu JSON valid, cu structura: { "Licenta": { "Anul I": { "Luni": { interval: activitate }, ... } }, "Master": {...} }
-`);
+
+1. Programul zilnic:
+   - Licență: între 08:00–20:00.
+   - Master: între 16:00–20:00.
+
+2. Pentru fiecare zi, generează orar pentru toți cei 4 ani de licență (Anul I, II, III, IV) și toți anii de la master (ex: Anul I, II).
+   Toți anii trebuie să fie incluși, chiar dacă unii nu au activități.
+
+3. Activitățile trebuie să respecte următoarele:
+   - Minimum 4 ore și maximum 8 ore pe zi pentru fiecare an.
+   - Activitățile să fie distribuite uniform pe parcursul săptămânii.
+   - Fără pauze între activități.
+   - Nu repeta aceleași activități în săptămână.
+
+4. Structura activităților:
+   - Cursuri: nivel de an
+   - Seminare: nivel de grupă
+   - Laboratoare: nivel de subgrupă
+
+5. Ziua de miercuri la ora 14:00 trebuie să fie liberă.
+
+6. **Folosește doar disciplinele și profesorii transmiși mai jos în mesaj. Nu genera alți profesori sau alte discipline.**
+   - La fiecare activitate afișată în orar, scrie:
+     - Denumirea disciplinei
+     - Tipul activității (Curs / Seminar / Laborator)
+     - Numele profesorului
+     - Codul sălii
+
+7. Reguli pentru alocarea sălilor:
+   - Sălile care încep cu **GC** sunt doar pentru cursuri.
+   - Sălile care încep cu **GA** sunt doar pentru laboratoare/seminare.
+   - O sală poate fi folosită **o singură dată într-un interval orar** (nu se suprapune).
+   - Folosește doar sălile din lista transmisă. Nu inventa altele.
+   - Dacă nu sunt suficiente săli pentru un interval, nu aloca activitate.
+
+8. Profesori:
+   - **Fiecare profesor are specificat un nivel: Licență sau Master.**
+   - Nu aloca un profesor de licență la master și invers.
+   - Nu genera profesori care nu se află în lista transmisă.
+
+9. Formatul de răspuns trebuie să fie **DOAR JSON valid**. Nu include explicații sau text în plus. Structura JSON:
+{
+  "Licenta": {
+    "Anul I": {
+      "Luni": {
+        "08:00-10:00": {
+          "activitate": "Curs Matematică",
+          "profesor": "Popescu Ion",
+          "sala": "GC1"
+        },
+        ...
+      },
+      ...
+    },
+    ...
+  },
+  "Master": {
+    ...
+  }
+}
+
+    `);
 
   const genereazaOrar = async () => {
     setLoading(true);
