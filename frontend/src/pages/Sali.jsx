@@ -1,14 +1,15 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // 👈 import necesar
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Sali = () => {
   const [numarCursuri, setNumarCursuri] = useState(0);
   const [numarLabSem, setNumarLabSem] = useState(0);
   const [saliGenerat, setSaliGenerat] = useState([]);
-  const navigate = useNavigate(); // 👈 definirea funcției de navigare
+  const navigate = useNavigate();
 
   const genereazaSali = async () => {
     const sali = [];
+
     for (let i = 1; i <= numarCursuri; i++) {
       sali.push({ cod: `GC${i}`, tip: "Curs" });
     }
@@ -21,15 +22,16 @@ const Sali = () => {
     try {
       const response = await fetch("http://localhost:5000/adauga_sali", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sali),
       });
 
       const result = await response.json();
       if (!result.success) {
         alert("Eroare la salvare: " + result.error);
+      } else {
+        alert("✅ Sălile au fost salvate!");
+        fetchSali(); // actualizare listă
       }
     } catch (error) {
       alert("Conexiune eșuată cu backend-ul.");
@@ -49,6 +51,7 @@ const Sali = () => {
       if (data.success) {
         alert("Toate sălile au fost șterse.");
         setSaliGenerat([]);
+        fetchSali(); // actualizare
       } else {
         alert("Eroare la ștergere: " + data.error);
       }
@@ -57,6 +60,22 @@ const Sali = () => {
       console.error(error);
     }
   };
+
+  const fetchSali = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/toate_sali");
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setSaliGenerat(data);
+      }
+    } catch (err) {
+      console.error("Eroare la încărcarea sălilor:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSali();
+  }, []);
 
   return (
     <div className="container mt-4">
@@ -82,25 +101,31 @@ const Sali = () => {
         />
       </div>
 
-      <button className="btn btn-success" onClick={genereazaSali}>
-        ✅ Salvează în baza de date
-      </button>
+      <div className="d-flex gap-2 mt-3 flex-wrap">
+        <button className="btn btn-success" onClick={genereazaSali}>
+          ✅ Salvează în baza de date
+        </button>
 
-      <button className="btn btn-danger mt-3 ms-2" onClick={stergeToateSali}>
-        🗑️ Șterge toate sălile
-      </button>
+        <button className="btn btn-danger" onClick={stergeToateSali}>
+          🗑️ Șterge toate sălile
+        </button>
 
-      <button className="btn btn-primary mt-3 ms-2" onClick={() => navigate("/profesori")}>
-        👨‍🏫 Mergi la Profesori
-      </button>
+        <button className="btn btn-outline-primary" onClick={fetchSali}>
+          🔄 Reîncarcă sălile
+        </button>
+
+        <button className="btn btn-secondary" onClick={() => navigate("/profesori")}>
+          👨‍🏫 Mergi la Profesori
+        </button>
+      </div>
 
       {saliGenerat.length > 0 && (
         <div className="mt-4">
-          <h5>📋 Săli generate:</h5>
+          <h5>📋 Săli disponibile:</h5>
           <ul className="list-group">
             {saliGenerat.map((s, i) => (
               <li key={i} className="list-group-item">
-                {s.cod} – {s.tip}
+                <strong>{s.cod}</strong> – {s.tip}
               </li>
             ))}
           </ul>
