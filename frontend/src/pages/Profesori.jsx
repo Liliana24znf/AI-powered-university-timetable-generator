@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Profesori = () => {
@@ -7,7 +7,7 @@ const Profesori = () => {
     nume: "",
     discipline: [""],
     nivel: "Licenta",
-    tipuri: []
+    tipuri: [],
   });
 
   const navigate = useNavigate();
@@ -31,27 +31,27 @@ const Profesori = () => {
     setFormular({
       ...formular,
       tipuri: alreadySelected
-        ? formular.tipuri.filter(t => t !== tip)
-        : [...formular.tipuri, tip]
+        ? formular.tipuri.filter((t) => t !== tip)
+        : [...formular.tipuri, tip],
     });
   };
 
   const adaugaProfesor = async () => {
-    const disciplineCurate = formular.discipline.filter(d => d.trim() !== "");
+    const disciplineCurate = formular.discipline.filter((d) => d.trim() !== "");
     const tipuriCurate = formular.tipuri;
-  
+
     if (formular.nume.trim() === "" || disciplineCurate.length === 0 || tipuriCurate.length === 0) {
       alert("Te rog completează toate câmpurile obligatorii.");
       return;
     }
-  
+
     const dateTrimise = {
       nume: formular.nume.trim(),
       nivel: formular.nivel,
       tipuri: tipuriCurate,
       discipline: disciplineCurate,
     };
-  
+
     try {
       const response = await fetch("http://localhost:5000/adauga_profesor", {
         method: "POST",
@@ -60,11 +60,12 @@ const Profesori = () => {
         },
         body: JSON.stringify(dateTrimise),
       });
-  
+
       const result = await response.json();
-      console.log("Răspuns de la server:", result); // debug
-  
+      console.log("Răspuns de la server:", result);
+
       if (result.success) {
+        alert("✅ Profesor salvat cu succes!");
         setLista([...lista, dateTrimise]);
         setFormular({
           nume: "",
@@ -80,10 +81,11 @@ const Profesori = () => {
       alert("Conexiune eșuată cu backend-ul.");
     }
   };
-  
-  
 
   const stergeProfesor = (index) => {
+    const confirmare = window.confirm("Ești sigur că vrei să ștergi acest profesor?");
+    if (!confirmare) return;
+
     const updated = [...lista];
     updated.splice(index, 1);
     setLista(updated);
@@ -93,11 +95,16 @@ const Profesori = () => {
     navigate("/orar-generat", { state: { profesori: lista } });
   };
 
+  useEffect(() => {
+    const sectiune = document.getElementById("lista-profesori");
+    if (sectiune) sectiune.scrollIntoView({ behavior: "smooth" });
+  }, [lista]);
+
   return (
     <div className="container mt-4">
       <h3>📘 Adaugă Profesori</h3>
 
-      {/* Form Adăugare */}
+      {/* Formular */}
       <div className="card mb-4 p-3 shadow-sm">
         <div className="mb-2">
           <label className="form-label">Nume profesor:</label>
@@ -155,23 +162,48 @@ const Profesori = () => {
           </button>
         </div>
 
-        <button className="btn btn-success mt-2" onClick={adaugaProfesor}>
-          ✅ Salvează profesor
-        </button>
+        <div className="d-flex justify-content-between mt-3">
+          <button className="btn btn-success" onClick={adaugaProfesor}>
+            ✅ Salvează profesor
+          </button>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() =>
+              setFormular({ nume: "", discipline: [""], nivel: "Licenta", tipuri: [] })
+            }
+          >
+            🔄 Resetare formular
+          </button>
+        </div>
       </div>
 
-      {/* Afișare profesori adăugați */}
+      {/* Listă profesori */}
       {lista.length > 0 && (
-        <div className="card p-3 shadow-sm">
+        <div className="card p-3 shadow-sm" id="lista-profesori">
           <h5>📋 Profesori adăugați:</h5>
           <ul className="list-group">
             {lista.map((prof, index) => (
-              <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+              <li
+                key={index}
+                className="list-group-item d-flex justify-content-between align-items-start flex-column"
+              >
                 <div>
-                  <strong>{prof.nume}</strong> – {prof.nivel} – {prof.tipuri.join(", ")} – {prof.discipline.join(", ")}
+                  <strong>{prof.nume}</strong> – {prof.nivel}
+                </div>
+                <div className="mt-1">
+                  {prof.tipuri.map((tip, idx) => (
+                    <span key={idx} className="badge bg-primary me-1">
+                      {tip}
+                    </span>
+                  ))}
+                  {prof.discipline.map((disc, idx) => (
+                    <span key={idx} className="badge bg-secondary me-1">
+                      {disc}
+                    </span>
+                  ))}
                 </div>
                 <button
-                  className="btn btn-sm btn-danger"
+                  className="btn btn-sm btn-danger mt-2 align-self-end"
                   onClick={() => stergeProfesor(index)}
                 >
                   Șterge
@@ -182,7 +214,7 @@ const Profesori = () => {
         </div>
       )}
 
-      {/* Buton continuare */}
+      {/* Continuă */}
       <div className="mt-4">
         <button className="btn btn-primary" onClick={handleNext}>
           ➡ Continuă la generare orar

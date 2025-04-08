@@ -8,46 +8,56 @@ const GeneratedTimetable = () => {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
   const profesori = location.state?.profesori || [];
+  const sali = location.state?.sali || [];
 
   const [reguli, setReguli] = useState(`
 Generează un orar pentru o săptămână pentru studenți, structurat pe ani de studiu, respectând următoarele reguli:
 - Programul zilnic pentru studenții de la licență va fi între 08:00-20:00, iar pentru cei de la master între 16:00-20:00.
-- Pentru fiecare zi, generează orar pentru TOATI cei 4 ANI de studiu de la licență (Anul I, II, III, IV) și TOATE anii de la master (ex: Anul I, II). Toți anii trebuie să fie incluși, chiar dacă unii nu au activități.
+- Pentru fiecare zi, generează orar pentru TOȚI cei 4 ANI de studiu de la licență (Anul I, II, III, IV) și TOATE anii de la master (ex: Anul I, II). Toți anii trebuie să fie incluși, chiar dacă unii nu au activități.
 - Fiecare zi trebuie să aibă minim 4 ore și maxim 8 ore de activitate.
-- Completeaza toate zilele săptămânii (Luni, Marți, Miercuri, Joi, Vineri), fără a lăsa zile goale.
+- Completează toate zilele săptămânii (Luni, Marți, Miercuri, Joi, Vineri), fără a lăsa zile goale.
 - Nu include pauze între activități.
-- Folosește denumiri reale de discipline pentru fiecare an de studiu, la care sa scrii daca este curs/laborator/seminar.
+- Folosește denumiri reale de discipline pentru fiecare an de studiu, la care să scrii dacă este curs/laborator/seminar.
 - Activitățile trebuie să fie distribuite uniform pe parcursul săptămânii.
 - Nu repeta activitățile în aceeași săptămână.
 - Activitățile pentru studenții de la licență vor fi diferite de cele pentru studenții de la master.
 - Structura: cursuri la nivel de an, seminare la nivel de grupă, laboratoare la nivel de subgrupă.
 - Ziua de miercuri la ora 14:00 trebuie să fie liberă.
-- Include în orar exact disciplinele și profesorii introduși mai jos. Nu genera alte activități în afară de cele oferite.
-- Atribuie disciplinele profesorilor conform listei de mai sus. La fiecare activitate afișată în orar, menționează și numele profesorului corespunzător.
-- Răspunde doar cu un JSON curat, fără explicații, cu structura: { "Licenta": { "Anul I": { "Luni": { interval: activitate }, ... } }, "Master": {...} }
-  `);
+- Include în orar doar disciplinele și profesorii de mai jos. Nu genera alte activități în afară de cele oferite.
+- Fiecare activitate trebuie să aibă o sală alocată din lista de săli disponibile. Cursurile folosesc săli prefixate cu GC, iar laboratoarele/seminarele cu GA.
+- La fiecare activitate afișează și numele profesorului și codul sălii.
+- Răspunde DOAR cu JSON valid, cu structura: { "Licenta": { "Anul I": { "Luni": { interval: activitate }, ... } }, "Master": {...} }
+`);
 
   const genereazaOrar = async () => {
     setLoading(true);
 
     const instructiuniProfesori = profesori.map((p) => {
       const disciplineList = p.discipline.filter(Boolean).join(", ");
-      return `Profesorul ${p.nume} predă ${disciplineList} (${p.tip}).`;
+      const tipuriList = p.tipuri.join("/");
+      return `Profesorul ${p.nume} predă disciplinele: ${disciplineList}, pentru nivelul ${p.nivel}, tipuri: ${tipuriList}.`;
     }).join("\n");
 
-    const promptFinal = `${instructiuniProfesori}\n${reguli}`;
+    const instructiuniSali = sali.map((s) => `${s.cod} (${s.tip})`).join(", ");
+
+    const promptFinal = `
+Lista profesorilor:
+${instructiuniProfesori}
+
+Lista sălilor disponibile:
+${instructiuniSali}
+
+${reguli}
+    `;
 
     try {
       const response = await fetch("http://127.0.0.1:5000/genereaza_orar", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reguli: promptFinal }),
       });
 
       const data = await response.json();
-      console.log("Răspuns backend:", data);
       setOrar(data);
     } catch (error) {
       console.error("Eroare la generare orar:", error);
@@ -60,7 +70,6 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
 
   const exportExcel = () => {
     if (!orar) return;
-
     const wb = XLSX.utils.book_new();
     for (const nivel in orar) {
       for (const an in orar[nivel]) {
@@ -139,8 +148,19 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
                           <td><strong>{interval}</strong></td>
                           {zileOrdine.map((zi) => (
                             <td key={`${zi}-${interval}`}>
-                              {zile?.[zi]?.[interval] || ""}
-                            </td>
+                            {(() => {
+                              const activitateObj = zile?.[zi]?.[interval];
+                              if (!activitateObj) return "";
+                              return (
+                                <>
+                                  <div><strong>{activitateObj.activitate}</strong></div>
+                                  <div>{activitateObj.profesor}</div>
+                                  <div>{activitateObj.sala}</div>
+                                </>
+                              );
+                            })()}
+                          </td>
+                          
                           ))}
                         </tr>
                       ))}
@@ -198,8 +218,15 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
               <ul>
                 {profesori.map((p, idx) => (
                   <li key={idx}>
-                    <strong>{p.nume}</strong> – {p.tip} – {p.discipline.filter(Boolean).join(", ")}
+                    <strong>{p.nume}</strong> – {p.nivel} – {p.tipuri.join("/")} – {p.discipline.join(", ")}
                   </li>
+                ))}
+              </ul>
+
+              <h4>🏫 Săli disponibile:</h4>
+              <ul>
+                {sali.map((s, i) => (
+                  <li key={i}>{s.cod} – {s.tip}</li>
                 ))}
               </ul>
             </div>
@@ -215,6 +242,3 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
 };
 
 export default GeneratedTimetable;
-
-
-

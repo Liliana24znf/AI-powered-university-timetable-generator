@@ -13,6 +13,7 @@ import TimetableCoursesStep from "./pages/TimetableCoursesStep";
 import TimetableRulesStep from "./pages/TimetableRulesStep";
 import GeneratedTimetable from "./pages/GeneratedTimetable";
 import Profesori from "./pages/Profesori.jsx";
+import Sali from "./pages/Sali.jsx";
 
 
 
@@ -26,6 +27,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profesori" element={<Profesori />} />
         <Route path="/orar-generat" element={<GeneratedTimetable />} />
+        <Route path="/sali" element={<Sali />} />
         <Route path="/timetable" element={<TimetableLayout />}>
           <Route path="universitate" element={<TimetableUniversityStep />} />
           <Route path="grupe" element={<TimetableGroupsStep />} />

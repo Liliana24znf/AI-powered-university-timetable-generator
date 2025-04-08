@@ -103,6 +103,72 @@ def adauga_profesor():
         print("Eroare MySQL:", e)
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/adauga_sali", methods=["POST"])
+def adauga_sali():
+    sali = request.get_json()
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        for sala in sali:
+            cursor.execute(
+                "INSERT INTO sali (cod, tip) VALUES (%s, %s)",
+                (sala["cod"], sala["tip"])
+            )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "message": "Săli adăugate cu succes."})
+    except Exception as e:
+        print("Eroare MySQL:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+    
+
+@app.route("/sterge_sali", methods=["POST"])
+def sterge_sali():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM sali")
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "message": "Toate sălile au fost șterse."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    
+
+@app.route("/toti_sali", methods=["GET"])
+def toti_sali():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM sali")
+        sali = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(sali)
+    except Exception as e:
+        print("Eroare MySQL:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/toti_profesori", methods=["GET"])
+def toti_profesori():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM profesori")
+        profesori = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(profesori)
+    except Exception as e:
+        print("Eroare MySQL:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
