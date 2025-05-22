@@ -243,7 +243,7 @@ ${reguli}
 
 
   return (
-    <div style={{ minHeight: "100vh", width: "270%", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100vh", width: "250%", display: "flex", flexDirection: "column" }}>
       {/* NAVBAR */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm px-4">
         <div className="container-fluid justify-content-between">
@@ -306,13 +306,18 @@ ${reguli}
                 </ul>
   
                 <h5>🏫 Săli disponibile:</h5>
-                <ul className="list-group">
-                  {sali.map((s, i) => (
-                    <li key={i} className="list-group-item">
-                      {s.cod} – {s.tip}
-                    </li>
-                  ))}
-                </ul>
+{!sali.length ? (
+  <p className="text-muted">⚠️ Nu există săli disponibile în acest moment.</p>
+) : (
+  <ul className="list-group">
+    {sali.map((s, i) => (
+      <li key={i} className="list-group-item">
+        {s.cod} – {s.tip}
+      </li>
+    ))}
+  </ul>
+)}
+
               </div>
             </div>
           </>
@@ -329,6 +334,7 @@ ${reguli}
       </footer>
     </div>
   );
+  
 };
 
 export default GeneratedTimetable;
