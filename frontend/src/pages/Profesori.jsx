@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const Profesori = () => {
   const [lista, setLista] = useState([]);
@@ -77,6 +80,13 @@ const Profesori = () => {
       setLista(actualizat);
     }
   };
+  const stergeDisciplina = (index) => {
+  setFormular((prev) => ({
+    ...prev,
+    discipline: prev.discipline.filter((_, i) => i !== index)
+  }));
+};
+
 
   const fetchProfesori = async () => {
     try {
@@ -104,8 +114,8 @@ const Profesori = () => {
   };
 
   return (
-    <div style={{ minHeight: "100vh", width: "170%", display: "flex", flexDirection: "column" }}>
-      {/* NAVBAR */}
+<div className="container-fluid pt-4 px-4">
+        {/* NAVBAR */}
       <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 w-100">
         <div className="container-fluid d-flex justify-content-between align-items-center">
           <Link to="/" className="navbar-brand text-primary fw-bold fs-4">Generator Orare</Link>
@@ -116,70 +126,121 @@ const Profesori = () => {
         </div>
       </nav>
 
-      {/* CONȚINUT */}
-      <div className="container-fluid flex-grow-1 d-flex justify-content-between align-items-start p-4 gap-4">
-        {/* Coloana 1: Formular */}
-        <div className="bg-white p-4 shadow-sm rounded" style={{ width: "50%" }}>
+{/* CONȚINUT */}
+<div className="container-fluid flex-grow-1 d-flex justify-content-between align-items-start p-4 gap-4">
+  <div className="bg-white p-4 shadow-sm rounded" style={{ width: "50%" }}>
+    <h4 className="mb-4 text-primary fw-bold">👨‍🏫 Adaugă Profesor</h4>
 
-          <h4 className="mb-3">🧾 Formular Profesor</h4>
+    {/* Nume complet */}
+    <div className="mb-4">
+      <label className="form-label fw-semibold">Nume complet:</label>
+      <input
+        type="text"
+        className="form-control"
+        placeholder="ex: Ion Popescu"
+        value={formular.nume}
+        onChange={(e) => handleFormChange("nume", e.target.value)}
+      />
+    </div>
 
-          <div className="mb-2">
-            <label className="form-label">Nume:</label>
-            <input className="form-control" value={formular.nume} onChange={(e) => handleFormChange("nume", e.target.value)} />
+    {/* Nivel */}
+    <div className="mb-4">
+      <label className="form-label fw-semibold">Nivel de predare:</label>
+      <select
+        className="form-select"
+        value={formular.nivel}
+        onChange={(e) => handleFormChange("nivel", e.target.value)}
+      >
+        <option value="Licenta">Licență</option>
+        <option value="Master">Master</option>
+      </select>
+    </div>
+
+    {/* Tipuri activitate */}
+    <div className="mb-4">
+      <label className="form-label fw-semibold">
+        Tipuri de activitate:{" "}
+        <span className="text-muted small">(poți selecta mai multe)</span>
+      </label>
+      <div className="d-flex flex-wrap gap-3 mt-2">
+        {["Curs", "Seminar", "Laborator"].map((tip) => (
+          <div key={tip} className="form-check form-check-inline">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              checked={formular.tipuri.includes(tip)}
+              onChange={() => toggleTipActivitate(tip)}
+              id={`tip-${tip}`}
+            />
+            <label className="form-check-label" htmlFor={`tip-${tip}`}>
+              {tip}
+            </label>
           </div>
+        ))}
+      </div>
+    </div>
 
-          <div className="mb-2">
-            <label className="form-label">Nivel:</label>
-            <select className="form-select" value={formular.nivel} onChange={(e) => handleFormChange("nivel", e.target.value)}>
-              <option value="Licenta">Licență</option>
-              <option value="Master">Master</option>
-            </select>
-          </div>
-
-          <div className="mb-2">
-            <label className="form-label">Tipuri activitate:</label>
-            {["Curs", "Seminar", "Laborator"].map((tip) => (
-              <div key={tip} className="form-check form-check-inline">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={formular.tipuri.includes(tip)}
-                  onChange={() => toggleTipActivitate(tip)}
-                />
-                <label className="form-check-label">{tip}</label>
-              </div>
-            ))}
-          </div>
-
-          <div className="mb-2">
-            <label className="form-label">Discipline:</label>
-            {formular.discipline.map((disc, i) => (
-              <input
-                key={i}
-                className="form-control mb-1"
-                value={disc}
-                onChange={(e) => handleDisciplinaChange(i, e.target.value)}
-              />
-            ))}
-            <button className="btn btn-sm btn-outline-secondary mt-2" onClick={adaugaDisciplina}>
-              + Adaugă disciplină
+    {/* Discipline predate */}
+    <div className="mb-4">
+      <label className="form-label fw-semibold">Discipline predate:</label>
+      {formular.discipline.map((disc, i) => (
+        <div key={i} className="input-group mb-2">
+          <input
+            type="text"
+            className="form-control"
+            placeholder={`Disciplină #${i + 1}`}
+            value={disc}
+            onChange={(e) => handleDisciplinaChange(i, e.target.value)}
+          />
+          {i > 0 && (
+            <button
+              type="button"
+              className="btn btn-outline-danger"
+              onClick={() => stergeDisciplina(i)}
+              title="Șterge disciplina"
+            >
+              🗑️
             </button>
-          </div>
-
-          <div className="d-flex justify-content-between mt-3">
-            <button className="btn btn-success" onClick={adaugaProfesor}>✅ Salvează profesor</button>
-            <button className="btn btn-outline-secondary" onClick={() => setFormular({ nume: "", discipline: [""], nivel: "Licenta", tipuri: [] })}>🔄 Resetare</button>
-          </div>
+          )}
         </div>
+      ))}
+      <button
+        type="button"
+        className="btn btn-outline-secondary btn-sm mt-2"
+        onClick={adaugaDisciplina}
+      >
+        ➕ Adaugă disciplină
+      </button>
+    </div>
 
-        {/* Spațiu liber central */}
-        <div style={{ width: "25%" }} />
+    {/* Butoane */}
+    <div className="d-flex justify-content-between mt-4">
+      <button className="btn btn-success" onClick={adaugaProfesor}>
+        ✅ Salvează profesor
+      </button>
+      <button
+        className="btn btn-outline-secondary"
+        onClick={() =>
+          setFormular({
+            nume: "",
+            discipline: [""],
+            nivel: "Licenta",
+            tipuri: [],
+          })
+        }
+      >
+        🔄 Resetare
+      </button>
+    </div>
+  </div>
 
+  {/* Spațiu liber central */}
+  <div style={{ width: "25%" }} />
 
-        {/* Coloana 2: Lista Profesori */}
-        <div className="bg-white p-4 shadow-sm rounded" style={{ width: "50%" }}>
+  {/* Coloana 2: Lista Profesori */}
+  <div className="bg-white p-4 shadow-sm rounded" style={{ width: "50%" }}>
 
-          <h5 className="mb-3">📋 Profesori existenți:</h5>
+    <h5 className="mb-3">📋 Profesori existenți:</h5>
           {lista.length === 0 && <p className="text-muted">Nu există profesori.</p>}
           <ul className="list-group">
             {lista.map((prof, index) => (
