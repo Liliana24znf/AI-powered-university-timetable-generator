@@ -126,45 +126,65 @@ ${reguli}
 
   const zileOrdine = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"];
 
-  const exportExcel = () => {
-    if (!orar) return;
-    const wb = XLSX.utils.book_new();
-    for (const nivel in orar) {
-      for (const an in orar[nivel]) {
-        const data = [];
-        for (const zi in orar[nivel][an]) {
-          const activitati = orar[nivel][an][zi];
-          for (const interval in activitati) {
-            data.push({
-              Nivel: nivel,
-              An: an,
-              Zi: zi,
-              Interval: interval,
-              Activitate: activitati[interval],
-            });
-          }
-        }
-        const ws = XLSX.utils.json_to_sheet(data);
-        XLSX.utils.book_append_sheet(wb, ws, `${nivel}-${an}`);
-      }
-    }
-    XLSX.writeFile(wb, "orar.xlsx");
-  };
+const exportExcel = () => {
+  if (!orar) return;
+  const wb = XLSX.utils.book_new();
 
-  const exportPDF = () => {
-    if (!orar) return;
-    const element = document.getElementById("orar-afisat");
-    html2pdf()
-      .set({
-        margin: 0.5,
-        filename: "orar.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-      })
-      .from(element)
-      .save();
-  };
+  for (const nivel in orar) {
+    for (const an in orar[nivel]) {
+      const data = [];
+
+      for (const zi in orar[nivel][an]) {
+        const activitati = orar[nivel][an][zi];
+
+        for (const interval in activitati) {
+          const item = activitati[interval];
+
+          data.push({
+            Nivel: nivel,
+            An: an,
+            Zi: zi,
+            Interval: interval,
+            Disciplina: item?.activitate || "", // dacă este string simplu
+            Tip: item?.tip || "",                // dacă ai separat tipul
+            Profesor: item?.profesor || "",
+            Sala: item?.sala || ""
+          });
+        }
+      }
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, `${nivel}-${an}`);
+    }
+  }
+
+  XLSX.writeFile(wb, "orar.xlsx");
+};
+
+const exportPDF = () => {
+  if (!orar) return;
+  const element = document.getElementById("orar-afisat");
+
+  html2pdf()
+    .set({
+      margin: [0.5, 0.5, 0.5, 0.5],
+      filename: "orar.pdf",
+      image: { type: "jpeg", quality: 1 },
+      html2canvas: { scale: 3, useCORS: true },
+      jsPDF: {
+        unit: "in",
+        format: "a4",
+        orientation: "landscape"
+      },
+      pagebreak: {
+        mode: ['css', 'legacy']
+      }
+    })
+    .from(element)
+    .save();
+};
+
+
 
   const renderOrar = () => {
     const extrageIntervale = (orarNivel) => {
@@ -196,7 +216,7 @@ ${reguli}
             <div key={nivel}>
               <h2>{nivel}</h2>
               {Object.entries(ani).map(([an, zile]) => (
-                <div key={`${nivel}-${an}`} className="mb-4">
+                  <div key={`${nivel}-${an}`} className="mb-4 page-break">
                   <h4>📘 {nivel} – {an}</h4>
                   <table className="table table-bordered text-center align-middle">
                     <thead className="table-light">

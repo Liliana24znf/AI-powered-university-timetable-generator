@@ -66,3 +66,31 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+.table-bordered th, 
+.table-bordered td {
+  border: 1px solid #dee2e6 !important;
+  vertical-align: middle;
+}
+
+.table th {
+  background-color: #f8f9fa !important;
+  font-weight: bold;
+}
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #f2f2f2 !important;
+}
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: #ffffff !important;
+}
+.table-hover tbody tr:hover {
+  background-color: #e9ecef !important;
+}
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  color: #212529;
+  border-collapse: collapse;
+}
+.page-break {
+  page-break-after: always;
+}
