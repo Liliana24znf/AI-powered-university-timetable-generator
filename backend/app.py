@@ -144,8 +144,8 @@ def sterge_disciplina():
 @app.route("/adauga_profesor", methods=["POST"])
 def adauga_profesor():
     data = request.json
-    nume = data.get("nume")
-    nivel = data.get("nivel")
+    nivel_list = data.get("niveluri") or data.get("nivel", [])  # 🛠 corect și flexibil
+    nivel = ", ".join(nivel_list)
     tipuri = ", ".join(data.get("tipuri", []))
     discipline = ", ".join(data.get("discipline", []))
 
@@ -154,7 +154,7 @@ def adauga_profesor():
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO profesori (nume, nivel, tipuri, discipline) VALUES (%s, %s, %s, %s)",
-            (nume, nivel, tipuri, discipline)
+            (data.get("nume"), nivel, tipuri, discipline)
         )
         conn.commit()
         cursor.close()
@@ -186,6 +186,30 @@ def sterge_profesor(id):
         cursor.close()
         conn.close()
         return jsonify({"success": True, "message": "Profesor șters cu succes."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/actualizeaza_profesor/<int:id>", methods=["PUT"])
+def actualizeaza_profesor(id):
+    data = request.get_json()
+    nume = data.get("nume")
+    nivel = ", ".join(data.get("niveluri", []))
+    tipuri = ", ".join(data.get("tipuri", []))
+    discipline = ", ".join(data.get("discipline", []))
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE profesori 
+            SET nume = %s, nivel = %s, tipuri = %s, discipline = %s 
+            WHERE id = %s
+        """, (nume, nivel, tipuri, discipline, id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

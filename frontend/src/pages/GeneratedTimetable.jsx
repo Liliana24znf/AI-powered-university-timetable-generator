@@ -263,7 +263,7 @@ const exportPDF = () => {
 
 
   return (
-    <div style={{ minHeight: "100vh", width: "250%", display: "flex", flexDirection: "column" }}>
+   <div className="container-fluid pt-4 px-4">
       {/* NAVBAR */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm px-4">
         <div className="container-fluid justify-content-between">
