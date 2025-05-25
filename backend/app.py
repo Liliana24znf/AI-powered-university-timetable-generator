@@ -207,6 +207,31 @@ def sterge_sali():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/sterge_sali_selectate', methods=['POST'])
+def sterge_sali_selectate():
+    data = request.get_json()
+    coduri = data.get("coduri", [])
+
+    if not coduri:
+        return jsonify({"success": False, "error": "Lista de coduri este goală."}), 400
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        format_strings = ','.join(['%s'] * len(coduri))  # ex: %s, %s, %s
+        query = f"DELETE FROM sali WHERE cod IN ({format_strings})"
+        cursor.execute(query, coduri)
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"success": True, "message": "Sălile selectate au fost șterse."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route("/toate_sali", methods=["GET"])
 def toate_sali():
     try:
