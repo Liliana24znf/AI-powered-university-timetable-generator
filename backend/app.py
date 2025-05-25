@@ -175,6 +175,21 @@ def toti_profesorii():
         return jsonify(profesori)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+@app.route("/sterge_profesor/<int:id>", methods=["DELETE"])
+def sterge_profesor(id):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM profesori WHERE id = %s", (id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "message": "Profesor șters cu succes."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 
 @app.route("/adauga_sali", methods=["POST"])
 def adauga_sali():
