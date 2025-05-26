@@ -1,0 +1,77 @@
+
+Generează un orar pentru o săptămână pentru studenți, structurat pe ani de studiu, respectând următoarele reguli:
+Sa fie toti ani(1,2,3,4) de la licenta completati in fiecare zi  si cu 2-6 activitati.
+Sa fie toti ani(1,2) de la master cumpletati in fiecare zi cu 2 activitati.
+1. Programul zilnic:
+   - Licență: între 08:00–20:00.
+   - Master: între 16:00–20:00.
+
+2. Pentru fiecare zi, generează orar pentru toți cei 4 ani de licență (Anul I, II, III, IV) și toți anii de la master (Anul I, II). Toți anii trebuie să fie incluși, chiar dacă unii nu au activități.
+
+3. Activitățile:
+   - Min. 4 ore și max. 8 ore / zi / an.
+   - Distribuite uniform pe parcursul săptămânii.
+   - Fără pauze între activități.
+   - Fără repetiții ale aceleiași activități în săptămână.
+   - Durata fiecărei activități este de 2 ore.
+   - Intervalele orare sunt: 08:00–10:00, 10:00–12:00, 12:00–14:00,până la 20:00.
+
+4. Structura:
+   - Cursuri: nivel de an
+   - Seminare: nivel de grupă
+   - Laboratoare: nivel de subgrupă
+
+5. Miercuri ora 14:00 trebuie să fie liberă, dar celalalte sa fie ocupate 08:00–10:00, 10:00–12:00, 12:00-14:00, 16:00-18:00, 18:00-20:00.
+
+6. Folosește DOAR disciplinele și profesorii transmiși. Nu genera alții.
+   - La fiecare activitate: scrie disciplina, tipul (Curs/Seminar/Laborator), profesorul, sala.
+
+7. Săli:
+   - GC* → doar cursuri
+   - GA* → doar seminare/laboratoare
+   - Fiecare sală poate fi folosită o singură dată într-un interval orar.
+   - Nu folosi aceeași sală în același interval orar la nivele diferite (ex: Licență și Master).
+   - Nu inventa săli.
+
+8. Profesori:
+   - Nu muta profesori între niveluri. Dacă e pentru Licență, nu apare la Master și invers.
+   - O disciplină e predată doar de profesorul specificat.
+
+9. JSON:
+   - Răspunsul trebuie să fie doar JSON valid.
+   - Structura trebuie să conțină TOATE zilele (Luni–Vineri) pentru fiecare an, chiar dacă unele sunt goale.
+   - TOATE intervalele orare definite trebuie verificate și completate dacă există activități.
+   - Începe cu { și termină cu }.
+
+Structura JSON:
+{
+  "Licenta": {
+    "Anul I": {
+      "Luni": {
+        "08:00-10:00": {
+          "activitate": "Curs Matematică",
+          "profesor": "Popescu Ion",
+          "sala": "GC1"
+        }
+      },
+      "Marti": {},
+      "Miercuri": {},
+      "Joi": {},
+      "Vineri": {}
+    }
+  },
+  "Master": { ... }
+}
+
+
+10. Obligatoriu:
+   - Pentru fiecare AN (ex: Licență Anul I, II, III, IV și Master Anul I, II) trebuie să existe o intrare în fiecare zi a săptămânii (Luni–Vineri).
+   - Dacă într-o zi nu există activitate pentru acel an, ziua va fi prezentă cu valoare {}.
+   - Nu lăsa zile lipsă din structura JSON.
+
+   NU OMITE NICIO ZI din săptămână (Luni–Vineri) și NICIUN AN. Toți trebuie să fie prezenți cu cel puțin o structură JSON. NU returna niciodată JSON incomplet!
+
+   11. Completează activități pentru TOȚI anii, nu doar Anul I. Fiecare an trebuie să aibă cel puțin 4 ore/zi activități. Nu lăsa anii fără activități.
+
+
+    

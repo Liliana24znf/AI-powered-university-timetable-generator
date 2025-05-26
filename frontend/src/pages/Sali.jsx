@@ -59,6 +59,16 @@ const Sali = () => {
     }
   };
 
+  const handleReincarcareClick = async () => {
+  try {
+    await fetchSali();
+    toast.info("🔄 Lista sălilor a fost reîncărcată cu succes!");
+  } catch {
+    toast.error("❌ Eroare la reîncărcare săli.");
+  }
+};
+
+
   const toggleSelectSala = (cod) => {
     setSaliSelectate((prev) =>
       prev.includes(cod) ? prev.filter((s) => s !== cod) : [...prev, cod]
@@ -121,18 +131,18 @@ const Sali = () => {
             Generator Orare
           </Link>
           <div>
-            <button className="btn btn-outline-primary me-2" onClick={fetchSali}>
+            <button className="btn btn-outline-primary me-2" onClick={handleReincarcareClick}>
               🔄 Reîncarcă
             </button>
-            <button className="btn btn-secondary" onClick={() => navigate("/profesori")}>
-              👨‍🏫 Mergi la Profesori
+            <button className="btn btn-primary"  onClick={() => navigate("/profesori")}>
+              ➡ Continuă
             </button>
           </div>
         </div>
       </nav>
+      
 
       <div className="my-4" />
-
       {/* Conținut */}
       <div className="row justify-content-center">
         {/* Formular */}
@@ -262,6 +272,10 @@ const Sali = () => {
           </button>
         </div>
       )}
+      {/* Footer */}
+      <footer className="bg-light text-center py-4 mt-auto">
+        <p className="mb-0">© 2023 Generator Orare. Toate drepturile rezervate.</p>
+      </footer>
     </div>
   );
 };

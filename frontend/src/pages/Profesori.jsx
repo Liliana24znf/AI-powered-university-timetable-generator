@@ -88,6 +88,16 @@ const Profesori = () => {
     }
   };
 
+  const handleReincarcareClick = async () => {
+  try {
+    await fetchProfesori();
+    toast.info("🔄 Lista sălilor a fost reîncărcată cu succes!");
+  } catch {
+    toast.error("❌ Eroare la reîncărcare săli.");
+  }
+};
+
+
   useEffect(() => {
     fetchProfesori();
   }, []);
@@ -190,14 +200,53 @@ const Profesori = () => {
 
   return (
     <div className="container-fluid pt-4 px-4">
-      <ToastContainer position="top-center" autoClose={3000} />
-      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
-        <div className="container-fluid d-flex justify-content-between">
-          <Link to="/" className="navbar-brand text-primary fw-bold fs-4">Generator Orare</Link>
-          <button className="btn btn-primary" onClick={() => navigate("/orar-generat")}>➡ Continuă</button>
-        </div>
-      </nav>
+      <ToastContainer />
+<nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
+  <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
+    
+    {/* Buton stânga: Logo sau link acasă */}
+    <Link to="/" className="position-absolute start-0 text-primary fw-bold fs-4 text-decoration-none">
+      Generator Orare
+    </Link>
 
+    {/* Titlu centrat */}
+    <span className="text-primary fw-bold fs-4">
+      👨‍🏫 Gestionare Profesori
+    </span>
+
+    {/* Butoane în dreapta */}
+    <div className="position-absolute end-0">
+      <button className="btn btn-outline-primary me-2" onClick={handleReincarcareClick}>
+        🔄 Reîncarcă
+      </button>
+      <button className="btn btn-primary" onClick={() => navigate("/orar-generat")}>
+        ➡ Continuă
+      </button>
+    </div>
+  </div>
+</nav>
+
+      
+<div className="container mb-4">
+  <div className="card shadow-sm border-0 bg-light">
+    <div className="card-body">
+      <p className="mb-2">
+        În această secțiune poți <strong>adauga, edita sau șterge</strong> profesori și disciplinele pe care le predau.
+      </p>
+      <p className="mb-2">
+        Completează <strong>toate câmpurile necesare</strong>: nume, discipline, nivel și tipuri de activitate.
+      </p>
+      <p className="mb-2">
+        Tipurile posibile sunt: <em>cursuri</em>, <em>seminarii</em> și <em>laboratoare</em>.
+      </p>
+      <p className="mb-0">
+        După completare, apasă pe <strong>„Continuă”</strong> pentru a genera orarul.
+      </p>
+    </div>
+  </div>
+</div>
+
+      
       <div className="d-flex flex-wrap gap-4">
         {/* Formular */}
         <div className="bg-white p-4 shadow-sm rounded" style={{ flex: "1 1 400px" }}>
@@ -377,6 +426,11 @@ const Profesori = () => {
           </div>
         </div>
       </div>
+
+            {/* Footer */}
+      <footer className="bg-light text-center py-4 mt-auto">
+        <p className="mb-0">© 2023 Generator Orare. Toate drepturile rezervate.</p>
+      </footer>
     </div>
   );
 };
