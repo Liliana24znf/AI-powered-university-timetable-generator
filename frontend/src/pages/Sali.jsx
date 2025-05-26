@@ -125,22 +125,54 @@ const Sali = () => {
     <div className="container-fluid pt-4 px-4">
       <ToastContainer />
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 w-100">
-        <div className="container-fluid d-flex justify-content-between align-items-center">
-          <Link to="/" className="navbar-brand fw-bold fs-4 text-primary">
+      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
+        <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
+          
+          {/* Buton stânga: Logo sau link acasă */}
+          <Link to="/" className="position-absolute start-0 text-primary fw-bold fs-4 text-decoration-none">
             Generator Orare
           </Link>
-          <div>
+      
+          {/* Titlu centrat */}
+          <span className="text-primary fw-bold fs-4">
+            🏫 Gestionare Săli
+          </span>
+      
+          {/* Butoane în dreapta */}
+          <div className="position-absolute end-0">
             <button className="btn btn-outline-primary me-2" onClick={handleReincarcareClick}>
               🔄 Reîncarcă
             </button>
-            <button className="btn btn-primary"  onClick={() => navigate("/profesori")}>
+            <button className="btn btn-primary" onClick={() => navigate("/profesori")}>
               ➡ Continuă
             </button>
           </div>
         </div>
       </nav>
+
+<div className="container mb-4">
+  <div className="card shadow-sm border-0 bg-light">
+    <div className="card-body">
+      <p className="mb-2">
+        În această secțiune, poți introduce numărul de săli disponibile pentru cursuri și laboratoare/seminarii.
+      </p>
+      <p className="mb-2">
+        Asigură-te că toate sălile sunt corect configurate înainte de generarea orarului.
+      </p>
+      <p className="mb-0">
+        După ce ai introdus numărul de săli, apasă pe butonul "Salvează" pentru a le adăuga în sistem.
+      </p>
+      <hr className="w-50 mx-auto" />
+      <p className="text-center text-muted mb-0">
+        Poți reîncărca lista de săli oricând pentru a vedea ultimele modificări.
+      </p>
       
+    </div>
+  </div>
+</div>
+
+      
+
 
       <div className="my-4" />
       {/* Conținut */}

@@ -264,22 +264,45 @@ const exportPDF = () => {
 
   return (
    <div className="container-fluid pt-4 px-4">
-      {/* NAVBAR */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm px-4">
-        <div className="container-fluid justify-content-between">
-          <span className="navbar-brand fw-bold text-white fs-4">
-            Generator Orare
-          </span>
-          <div>
-            <button className="btn btn-light me-2" onClick={exportExcel}>
-              ⬇ Export Excel
-            </button>
-            <button className="btn btn-light" onClick={exportPDF}>
-              🖨️ Export PDF
-            </button>
-          </div>
-        </div>
-      </nav>
+{/* NAVBAR */}
+      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
+        <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
+    
+    {/* Stânga: Logo */}
+    <span className="position-absolute start-0 navbar-brand fw-bold text-primary fs-4">
+      Generator Orare
+    </span>
+
+    {/* Centru: Titlu */}
+   <span className="text-primary fw-bold fs-4">
+      📅 Orar Generat
+    </span>
+
+    {/* Dreapta: Butoane */}
+    <div className="position-absolute end-0 d-flex">
+      <button className="btn btn-outline-primary me-2" onClick={exportExcel}>
+        ⬇ Export Excel
+      </button>
+      <button className="btn btn-outline-primary me-2" onClick={exportPDF}>
+        🖨️ Export PDF
+      </button>
+    </div>
+  </div>
+</nav>
+
+
+<div className="container mb-4">
+  <div className="card shadow-sm border-0 bg-light">
+    <div className="card-body">
+      <p className="mb-2">
+        <strong>🔍 Informații:</strong> Această pagină afișează orarul generat pentru studenți, incluzând profesori și săli disponibile.
+      </p>
+      <p className="mb-0">
+        <strong>ℹ️ Notă:</strong> Asigură-te că ai introdus toate regulile și informațiile necesare pentru generarea orarului.
+      </p>
+    </div>
+  </div>
+</div>
   
       {/* CONȚINUT */}
       <div className="container py-4">
