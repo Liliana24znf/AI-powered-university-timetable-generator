@@ -23,19 +23,20 @@ const GeneratedTimetable = () => {
   }, []);
 
   const [reguli, setReguli] = useState(`
+
 📜 Reguli stricte pentru generarea orarului:
 
 1. Orarul trebuie să acopere întreaga săptămână (Luni, Marți, Miercuri, Joi, Vineri), pentru TOATE următoarele grupe:
    - Licență: Anul I și  Anul II și  Anul III și Anul IV
    - Master: Anul I și Anul II
 
-2. Pentru FIECARE zi (Luni, Marți, Miercuri, Joi, Vineri) și FIECARE an, trebuie să existe între 4 și 8 ore de activități (adică 2–4 activități de câte 2 ore). NU lăsa nicio zi necompletată pentru niciun an. NU folosi {} pentru o zi întreagă.
+2.  Pentru FIECARE zi (Luni, Marți, Miercuri, Joi, Vineri) și FIECARE an, trebuie să existe între 4 și 8 ore de activități (adică 2–4 activități de câte 2 ore). 
 
 3. Toate cele 6 intervale orare posibile sunt:
-   - 08:00–10:00, 10:00–12:00, 12:00–14:00, 14:00–16:00, 16:00–18:00, 18:00–20:00.
+   - "08:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00".
  Programul zilnic:
-   - Licență Anul I și  Anul II și  Anul III și Anul IV: între 08:00–20:00.
-   - Master Anul I și Anul II: între 16:00–20:00.
+   - Licență Anul I și  Anul II și  Anul III și Anul IV: între "08:00–20:00".
+   - Master Anul I și Anul II: între "16:00–20:00".
 
 4. Activitățile sunt de tip: Curs, Seminar, Laborator.
    - Cursuri: doar în săli de tip GC*
@@ -77,6 +78,7 @@ const GeneratedTimetable = () => {
 
 ‼️ Nu returna JSON incomplet. Nu omite nicio zi, niciun an. Fiecare an trebuie să aibă activități în fiecare zi!
 
+  
   `);
 
   const genereazaOrar = async () => {
