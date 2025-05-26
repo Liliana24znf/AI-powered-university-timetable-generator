@@ -154,19 +154,17 @@ const Sali = () => {
   <div className="card shadow-sm border-0 bg-light">
     <div className="card-body">
       <p className="mb-2">
-        În această secțiune, poți introduce numărul de săli disponibile pentru cursuri și laboratoare/seminarii.
+        În această secțiune, poți introduce <strong>numărul de săli disponibile </strong> pentru cursuri și laboratoare/seminarii.
       </p>
       <p className="mb-2">
         Asigură-te că toate sălile sunt corect configurate înainte de generarea orarului.
       </p>
-      <p className="mb-0">
-        După ce ai introdus numărul de săli, apasă pe butonul "Salvează" pentru a le adăuga în sistem.
+      <p className="mb-2">
+        După ce ai introdus numărul de săli, apasă pe butonul <strong>"Salvează"</strong> pentru a le adăuga în sistem.
       </p>
-      <hr className="w-50 mx-auto" />
-      <p className="text-center text-muted mb-0">
-        Poți reîncărca lista de săli oricând pentru a vedea ultimele modificări.
+      <p className="mb-2">
+        Poți <strong> reîncărca </strong> lista de săli oricând pentru a vedea ultimele modificări.
       </p>
-      
     </div>
   </div>
 </div>
