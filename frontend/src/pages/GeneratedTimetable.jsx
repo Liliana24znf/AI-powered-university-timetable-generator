@@ -23,98 +23,73 @@ const GeneratedTimetable = () => {
   }, []);
 
   const [reguli, setReguli] = useState(`
-Generează un orar pentru o săptămână pentru studenți, structurat pe ani de studiu, respectând următoarele reguli:
-⚠️ IMPORTANT:
-- Nu ai voie să folosești alte discipline sau profesori decât cei enumerați mai sus.
-- Fiecare activitate trebuie să corespundă exact cu un profesor, o disciplină, un tip și o sală din cele oferite.
-- Dacă nu există combinație validă, lasă acel interval orar necompletat ({}).
+📜 Reguli stricte pentru generarea orarului:
 
-1. Programul zilnic:
-   - Licență: între 08:00–20:00.
-   - Master: între 16:00–20:00.
+1. Orarul trebuie să acopere întreaga săptămână (Luni, Marți, Miercuri, Joi, Vineri), pentru TOATE următoarele grupe:
+   - Licență: Anul I și  Anul II și  Anul III și Anul IV
+   - Master: Anul I și Anul II
 
-2. Pentru fiecare zi, generează orar pentru toți cei 4 ani de licență (Anul I, II, III, IV) și toți anii de la master (Anul I, II). Toți anii trebuie să fie incluși, chiar dacă unii nu au activități.
+2. Pentru FIECARE zi (Luni, Marți, Miercuri, Joi, Vineri) și FIECARE an, trebuie să existe între 4 și 8 ore de activități (adică 2–4 activități de câte 2 ore). NU lăsa nicio zi necompletată pentru niciun an. NU folosi {} pentru o zi întreagă.
 
-3. Activitățile:
-   - Min. 4 ore și max. 8 ore / zi / an.
-   - Distribuite uniform pe parcursul săptămânii.
-   - Fără pauze între activități.
-   - Fără repetiții ale aceleiași activități în săptămână.
-   - Durata fiecărei activități este de 2 ore.
-   - Intervalele orare sunt: 08:00–10:00, 10:00–12:00, 12:00–14:00, 14:00-16:00, 16:00-18:00, 18:00-20:00.
+3. Toate cele 6 intervale orare posibile sunt:
+   - 08:00–10:00, 10:00–12:00, 12:00–14:00, 14:00–16:00, 16:00–18:00, 18:00–20:00.
+ Programul zilnic:
+   - Licență Anul I și  Anul II și  Anul III și Anul IV: între 08:00–20:00.
+   - Master Anul I și Anul II: între 16:00–20:00.
 
-4. Structura:
-   - Cursuri: nivel de an
-   - Seminare: nivel de grupă
-   - Laboratoare: nivel de subgrupă
+4. Activitățile sunt de tip: Curs, Seminar, Laborator.
+   - Cursuri: doar în săli de tip GC*
+   - Seminare/Laboratoare: doar în săli de tip GA*
+   - Un profesor predă doar disciplinele și tipurile menționate.
+   - O sală nu poate fi reutilizată în același interval orar din aceeași zi, dar poate fi utilizată in zile diferite.
+   - Sălile nu pot fi partajate între licență și master în același interval.
 
-5. Miercuri ora 14:00 trebuie să fie liberă.
+5. NU inventa date noi. Nu adăuga alte discipline, profesori sau săli. Folosește doar combinațiile posibile.
 
-6. Folosește DOAR disciplinele și profesorii transmiși. Nu genera alții.
-   - La fiecare activitate: scrie disciplina, tipul (Curs/Seminar/Laborator), profesorul, sala.
+6.  Toți ani trebuiesc completați în fiecare zi.
 
-7. Săli:
-   - GC* → doar cursuri
-   - GA* → doar seminare/laboratoare
-   - Fiecare sală poate fi folosită o singură dată într-un interval orar.
-   - Nu folosi aceeași sală în același interval orar la nivele diferite (ex: Licență și Master).
-   - Nu inventa săli.
+7. Răspunsul trebuie să fie JSON VALID și COMPLET. Structura este:
 
-8. Profesori:
-   - Nu muta profesori între niveluri. Dacă e pentru Licență, nu apare la Master și invers.
-   - O disciplină e predată doar de profesorul specificat.
-
-9. JSON:
-   - Răspunsul trebuie să fie doar JSON valid.
-   - Structura trebuie să conțină TOATE zilele (Luni–Vineri) pentru fiecare an, chiar dacă unele sunt goale.
-   - TOATE intervalele orare definite trebuie verificate și completate dacă există activități.
-   - Începe cu { și termină cu }.
-
-Structura JSON:
 {
   "Licenta": {
     "Anul I": {
       "Luni": {
         "08:00-10:00": {
-          "activitate": "Curs Matematică",
-          "profesor": "Popescu Ion",
+          "activitate": "Curs Programare",
+          "profesor": "Ion Popescu",
           "sala": "GC1"
         }
       },
-      "Marti": {},
-      "Miercuri": {},
-      "Joi": {},
-      "Vineri": {}
-    }
+      ...
+    },
+    ...
   },
-  "Master": { ... }
+  "Master": {
+    "Anul I": {
+      ...
+    },
+    "Anul II": {
+      ...
+    }
+  }
 }
 
 
-10. Obligatoriu:
-   - Pentru fiecare AN (ex: Licență Anul I, II, III, IV și Master Anul I, II) trebuie să existe o intrare în fiecare zi a săptămânii (Luni–Vineri).
-   - Dacă într-o zi nu există activitate pentru acel an, ziua va fi prezentă cu valoare {}.
-   - Nu lăsa zile lipsă din structura JSON.
-
-   NU OMITE NICIO ZI din săptămână (Luni–Vineri) și NICIUN AN. Toți trebuie să fie prezenți cu cel puțin o structură JSON. NU returna niciodată JSON incomplet!
-
-   11. Completează activități pentru TOȚI anii, nu doar Anul I. Fiecare an trebuie să aibă cel puțin 4 ore/zi activități. Nu lăsa anii fără activități.
-
-   12. NU AI VOIE să adaugi alți profesori sau discipline. Folosește EXCLUSIV pe cei furnizați mai sus. Dacă rămâi fără opțiuni, lasă slotul gol.
-
+‼️ Nu returna JSON incomplet. Nu omite nicio zi, niciun an. Fiecare an trebuie să aibă activități în fiecare zi!
 
   `);
 
   const genereazaOrar = async () => {
     setLoading(true);
 
-    const instructiuniProfesori = profesori.map((p) => {
-      return p.discipline
-        .map((disc) => {
-          return `- ${p.nume} predă disciplina "${disc}" (${p.tipuri.join("/")}) pentru nivelul ${p.niveluri.join("/")}.`;
-        })
-        .join("\n");
-    }).join("\n");
+    const instructiuniProfesori = profesori.map((p) =>
+      p.discipline
+        .map(
+          (disc) =>
+            `- ${p.nume} predă disciplina "${disc}" (${p.tipuri.join("/")}) pentru nivelul ${p.niveluri.join("/")}.`
+        )
+        .join("\n")
+    ).join("\n");
 
     const instructiuniSali = sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n");
 
@@ -125,7 +100,6 @@ ${instructiuniProfesori}
 🏫 Săli disponibile:
 ${instructiuniSali}
 
-📜 Reguli:
 ${reguli}
 `;
 
@@ -144,7 +118,6 @@ ${reguli}
 
     setLoading(false);
   };
-
 
 
   const zileOrdine = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"];
