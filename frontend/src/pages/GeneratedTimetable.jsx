@@ -1,17 +1,33 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import html2pdf from "html2pdf.js";
 
 const GeneratedTimetable = () => {
   const [orar, setOrar] = useState(null);
   const [loading, setLoading] = useState(false);
-  const location = useLocation();
-  const profesori = location.state?.profesori || [];
-  const sali = location.state?.sali || [];
+  const [profesori, setProfesori] = useState([]);
+  const [sali, setSali] = useState([]);
+
+  useEffect(() => {
+    const incarcaDate = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/date_orar");
+        const data = await response.json();
+        setProfesori(data.profesori || []);
+        setSali(data.sali || []);
+      } catch (err) {
+        console.error("Eroare la încărcarea datelor:", err);
+      }
+    };
+    incarcaDate();
+  }, []);
 
   const [reguli, setReguli] = useState(`
 Generează un orar pentru o săptămână pentru studenți, structurat pe ani de studiu, respectând următoarele reguli:
+⚠️ IMPORTANT:
+- Nu ai voie să folosești alte discipline sau profesori decât cei enumerați mai sus.
+- Fiecare activitate trebuie să corespundă exact cu un profesor, o disciplină, un tip și o sală din cele oferite.
+- Dacă nu există combinație validă, lasă acel interval orar necompletat ({}).
 
 1. Programul zilnic:
    - Licență: între 08:00–20:00.
@@ -25,7 +41,7 @@ Generează un orar pentru o săptămână pentru studenți, structurat pe ani de
    - Fără pauze între activități.
    - Fără repetiții ale aceleiași activități în săptămână.
    - Durata fiecărei activități este de 2 ore.
-   - Intervalele orare sunt: 08:00–10:00, 10:00–12:00, 12:00–14:00, ..., până la 20:00.
+   - Intervalele orare sunt: 08:00–10:00, 10:00–12:00, 12:00–14:00, 14:00-16:00, 16:00-18:00, 18:00-20:00.
 
 4. Structura:
    - Cursuri: nivel de an
@@ -84,29 +100,34 @@ Structura JSON:
 
    11. Completează activități pentru TOȚI anii, nu doar Anul I. Fiecare an trebuie să aibă cel puțin 4 ore/zi activități. Nu lăsa anii fără activități.
 
+   12. NU AI VOIE să adaugi alți profesori sau discipline. Folosește EXCLUSIV pe cei furnizați mai sus. Dacă rămâi fără opțiuni, lasă slotul gol.
 
-    `);
+
+  `);
 
   const genereazaOrar = async () => {
     setLoading(true);
 
     const instructiuniProfesori = profesori.map((p) => {
-      const disciplineList = p.discipline.filter(Boolean).join(", ");
-      const tipuriList = p.tipuri.join("/");
-      return `Profesorul ${p.nume} predă disciplinele: ${disciplineList}, pentru nivelul ${p.nivel}, tipuri: ${tipuriList}.`;
+      return p.discipline
+        .map((disc) => {
+          return `- ${p.nume} predă disciplina "${disc}" (${p.tipuri.join("/")}) pentru nivelul ${p.niveluri.join("/")}.`;
+        })
+        .join("\n");
     }).join("\n");
 
-    const instructiuniSali = sali.map((s) => `${s.cod} (${s.tip})`).join(", ");
+    const instructiuniSali = sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n");
 
     const promptFinal = `
-Lista profesorilor:
+✅ LISTA COMPLETĂ de profesori și discipline (nu inventa altele):
 ${instructiuniProfesori}
 
-Lista sălilor disponibile:
+🏫 Săli disponibile:
 ${instructiuniSali}
 
+📜 Reguli:
 ${reguli}
-    `;
+`;
 
     try {
       const response = await fetch("http://127.0.0.1:5000/genereaza_orar", {
@@ -123,6 +144,8 @@ ${reguli}
 
     setLoading(false);
   };
+
+
 
   const zileOrdine = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"];
 
@@ -259,7 +282,7 @@ const exportPDF = () => {
       </div>
     );
   };
-  
+
 
 
   return (

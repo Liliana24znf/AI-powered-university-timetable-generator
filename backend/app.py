@@ -283,6 +283,35 @@ def toate_sali():
         return jsonify(sali)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+
+
+@app.route("/date_orar", methods=["GET"])
+def date_orar():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Profesori
+        cursor.execute("SELECT * FROM profesori")
+        profesori = cursor.fetchall()
+
+        for p in profesori:
+            p["niveluri"] = [x.strip() for x in p["nivel"].split(",")] if p["nivel"] else []
+            p["tipuri"] = [x.strip() for x in p["tipuri"].split(",")] if p["tipuri"] else []
+            p["discipline"] = [x.strip() for x in p["discipline"].split(",")] if p["discipline"] else []
+
+        # Săli
+        cursor.execute("SELECT * FROM sali")
+        sali = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"profesori": profesori, "sali": sali})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
