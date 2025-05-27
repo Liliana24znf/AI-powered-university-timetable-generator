@@ -25,64 +25,79 @@ const GeneratedTimetable = () => {
     incarcaDate();
   }, []);
 
-  const [reguli, setReguli] = useState(`
+const [reguli, setReguli] = useState(` 📜 REGULI STRICTE PENTRU GENERAREA ORARULUI:
 
-📜 Reguli stricte pentru generarea orarului:
+1. Orarul trebuie să acopere întreaga săptămână (Luni–Vineri) pentru TOATE grupele disponibile, structurate astfel:
+   - Cursurile se desfășoară pe AN.
+   - Seminarele și proiectele pe GRUPĂ.
+   - Laboratoarele pe SUBGRUPĂ.
 
-1. Orarul trebuie să acopere întreaga săptămână (Luni, Marți, Miercuri, Joi, Vineri), pentru TOATE următoarele grupe:
-   - Licență: Anul I și  Anul II și  Anul III și Anul IV
-   - Master: Anul I și Anul II
-
-2.  Pentru FIECARE zi (Luni, Marți, Miercuri, Joi, Vineri) și FIECARE an, trebuie să existe între 4 și 8 ore de activități (adică 2–4 activități de câte 2 ore). 
-
-3. Toate cele 6 intervale orare posibile sunt:
+2. Intervalele orare disponibile sunt:
    - "08:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00".
- Programul zilnic:
-   - Licență Anul I și  Anul II și  Anul III și Anul IV: între "08:00–20:00".
-   - Master Anul I și Anul II: între "16:00–20:00".
 
-4. Activitățile sunt de tip: Curs, Seminar, Laborator.
-   - Cursuri: doar în săli de tip GC*
-   - Seminare/Laboratoare: doar în săli de tip GA*
-   - Un profesor predă doar disciplinele și tipurile menționate.
-   - O sală nu poate fi reutilizată în același interval orar din aceeași zi, dar poate fi utilizată in zile diferite.
-   - Sălile nu pot fi partajate între licență și master în același interval.
+3. Programul zilnic:
+   - **Licență**: între 08:00 și 20:00.
+   - **Master**: între 16:00 și 20:00.
+   - Fiecare zi trebuie să conțină între **4 și 8 ore** de activități (adică 2–4 activități de câte 2 ore).
+   - NU este permisă mai mult de **o pauză (fereastră de 2 ore)** pe zi.
+   - Este RECOMANDAT ca programul să nu aibă ferestre. Dacă nu se poate evita (lipsă sală/profesor), pauza trebuie să fie inclusă în limita maximă de 8 ore.
 
-5. NU inventa date noi. Nu adăuga alte discipline, profesori sau săli. Folosește doar combinațiile posibile.
+4. Tipuri de activități:
+   - Cursurile se susțin doar în săli cu prefix **GC** (ex: GC1, GC2).
+   - Seminarele și laboratoarele se desfășoară doar în săli cu prefix **GA** (ex: GA1, GA2).
+   - **Sălile NU pot fi folosite simultan de licență și master** în același interval orar.
+   - **O sală NU poate fi folosită de mai multe activități în același interval orar**.
 
-6.  Toți ani trebuiesc completați în fiecare zi.
+5. **Ziua de miercuri, intervalul 14:00–16:00 va fi liber** pentru toate grupele (niciun curs, seminar sau laborator).
 
-7. Răspunsul trebuie să fie JSON VALID și COMPLET. Structura este:
+6. La activități se vor afișa detalii astfel:
+   - **Cursuri**: denumirea completă + prescurtarea disciplinei + numele profesorului + sala.
+     Ex: „Programare (PR) – Ion Popescu – GC1”
+   - **Seminare/Laboratoare**: doar acronimul + numele profesorului + sala.
+     Ex: „PR – Ion Popescu – GA1”
+
+7. NU inventa discipline, profesori sau săli. Folosește DOAR datele primite.
+
+8. Structura JSON a orarului trebuie să fie VALIDĂ și COMPLETĂ:
 
 {
   "Licenta": {
-    "Anul I": {
+    "I1a": {
       "Luni": {
-        "08:00-10:00": {
-          "activitate": "Curs Programare",
-          "profesor": "Ion Popescu",
-          "sala": "GC1"
-        }
+        "08:00–10:00": {
+  "activitate": "Programare",
+  "tip": "Curs",
+  "profesor": "Ion Popescu",
+  "sala": "GC1"
+}
+
+        ...
       },
       ...
     },
     ...
   },
   "Master": {
-    "Anul I": {
-      ...
-    },
-    "Anul II": {
+    "M1a": {
       ...
     }
   }
 }
 
+La fiecare activitate, folosește formatul:
 
-‼️ Nu returna JSON incomplet. Nu omite nicio zi, niciun an. Fiecare an trebuie să aibă activități în fiecare zi!
+"interval": {
+  "activitate": "Denumire completă",
+  "tip": "Curs/Seminar/Laborator",
+  "profesor": "Prenume Nume",
+  "sala": "GC1/GA2 etc."
+}
 
-  
-  `);
+NU folosi un singur string lung. NU combina detaliile într-un câmp. Fiecare activitate TREBUIE să aibă cele 4 câmpuri distincte: activitate, tip, profesor, sala.
+
+‼️ NU omite nicio zi. Fiecare grupă/subgrupă trebuie să aibă activități în fiecare zi (cu excepția intervalului 14:00–16:00 miercuri). NU trimite JSON incomplet sau cu erori de sintaxă.
+`);
+
 
   const genereazaOrar = async () => {
     setLoading(true);
@@ -198,17 +213,18 @@ const exportPDF = () => {
 
   const renderOrar = () => {
     const extrageIntervale = (orarNivel) => {
-      const intervaleSet = new Set();
-      for (const zi of zileOrdine) {
-        for (const an in orarNivel) {
-          const ziAn = orarNivel[an][zi];
-          if (ziAn) {
-            Object.keys(ziAn).forEach(interval => intervaleSet.add(interval));
-          }
-        }
+  const intervaleSet = new Set();
+  for (const zi of zileOrdine) {
+    for (const grupa in orarNivel) {
+      const ziGrupa = orarNivel[grupa][zi];
+      if (ziGrupa) {
+        Object.keys(ziGrupa).forEach(interval => intervaleSet.add(interval));
       }
-      return Array.from(intervaleSet).sort();
-    };
+    }
+  }
+  return Array.from(intervaleSet).sort();
+};
+
   
     const getBadgeClass = (tipActivitate) => {
       if (tipActivitate.toLowerCase().includes("curs")) return "bg-info";
@@ -219,15 +235,18 @@ const exportPDF = () => {
   
     return (
       <div className="table-responsive">
-        {Object.entries(orar).map(([nivel, ani]) => {
-          const intervale = extrageIntervale(ani);
-  
+        {Object.entries(orar).map(([nivel, grupeOrar]) => {
+          const intervale = extrageIntervale(grupeOrar);
+
           return (
             <div key={nivel}>
               <h2>{nivel}</h2>
-              {Object.entries(ani).map(([an, zile]) => (
-                  <div key={`${nivel}-${an}`} className="mb-4 page-break">
-                  <h4>📘 {nivel} – {an}</h4>
+              {Object.entries(grupeOrar).map(([denumireGrupa, zile]) => (
+
+                 <div key={`${nivel}-${denumireGrupa}`} className="mb-4 page-break">
+
+                  <h4>📘 {nivel} – {denumireGrupa}</h4>
+
                   <table className="table table-bordered text-center align-middle">
                     <thead className="table-light">
                       <tr>
@@ -245,16 +264,23 @@ const exportPDF = () => {
                             const activitate = zile?.[zi]?.[interval];
                             return (
                               <td key={`${zi}-${interval}`}>
-                                {activitate ? (
-                                  <div>
-                                    <span className={`badge ${getBadgeClass(activitate.activitate)} mb-1`}>
-                                      {activitate.activitate}
-                                    </span>
-                                    <div>{activitate.profesor}</div>
-                                    <div className="text-muted">{activitate.sala}</div>
-                                  </div>
-                                ) : ""}
-                              </td>
+  {activitate ? (
+    <div>
+      {typeof activitate === "object" ? (
+        <>
+          <span className={`badge ${getBadgeClass(activitate.tip)} mb-1`}>
+            {activitate.activitate}
+          </span>
+          <div>{activitate.profesor}</div>
+          <div className="text-muted">{activitate.sala}</div>
+        </>
+      ) : (
+        <span className="badge bg-secondary">{activitate}</span>
+      )}
+    </div>
+  ) : ""}
+</td>
+
                             );
                           })}
                         </tr>

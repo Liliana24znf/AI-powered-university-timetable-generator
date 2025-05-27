@@ -5,6 +5,12 @@ import json
 from flask_cors import CORS
 import mysql.connector
 import os
+from flask import Flask, render_template_string
+from orar_generator import OrarGenerator
+from orar_generator import OrarGenerator, genereaza_html, genereaza_formular_criterii
+
+
+
 
 client = OpenAI(api_key="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")
 
@@ -77,7 +83,8 @@ def genereaza_orar():
         orar_json = json.loads(json_str_cleaned)
 
         # Completează anii și zilele lipsă
-        orar_json = completeaza_ani_lipsa(orar_json)
+        orar_json = completeaza_grupe_lipsa(orar_json)
+
 
         print(">>> Orar generat (parsare reușită) <<<")
         print(json.dumps(orar_json, indent=2, ensure_ascii=False))
@@ -334,6 +341,35 @@ def sterge_grupe_selectate():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+def completeaza_grupe_lipsa(orar_json):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT nivel, denumire FROM grupe")
+        toate_grupele = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        zile = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"]
+
+        for grupa in toate_grupele:
+            nivel = grupa["nivel"]
+            denumire = grupa["denumire"]
+
+            if nivel not in orar_json:
+                orar_json[nivel] = {}
+
+            if denumire not in orar_json[nivel]:
+                orar_json[nivel][denumire] = {}
+
+            for zi in zile:
+                if zi not in orar_json[nivel][denumire]:
+                    orar_json[nivel][denumire][zi] = {}
+
+        return orar_json
+    except Exception as e:
+        print("Eroare la completarea grupelor lipsă:", e)
+        return orar_json
 
 
 
@@ -369,6 +405,23 @@ def date_orar():
         })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/genereaza_orar_propriu", methods=["GET", "POST"])
+def genereaza_orar_propriu():
+    generator = OrarGenerator()
+
+    if request.method == "POST":
+        generator.actualizeaza_criterii(request.form)
+
+    orar = generator.genereaza_orar()
+    formular = genereaza_formular_criterii(generator.criterii)
+    html = genereaza_html(orar, generator.criterii, formular)
+
+    generator.inchide_conexiunea()
+    return render_template_string(html)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
