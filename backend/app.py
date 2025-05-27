@@ -111,7 +111,6 @@ def adauga_disciplina():
         return jsonify({"success": True, "message": "Disciplina adăugată cu succes."})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 @app.route("/toate_disciplina", methods=["GET"])
 def toate_disciplina():
     try:
@@ -188,7 +187,6 @@ def sterge_profesor(id):
         return jsonify({"success": True, "message": "Profesor șters cu succes."})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @app.route("/actualizeaza_profesor/<int:id>", methods=["PUT"])
 def actualizeaza_profesor(id):
@@ -270,7 +268,6 @@ def sterge_sali_selectate():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
 @app.route("/toate_sali", methods=["GET"])
 def toate_sali():
     try:
@@ -285,6 +282,60 @@ def toate_sali():
         return jsonify({"success": False, "error": str(e)}), 500
     
 
+@app.route("/adauga_grupe", methods=["POST"])
+def adauga_grupe():
+    grupe = request.get_json()
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        for grupa in grupe:
+            cursor.execute("""
+                INSERT INTO grupe (nivel, an, grupa, subgrupa, denumire)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (grupa["nivel"], grupa["an"], grupa["grupa"], grupa["subgrupa"], grupa["denumire"]))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "message": "Grupe adăugate cu succes."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/toate_grupe", methods=["GET"])
+def toate_grupe():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM grupe")
+        grupe = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(grupe)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/sterge_grupe_selectate", methods=["POST"])
+def sterge_grupe_selectate():
+    data = request.get_json()
+    coduri = data.get("coduri", [])
+
+    if not coduri:
+        return jsonify({"success": False, "error": "Lista de coduri este goală."}), 400
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        format_strings = ','.join(['%s'] * len(coduri))
+        query = f"DELETE FROM grupe WHERE denumire IN ({format_strings})"
+        cursor.execute(query, coduri)
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "message": "Grupele selectate au fost șterse."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+
 
 @app.route("/date_orar", methods=["GET"])
 def date_orar():
@@ -295,7 +346,6 @@ def date_orar():
         # Profesori
         cursor.execute("SELECT * FROM profesori")
         profesori = cursor.fetchall()
-
         for p in profesori:
             p["niveluri"] = [x.strip() for x in p["nivel"].split(",")] if p["nivel"] else []
             p["tipuri"] = [x.strip() for x in p["tipuri"].split(",")] if p["tipuri"] else []
@@ -305,13 +355,20 @@ def date_orar():
         cursor.execute("SELECT * FROM sali")
         sali = cursor.fetchall()
 
+        # Grupe
+        cursor.execute("SELECT * FROM grupe")
+        grupe = cursor.fetchall()
+
         cursor.close()
         conn.close()
 
-        return jsonify({"profesori": profesori, "sali": sali})
+        return jsonify({
+            "profesori": profesori,
+            "sali": sali,
+            "grupe": grupe
+        })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True)

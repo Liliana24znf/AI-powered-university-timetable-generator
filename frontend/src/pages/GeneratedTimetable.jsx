@@ -7,6 +7,8 @@ const GeneratedTimetable = () => {
   const [loading, setLoading] = useState(false);
   const [profesori, setProfesori] = useState([]);
   const [sali, setSali] = useState([]);
+  const [grupe, setGrupe] = useState([]);
+
 
   useEffect(() => {
     const incarcaDate = async () => {
@@ -15,6 +17,7 @@ const GeneratedTimetable = () => {
         const data = await response.json();
         setProfesori(data.profesori || []);
         setSali(data.sali || []);
+        setGrupe(data.grupe || []);
       } catch (err) {
         console.error("Eroare la încărcarea datelor:", err);
       }
@@ -95,12 +98,21 @@ const GeneratedTimetable = () => {
 
     const instructiuniSali = sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n");
 
+    const instructiuniGrupe = grupe.map(
+  (g) =>
+    `- ${g.denumire} (${g.nivel}, anul ${g.an}, grupa ${g.grupa}, subgrupa ${g.subgrupa})`
+).join("\n");
+
+
     const promptFinal = `
 ✅ LISTA COMPLETĂ de profesori și discipline (nu inventa altele):
 ${instructiuniProfesori}
 
 🏫 Săli disponibile:
 ${instructiuniSali}
+
+👥 Grupe disponibile:
+${instructiuniGrupe}
 
 ${reguli}
 `;
@@ -358,6 +370,20 @@ const exportPDF = () => {
     ))}
   </ul>
 )}
+
+            <h5>👥 Grupe disponibile:</h5>
+{!grupe.length ? (
+  <p className="text-muted">⚠️ Nu există grupe disponibile în acest moment.</p>
+) : (
+  <ul className="list-group mb-4">
+    {grupe.map((g, i) => (
+      <li key={i} className="list-group-item">
+        {g.denumire} – {g.nivel}, anul {g.an}, grupa {g.grupa}, subgrupa {g.subgrupa}
+      </li>
+    ))}
+  </ul>
+)}
+
 
               </div>
             </div>
