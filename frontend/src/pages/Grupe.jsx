@@ -226,7 +226,7 @@ const genereazaGrupe = async () => {
       cancelButtonText: "Rămâi aici"
     }).then((result) => {
       if (result.isConfirmed) {
-        navigate("/");
+        navigate("/dashboard");
       }
     });
   }}
@@ -235,10 +235,62 @@ const genereazaGrupe = async () => {
 </button>
 
           <span className="text-primary fw-bold fs-4">👥 Gestionare Grupe</span>
-          <div className="position-absolute end-0">
-            <button className="btn btn-outline-primary me-2" onClick={fetchGrupe}>🔄 Reîncarcă</button>
-            <button className="btn btn-primary" onClick={() => navigate("/sali")}>➡ Continuă</button>
-          </div>
+          <div className="position-absolute end-0 d-flex gap-2">
+            <button
+    className="btn btn-outline-danger"
+    onClick={() => {
+      Swal.fire({
+        title: "Revenire la început?",
+        text: "Datele nesalvate despre grupe vor fi pierdute. Ești sigur că vrei să revii?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Da, revin",
+        cancelButtonText: "Rămân aici",
+      }).then((result) => {
+        if (result.isConfirmed) navigate("/dashboard");
+      });
+    }}
+  >
+    🔙 Înapoi
+  </button>
+
+  <button
+    className="btn btn-outline-secondary"
+    onClick={() => {
+      Swal.fire({
+        title: "Reîncarcă grupele?",
+        text: "Grupele actuale vor fi reîncărcate din baza de date. Modificările nesalvate vor fi pierdute.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Da, reîncarcă",
+        cancelButtonText: "Nu",
+      }).then((result) => {
+        if (result.isConfirmed) fetchGrupe();
+      });
+    }}
+  >
+    🔄 Reîncarcă
+  </button>
+
+  <button
+    className="btn btn-outline-primary"
+    onClick={() => {
+      Swal.fire({
+        title: "Continui către săli?",
+        text: "Asigură-te că ai salvat toate grupele înainte de a continua.",
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonText: "Da, continuă",
+        cancelButtonText: "Rămân aici",
+      }).then((result) => {
+        if (result.isConfirmed) navigate("/sali");
+      });
+    }}
+  >
+    ➡ Continuă
+  </button>
+
+</div>
         </div>
       </nav>
 
