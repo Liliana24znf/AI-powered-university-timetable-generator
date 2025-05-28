@@ -386,18 +386,42 @@ const exportPDF = () => {
                   ))}
                 </ul>
   
-                <h5>🏫 Săli disponibile:</h5>
-{!sali.length ? (
-  <p className="text-muted">⚠️ Nu există săli disponibile în acest moment.</p>
-) : (
-  <ul className="list-group">
-    {sali.map((s, i) => (
-      <li key={i} className="list-group-item">
-        {s.cod} – {s.tip}
-      </li>
-    ))}
-  </ul>
-)}
+<h5 className="mt-4">🏫 Săli disponibile:</h5>
+
+{["Curs", "Laborator", "Seminar"].map((tip) => {
+  const saliTip = sali
+    .filter((s) => s.tip === tip)
+    .sort((a, b) => parseInt(a.cod.replace(/\D/g, "")) - parseInt(b.cod.replace(/\D/g, "")));
+
+  const culoare =
+    tip === "Curs" ? "text-primary" :
+    tip === "Laborator" ? "text-success" :
+    "text-warning";
+
+  const icon =
+    tip === "Curs" ? "📘" :
+    tip === "Laborator" ? "🧪" :
+    "📝";
+
+  return (
+    <div key={tip} className="mb-3">
+      <h6 className={`fw-bold ${culoare}`}>{icon} Săli de {tip} ({saliTip.length})</h6>
+      {saliTip.length === 0 ? (
+        <p className="text-muted fst-italic">⚠️ Nu există săli de tip {tip} disponibile în sistem.</p>
+      ) : (
+        <ul className="list-group">
+          {saliTip.map((s, i) => (
+            <li key={i} className="list-group-item d-flex justify-content-between align-items-center">
+              {s.cod}
+              <span className="badge bg-light text-dark">{s.tip}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+})}
+
 
             <h5>👥 Grupe disponibile:</h5>
 {!grupe.length ? (

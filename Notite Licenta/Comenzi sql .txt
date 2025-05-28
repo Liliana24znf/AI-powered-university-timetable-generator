@@ -1,0 +1,6 @@
+orodnarea salilor
+
+SELECT * FROM sali
+ORDER BY 
+  tip,
+  CAST(SUBSTRING(cod, 3) AS UNSIGNED)

@@ -103,7 +103,7 @@ def genereaza_orar():
         json_str_cleaned = "\n".join(clean_lines)
 
         # Elimină virgule care preced închiderea obiectului sau array-ului
-        json_str_cleaned = re.sub(r",\s*(\]|\})", r"\1", json_str_cleaned)
+        json_str_cleaned = re.sub(r",\s*([\]})])", r"\1", json_str_cleaned)
 
         orar_json = json.loads(json_str_cleaned)
 
@@ -299,20 +299,42 @@ def sterge_sali_selectate():
         return jsonify({"success": True, "message": "Sălile selectate au fost șterse."})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 @app.route("/toate_sali", methods=["GET"])
 def toate_sali():
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM sali")
+        cursor.execute("""
+            SELECT * FROM sali
+            ORDER BY 
+                tip,
+                CAST(SUBSTRING(cod, 3) AS UNSIGNED)
+        """)
         sali = cursor.fetchall()
         cursor.close()
         conn.close()
         return jsonify(sali)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-    
+
+@app.route("/sali_dupa_tip", methods=["GET"])
+def sali_dupa_tip():
+    tip = request.args.get("tip")
+    if tip not in ['Curs', 'Laborator', 'Seminar']:
+        return jsonify({"success": False, "error": "Tip invalid"}), 400
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM sali WHERE tip = %s", (tip,))
+        sali = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(sali)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 
 @app.route("/adauga_grupe", methods=["POST"])
 def adauga_grupe():
@@ -433,8 +455,10 @@ def date_orar():
             p["discipline"] = [x.strip() for x in p["discipline"].split(",")] if p["discipline"] else []
 
         # Săli
-        cursor.execute("SELECT * FROM sali")
-        sali = cursor.fetchall()
+        cursor.execute("""
+  SELECT * FROM sali
+  ORDER BY tip, CAST(SUBSTRING(cod, 3) AS UNSIGNED)
+""")
 
         # Grupe
         cursor.execute("SELECT * FROM grupe")
