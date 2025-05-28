@@ -138,7 +138,7 @@ class OrarGenerator:
 
 def genereaza_formular_criterii(criterii):
     return f"""
-    <form method="post" style="margin-bottom: 30px;">
+    <form method="post" style="margin-block-end: 30px;">
         <h3>Modifică criteriile de generare:</h3>
         <label>Pauză miercuri:</label>
         <input type="text" name="pauza_miercuri" value="{criterii['pauza_miercuri']}"><br><br>
@@ -164,7 +164,7 @@ def genereaza_html(orar, criterii, formular_html):
     html = "<html><head><meta charset='utf-8'><title>Orar Generat</title><style>"
     html += """
     body { font-family: Arial; margin: 20px; background: #f9f9f9; }
-    table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+    table { border-collapse: collapse; inline-size: 100%; margin-block-end: 30px; }
     th, td { border: 1px solid #aaa; padding: 8px; text-align: center; font-size: 14px; }
     th { background-color: #e0e0e0; }
     h2 { background-color: #333; color: white; padding: 10px; }

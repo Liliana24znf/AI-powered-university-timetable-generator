@@ -46,16 +46,37 @@ def completeaza_ani_lipsa(orar_json):
                     orar_json[nivel][an][zi] = {}
     return orar_json
 
+
 @app.route('/genereaza_orar', methods=['POST'])
 def genereaza_orar():
     data = request.get_json()
     reguli = data.get("reguli", "")
 
+
     if not reguli:
         return jsonify({"error": "Trebuie să furnizezi un set de reguli."}), 400
+    
+        # ✅ Obține grupele înainte de a trimite promptul la GPT
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT denumire FROM grupe WHERE nivel = 'Licenta'")
+    grupele_licenta = [g['denumire'] for g in cursor.fetchall()]
+
+    cursor.execute("SELECT denumire FROM grupe WHERE nivel = 'Master'")
+    grupele_master = [g['denumire'] for g in cursor.fetchall()]
+    cursor.close()
+    conn.close()
+
+    prompt_grupe = (
+        "Grupele pentru care trebuie să generezi orar:\n"
+        f"Licenta: {', '.join(grupele_licenta)}\n"
+        f"Master: {', '.join(grupele_master)}\n\n"
+    )
+
+    reguli = prompt_grupe + reguli
 
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": "Răspunde DOAR cu JSON valid. Fără explicații. Începe cu { și termină cu }."},
             {"role": "user", "content": reguli}
@@ -74,7 +95,11 @@ def genereaza_orar():
 
         # Elimină liniile care conțin "..."
         lines = json_str.splitlines()
-        clean_lines = [line for line in lines if "..." not in line]
+        clean_lines = []
+        for line in lines:
+            line = re.sub(r'//.*', '', line)
+            if "..." not in line and line.strip():
+                clean_lines.append(line)
         json_str_cleaned = "\n".join(clean_lines)
 
         # Elimină virgule care preced închiderea obiectului sau array-ului

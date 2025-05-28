@@ -58,29 +58,27 @@ const [reguli, setReguli] = useState(` 📜 REGULI STRICTE PENTRU GENERAREA ORAR
 
 7. NU inventa discipline, profesori sau săli. Folosește DOAR datele primite.
 
-8. Structura JSON a orarului trebuie să fie VALIDĂ și COMPLETĂ:
+8. Structura JSON a orarului trebuie să fie VALIDĂ și COMPLETĂ.
 
+Pentru fiecare nivel (Licență și Master), trebuie să generezi orarul pentru TOATE grupele și subgrupele existente. Listele exacte de grupe sunt furnizate mai sus (ex: I1a, I1b, I2a, I2b, M1a etc.). Nu omite niciuna.
+
+Pentru fiecare grupă sau subgrupă:
+- Generează orarul complet de luni până vineri.
+- Pentru fiecare zi, include toate intervalele orare permise (ex: 08:00–10:00, 10:00–12:00 etc.).
+- Completează fiecare interval cu o activitate validă în formatul:
+🧠 IMPORTANT: Grupele pentru care trebuie să generezi orar sunt cele listate mai sus. Completează orarul pentru TOATE, fără a omite nicio grupă. Dacă există 24 de grupe la Licență și 4 la Master, orarul trebuie generat pentru toate 28.
+
+Dacă nu există suficienți profesori, discipline sau săli, reutilizează-le în mod inteligent, astfel încât să respecți regulile și să umpli toate zilele și grupele.
 {
   "Licenta": {
-    "I1a": {
-      "Luni": {
-        "08:00–10:00": {
-  "activitate": "Programare",
-  "tip": "Curs",
-  "profesor": "Ion Popescu",
-  "sala": "GC1"
-}
-
-        ...
-      },
-      ...
-    },
+    "I1a": { ... },
+    "I1b": { ... },
     ...
   },
   "Master": {
-    "M1a": {
-      ...
-    }
+    "MI1": { ... },
+    "MI2": { ... },
+    ...
   }
 }
 
@@ -92,10 +90,14 @@ La fiecare activitate, folosește formatul:
   "profesor": "Prenume Nume",
   "sala": "GC1/GA2 etc."
 }
+  Dacă nu sunt suficiente activități, profesori sau săli, reutilizează-le inteligent astfel încât fiecare grupă să aibă activități în fiecare zi (respectând regulile).
 
 NU folosi un singur string lung. NU combina detaliile într-un câmp. Fiecare activitate TREBUIE să aibă cele 4 câmpuri distincte: activitate, tip, profesor, sala.
 
 ‼️ NU omite nicio zi. Fiecare grupă/subgrupă trebuie să aibă activități în fiecare zi (cu excepția intervalului 14:00–16:00 miercuri). NU trimite JSON incomplet sau cu erori de sintaxă.
+
+{"role": "system", "content": "Răspunde DOAR cu JSON VALID. FĂRĂ comentarii, fără explicații, fără // sau ... . Începe cu { și termină cu }."},
+
 `);
 
 
