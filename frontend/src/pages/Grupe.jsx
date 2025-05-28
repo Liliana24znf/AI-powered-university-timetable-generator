@@ -20,18 +20,21 @@ const Grupe = () => {
 
   const getSubgrupaLitera = (index) => String.fromCharCode("a".charCodeAt(0) + index);
 
-  const fetchGrupe = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch("http://localhost:5000/toate_grupe");
-      const data = await res.json();
-      if (Array.isArray(data)) setGrupeGenerat(data);
-    } catch {
-      toast.error("❌ Eroare la încărcarea grupelor.");
-    } finally {
-      setIsLoading(false);
+const fetchGrupe = async (silent = false) => {
+  setIsLoading(true);
+  setGrupeSelectate([]);
+  try {
+    const res = await fetch("http://localhost:5000/toate_grupe");
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      setGrupeGenerat(data);
     }
-  };
+  } catch {
+    toast.error("❌ Eroare la încărcarea grupelor.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchGrupe();
@@ -48,37 +51,44 @@ const Grupe = () => {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [editSectiune]);
 
-  const genereazaGrupe = async () => {
-    const existente = new Set(grupeGenerat.map((gr) => gr.denumire));
-    const noiGrupe = [];
+const genereazaGrupe = async () => {
+  const existente = new Set(grupeGenerat.map((gr) => gr.denumire));
+  const noiGrupe = [];
 
-    for (let g = 1; g <= nrGrupe; g++) {
-      for (let s = 0; s < nrSubgrupe; s++) {
-        const subgrupa = getSubgrupaLitera(s);
-        const denumire = `${nivel[0]}${an}${g}${subgrupa}`;
-        if (!existente.has(denumire)) {
-          noiGrupe.push({ nivel, an, grupa: g.toString(), subgrupa, denumire });
-        }
+  for (let g = 1; g <= nrGrupe; g++) {
+    for (let s = 0; s < nrSubgrupe; s++) {
+      const subgrupa = getSubgrupaLitera(s);
+      const denumire = `${nivel[0]}${an}${g}${subgrupa}`;
+      if (!existente.has(denumire)) {
+        noiGrupe.push({ nivel, an, grupa: g.toString(), subgrupa, denumire });
       }
     }
+  }
 
-    if (!noiGrupe.length) return toast.info("ℹ️ Nu sunt grupe noi de adăugat.");
+  if (!noiGrupe.length) return toast.info("ℹ️ Nu sunt grupe noi de adăugat.");
 
-    try {
-      const res = await fetch("http://localhost:5000/adauga_grupe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(noiGrupe),
-      });
-      const result = await res.json();
-      if (result.success) {
-        toast.success("✅ Grupele au fost salvate.");
-        fetchGrupe();
-      } else toast.error("❌ " + result.error);
-    } catch {
-      toast.error("❌ Eroare la salvare grupe.");
-    }
-  };
+  try {
+    const res = await fetch("http://localhost:5000/adauga_grupe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(noiGrupe),
+    });
+    const result = await res.json();
+    if (result.success) {
+      toast.success("✅ Grupele au fost salvate.");
+      fetchGrupe();
+
+      // 🧹 Resetare formular
+      setNivel("Licenta");
+      setAn("I");
+      setNrGrupe(1);
+      setNrSubgrupe(1);
+    } else toast.error("❌ " + result.error);
+  } catch {
+    toast.error("❌ Eroare la salvare grupe.");
+  }
+};
+
 
   const adaugaGrupaIndividuala = async () => {
     const match = grupaNoua.trim().match(/^([0-9]{1,2})([a-zA-Z])$/);
@@ -202,7 +212,29 @@ const Grupe = () => {
       <ToastContainer />
       <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
         <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
-          <Link to="/" className="position-absolute start-0 text-primary fw-bold fs-4 text-decoration-none">Generator Orare</Link>
+          <span
+  role="button"
+  className="position-absolute start-0 text-primary fw-bold fs-4 text-decoration-none"
+  style={{ cursor: "pointer" }}
+  onClick={() => {
+   Swal.fire({
+  title: "Părăsești această pagină?",
+  text: "Datele nesalvate despre grupe vor fi pierdute. Ești sigur că vrei să revii la pagina anterioară?",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonText: "Da, sunt sigur(ă)",
+  cancelButtonText: "Rămâi aici"
+}).then((result) => {
+  if (result.isConfirmed) {
+    navigate("/");
+  }
+});
+
+  }}
+>
+  Generator Orare
+</span>
+
           <span className="text-primary fw-bold fs-4">👥 Gestionare Grupe</span>
           <div className="position-absolute end-0">
             <button className="btn btn-outline-primary me-2" onClick={fetchGrupe}>🔄 Reîncarcă</button>
@@ -295,8 +327,15 @@ const Grupe = () => {
   <span>Nu există grupe înregistrate momentan.</span>
 </div>
 
-      ) : (
-        grupePeNivelSiAn().map((sectiune, idx) => {
+     ) : grupePeNivelSiAn().length === 0 ? (
+  <div className="text-center text-secondary py-5">
+    <i className="bi bi-emoji-frown fs-1 text-warning mb-3 d-block"></i>
+    <h5 className="fw-bold">Nicio grupă găsită</h5>
+    <p className="mb-0">Verifică dacă ai introdus corect denumirea sau încearcă alt termen.</p>
+  </div>
+) : (
+  grupePeNivelSiAn().map((sectiune, idx) => {
+
           const esteInEditare = editSectiune &&
             editSectiune.nivel === sectiune.titlu.split(' - ')[0] &&
             editSectiune.an === sectiune.titlu.split(' - ')[1].replace('Anul ', '');
@@ -310,9 +349,29 @@ const Grupe = () => {
                     nivel: sectiune.titlu.split(' - ')[0],
                     an: sectiune.titlu.split(' - ')[1].replace('Anul ', '')
                   })}>✏️ Editează</button>
-                  <button className="btn btn-sm btn-outline-primary rounded-3" onClick={() =>
-                    sectiune.grupe.forEach((gr) => toggleSelect(gr.denumire))
-                  }>✅ Selectează toate</button>
+                  <button
+  className="btn btn-sm btn-outline-primary rounded-3"
+  onClick={() => {
+    const toateSelectate = sectiune.grupe.every((gr) => grupeSelectate.includes(gr.denumire));
+    if (toateSelectate) {
+      setGrupeSelectate((prev) =>
+        prev.filter((cod) => !sectiune.grupe.some((gr) => gr.denumire === cod))
+      );
+    } else {
+      setGrupeSelectate((prev) => [
+        ...prev,
+        ...sectiune.grupe
+          .map((gr) => gr.denumire)
+          .filter((cod) => !prev.includes(cod)),
+      ]);
+    }
+  }}
+>
+  {sectiune.grupe.every((gr) => grupeSelectate.includes(gr.denumire))
+    ? "❌ Deselectează toate"
+    : "✅ Selectează toate"}
+</button>
+
                 </div>
               </h6>
               <ul className="list-group">
