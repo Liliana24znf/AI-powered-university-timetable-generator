@@ -45,7 +45,7 @@ const Dashboard = () => {
     După completarea acestor informații, veți putea accesa pagina de generare a orarului, unde sistemul va aplica regulile și condițiile definite pentru a crea orarul final.
   </p>
 
-  <Link to="/sali" className="btn btn-primary mt-4 px-4 py-2">
+  <Link to="/grupe" className="btn btn-primary mt-4 px-4 py-2">
     Să începem!
   </Link>
 </div>

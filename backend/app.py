@@ -396,6 +396,26 @@ def completeaza_grupe_lipsa(orar_json):
         print("Eroare la completarea grupelor lipsă:", e)
         return orar_json
 
+@app.route('/actualizeaza_grupa', methods=['PUT'])
+def actualizeaza_grupa():
+    data = request.get_json()
+    cod_vechi = data.get("cod_vechi")
+    cod_nou = data.get("cod_nou")
+
+    if not cod_vechi or not cod_nou:
+        return jsonify({"error": "Date lipsă"}), 400
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE grupe SET denumire = %s WHERE denumire = %s", (cod_nou, cod_vechi))
+        conn.commit()
+        return jsonify({"success": True})
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)})
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.route("/date_orar", methods=["GET"])

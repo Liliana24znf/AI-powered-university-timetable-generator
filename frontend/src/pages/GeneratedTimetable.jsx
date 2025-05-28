@@ -26,7 +26,7 @@ const GeneratedTimetable = () => {
   }, []);
 
 const [reguli, setReguli] = useState(` 📜 REGULI STRICTE PENTRU GENERAREA ORARULUI:
-
+Toti ani, toate grupele si toate subgrupele de la Licenta si Master sa fie completate.
 1. Orarul trebuie să acopere întreaga săptămână (Luni–Vineri) pentru TOATE grupele disponibile, structurate astfel:
    - Cursurile se desfășoară pe AN.
    - Seminarele și proiectele pe GRUPĂ.
