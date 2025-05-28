@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
@@ -91,10 +91,10 @@ const genereazaGrupe = async () => {
 
 
   const adaugaGrupaIndividuala = async () => {
-    const match = grupaNoua.trim().match(/^([0-9]{1,2})([a-zA-Z])$/);
+    const match = grupaNoua.trim().match(/^(\d{1,2})([a-zA-Z])$/);
     if (!match) return toast.error("⚠️ Format invalid. Exemplu corect: 2b sau 10A");
 
-    const [_, grupaRaw, subgrupaRaw] = match;
+    const [, grupaRaw, subgrupaRaw] = match;
     const grupa = grupaRaw.replace(/^0+/, "");
     const subgrupa = subgrupaRaw.toLowerCase();
     const denumire = `${editSectiune.nivel[0]}${editSectiune.an}${grupa}${subgrupa}`;
@@ -212,28 +212,27 @@ const genereazaGrupe = async () => {
       <ToastContainer />
       <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
         <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
-          <span
-  role="button"
-  className="position-absolute start-0 text-primary fw-bold fs-4 text-decoration-none"
+<button
+  type="button"
+  className="position-absolute start-0 text-primary fw-bold fs-4 text-decoration-none btn btn-link p-0"
   style={{ cursor: "pointer" }}
   onClick={() => {
-   Swal.fire({
-  title: "Părăsești această pagină?",
-  text: "Datele nesalvate despre grupe vor fi pierdute. Ești sigur că vrei să revii la pagina anterioară?",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonText: "Da, sunt sigur(ă)",
-  cancelButtonText: "Rămâi aici"
-}).then((result) => {
-  if (result.isConfirmed) {
-    navigate("/");
-  }
-});
-
+    Swal.fire({
+      title: "Părăsești această pagină?",
+      text: "Datele nesalvate despre grupe vor fi pierdute. Ești sigur că vrei să revii la pagina anterioară?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Da, sunt sigur(ă)",
+      cancelButtonText: "Rămâi aici"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/");
+      }
+    });
   }}
 >
   Generator Orare
-</span>
+</button>
 
           <span className="text-primary fw-bold fs-4">👥 Gestionare Grupe</span>
           <div className="position-absolute end-0">
@@ -268,16 +267,26 @@ const genereazaGrupe = async () => {
       <h4 className="mb-4 text-primary fw-bold text-center">⚙️ Configurare Grupe</h4>
 
       <div className="mb-3">
-        <label className="form-label fw-semibold">Nivel:</label>
-        <select className="form-select rounded-3" value={nivel} onChange={(e) => setNivel(e.target.value)}>
+        <label htmlFor="nivelSelect" className="form-label fw-semibold">Nivel:</label>
+        <select
+          id="nivelSelect"
+          className="form-select rounded-3"
+          value={nivel}
+          onChange={(e) => setNivel(e.target.value)}
+        >
           <option value="Licenta">Licență</option>
           <option value="Master">Master</option>
         </select>
       </div>
 
       <div className="mb-3">
-        <label className="form-label fw-semibold">An:</label>
-        <select className="form-select rounded-3" value={an} onChange={(e) => setAn(e.target.value)}>
+        <label htmlFor="anSelect" className="form-label fw-semibold">An:</label>
+        <select
+          id="anSelect"
+          className="form-select rounded-3"
+          value={an}
+          onChange={(e) => setAn(e.target.value)}
+        >
           <option value="I">I</option>
           <option value="II">II</option>
           <option value="III">III</option>
@@ -334,77 +343,113 @@ const genereazaGrupe = async () => {
     <p className="mb-0">Verifică dacă ai introdus corect denumirea sau încearcă alt termen.</p>
   </div>
 ) : (
-  grupePeNivelSiAn().map((sectiune, idx) => {
+grupePeNivelSiAn().map((sectiune) => {
+  const esteInEditare =
+    editSectiune &&
+    editSectiune.nivel === sectiune.titlu.split(' - ')[0] &&
+    editSectiune.an === sectiune.titlu.split(' - ')[1].replace('Anul ', '');
 
-          const esteInEditare = editSectiune &&
-            editSectiune.nivel === sectiune.titlu.split(' - ')[0] &&
-            editSectiune.an === sectiune.titlu.split(' - ')[1].replace('Anul ', '');
-
-          return (
-            <div key={idx} className="mb-4">
-              <h6 className="fw-bold d-flex justify-content-between align-items-center text-secondary">
-                {sectiune.titlu}
-                <div>
-                  <button className="btn btn-sm btn-outline-secondary me-2 rounded-3" onClick={() => setEditSectiune({
-                    nivel: sectiune.titlu.split(' - ')[0],
-                    an: sectiune.titlu.split(' - ')[1].replace('Anul ', '')
-                  })}>✏️ Editează</button>
-                  <button
-  className="btn btn-sm btn-outline-primary rounded-3"
-  onClick={() => {
-    const toateSelectate = sectiune.grupe.every((gr) => grupeSelectate.includes(gr.denumire));
-    if (toateSelectate) {
-      setGrupeSelectate((prev) =>
-        prev.filter((cod) => !sectiune.grupe.some((gr) => gr.denumire === cod))
-      );
-    } else {
-      setGrupeSelectate((prev) => [
-        ...prev,
-        ...sectiune.grupe
-          .map((gr) => gr.denumire)
-          .filter((cod) => !prev.includes(cod)),
-      ]);
-    }
-  }}
->
-  {sectiune.grupe.every((gr) => grupeSelectate.includes(gr.denumire))
+  // Extracted ternary operation for button label
+  const toateSelectate = sectiune.grupe.every((gr) => grupeSelectate.includes(gr.denumire));
+  const selectAllButtonLabel = toateSelectate
     ? "❌ Deselectează toate"
-    : "✅ Selectează toate"}
-</button>
+    : "✅ Selectează toate";
 
-                </div>
-              </h6>
-              <ul className="list-group">
-                {sectiune.grupe.map((gr, i) => (
-                  <li key={i} className="list-group-item d-flex align-items-center border-0 border-bottom py-2">
-                    <input type="checkbox" className="form-check-input me-3" checked={grupeSelectate.includes(gr.denumire)} onChange={() => toggleSelect(gr.denumire)} />
-                    <div className="d-flex flex-column">
-                      <span className="fw-bold text-dark">🧑‍🎓 {gr.denumire}</span>
-                      <div className="small text-muted">
-                        <span className="badge bg-primary me-1">{gr.nivel}</span>
-                        <span className="badge bg-secondary me-1">An {gr.an}</span>
-                        <span className="badge bg-success me-1">Grupa {gr.grupa}</span>
-                        {gr.subgrupa && <span className="badge bg-info text-dark">Subgrupa {gr.subgrupa}</span>}
-                      </div>
-                    </div>
-                    <button className="btn btn-sm btn-outline-danger ms-auto rounded-3" onClick={() => stergeGrupa(gr.denumire)}>🗑️</button>
-                  </li>
-                ))}
-              </ul>
-
-              {esteInEditare && (
-                <div className="card bg-light p-3 mt-3 border-0 rounded-3">
-                  <h6 className="fw-bold mb-3">➕ Adaugă o grupă nouă (ex: 2b)</h6>
-                  <div className="input-group">
-                    <input className="form-control" value={grupaNoua} onChange={(e) => setGrupaNoua(e.target.value)} placeholder="ex: 2b" />
-                    <button className="btn btn-success" onClick={adaugaGrupaIndividuala}>Adaugă</button>
-                    <button className="btn btn-outline-secondary" onClick={() => { setEditSectiune(null); setGrupaNoua(""); }}>Anulează</button>
-                  </div>
-                </div>
-              )}
+  return (
+    <div key={sectiune.titlu} className="mb-4">
+      <h6 className="fw-bold d-flex justify-content-between align-items-center text-secondary">
+        {sectiune.titlu}
+        <div>
+          <button
+            className="btn btn-sm btn-outline-secondary me-2 rounded-3"
+            onClick={() =>
+              setEditSectiune({
+                nivel: sectiune.titlu.split(' - ')[0],
+                an: sectiune.titlu.split(' - ')[1].replace('Anul ', ''),
+              })
+            }
+          >
+            ✏️ Editează
+          </button>
+          <button
+            className="btn btn-sm btn-outline-primary rounded-3"
+            onClick={() => {
+              if (toateSelectate) {
+                setGrupeSelectate((prev) =>
+                  prev.filter((cod) => !sectiune.grupe.some((gr) => gr.denumire === cod))
+                );
+              } else {
+                setGrupeSelectate((prev) => [
+                  ...prev,
+                  ...sectiune.grupe
+                    .map((gr) => gr.denumire)
+                    .filter((cod) => !prev.includes(cod)),
+                ]);
+              }
+            }}
+          >
+            {selectAllButtonLabel}
+          </button>
+        </div>
+      </h6>
+      <ul className="list-group">
+        {sectiune.grupe.map((gr) => (
+          <li key={gr.denumire} className="list-group-item d-flex align-items-center border-0 border-bottom py-2">
+            <input
+              type="checkbox"
+              className="form-check-input me-3"
+              checked={grupeSelectate.includes(gr.denumire)}
+              onChange={() => toggleSelect(gr.denumire)}
+            />
+            <div className="d-flex flex-column">
+              <span className="fw-bold text-dark">🧑‍🎓 {gr.denumire}</span>
+              <div className="small text-muted">
+                <span className="badge bg-primary me-1">{gr.nivel}</span>
+                <span className="badge bg-secondary me-1">An {gr.an}</span>
+                <span className="badge bg-success me-1">Grupa {gr.grupa}</span>
+                {gr.subgrupa && (
+                  <span className="badge bg-info text-dark">Subgrupa {gr.subgrupa}</span>
+                )}
+              </div>
             </div>
-          );
-        })
+            <button
+              className="btn btn-sm btn-outline-danger ms-auto rounded-3"
+              onClick={() => stergeGrupa(gr.denumire)}
+            >
+              🗑️
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {esteInEditare && (
+        <div className="card bg-light p-3 mt-3 border-0 rounded-3">
+          <h6 className="fw-bold mb-3">➕ Adaugă o grupă nouă (ex: 2b)</h6>
+          <div className="input-group">
+            <input
+              className="form-control"
+              value={grupaNoua}
+              onChange={(e) => setGrupaNoua(e.target.value)}
+              placeholder="ex: 2b"
+            />
+            <button className="btn btn-success" onClick={adaugaGrupaIndividuala}>
+              Adaugă
+            </button>
+            <button
+              className="btn btn-outline-secondary"
+              onClick={() => {
+                setEditSectiune(null);
+                setGrupaNoua("");
+              }}
+            >
+              Anulează
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+})
       )}
     </div>
   </div>
