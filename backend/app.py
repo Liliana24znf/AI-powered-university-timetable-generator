@@ -252,6 +252,7 @@ def sterge_sali_selectate():
         return jsonify({"success": True, "message": "Sălile selectate au fost șterse."})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/toate_sali", methods=["GET"])
 def toate_sali():
     try:
@@ -273,7 +274,7 @@ def toate_sali():
 @app.route("/sali_dupa_tip", methods=["GET"])
 def sali_dupa_tip():
     tip = request.args.get("tip")
-    if tip not in ['Curs', 'Laborator', 'Seminar']:
+    if tip not in ['Curs', 'Laborator', 'Seminar','Proiect']:
         return jsonify({"success": False, "error": "Tip invalid"}), 400
 
     try:

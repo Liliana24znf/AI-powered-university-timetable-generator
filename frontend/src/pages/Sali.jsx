@@ -8,8 +8,11 @@ const Sali = () => {
   const [numarCursuri, setNumarCursuri] = useState(0);
 const [numarLaboratoare, setNumarLaboratoare] = useState(0);
 const [numarSeminare, setNumarSeminare] = useState(0);
-  const [saliGenerat, setSaliGenerat] = useState([]);
+const [numarProiecte, setNumarProiecte] = useState(0);
+  
+const [saliGenerat, setSaliGenerat] = useState([]);
   const [saliSelectate, setSaliSelectate] = useState([]);
+  
   const [resetKey, setResetKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -41,7 +44,9 @@ const genereazaSali = async () => {
     const noi = [
       ...genereazaCoduri("GC", "Curs", numarCursuri, existente),
       ...genereazaCoduri("GA", "Laborator", numarLaboratoare, existente),
-      ...genereazaCoduri("GS", "Seminar", numarSeminare, existente)
+      ...genereazaCoduri("GS", "Seminar", numarSeminare, existente),
+      ...genereazaCoduri("GP", "Proiect", numarProiecte, existente)
+
     ];
 
     if (noi.length === 0) {
@@ -65,6 +70,8 @@ const genereazaSali = async () => {
       setNumarCursuri(0);
       setNumarLaboratoare(0);
       setNumarSeminare(0);
+      setNumarProiecte(0);
+
     } else {
       toast.error("❌ " + result.error);
     }
@@ -264,9 +271,11 @@ const fetchSali = async () => {
 
       <div className="my-4" />
       {/* Conținut */}
-<div className="row mb-4 g-4">
+<div className="row mb-4 flex-nowrap overflow-auto">
+
   {/* Curs */}
-  <div className="col-md-4">
+<div className="col-md-3" style={{ minWidth: "280px" }}>
+
     <div className="card border-start border-3 border-primary shadow-sm h-100">
       <div className="card-body">
         <h6 className="fw-bold text-primary mb-2">📘 Săli de Curs (GC)</h6>
@@ -283,7 +292,8 @@ const fetchSali = async () => {
   </div>
 
   {/* Laborator */}
-  <div className="col-md-4">
+<div className="col-md-3" style={{ minWidth: "280px" }}>
+
     <div className="card border-start border-3 border-success shadow-sm h-100">
       <div className="card-body">
         <h6 className="fw-bold text-success mb-2">🧪 Săli de Laborator (GA)</h6>
@@ -300,7 +310,8 @@ const fetchSali = async () => {
   </div>
 
   {/* Seminar */}
-  <div className="col-md-4">
+<div className="col-md-3" style={{ minWidth: "280px" }}>
+
     <div className="card border-start border-3 border-warning shadow-sm h-100">
       <div className="card-body">
         <h6 className="fw-bold text-warning mb-2">📝 Săli de Seminar (GS)</h6>
@@ -315,6 +326,26 @@ const fetchSali = async () => {
       </div>
     </div>
   </div>
+
+{/* Proiect */}
+<div className="col-md-3" style={{ minWidth: "280px" }}>
+
+  <div className="card border-start border-3 border-info shadow-sm h-100">
+    <div className="card-body">
+      <h6 className="fw-bold text-info mb-2">💼 Săli de Proiect (GP)</h6>
+      <input
+        type="number"
+        className="form-control"
+        placeholder="ex: 2"
+        min="0"
+        value={numarProiecte}
+        onChange={(e) => setNumarProiecte(parseInt(e.target.value) || 0)}
+      />
+    </div>
+  </div>
+</div>
+
+
 </div>
 <div className="text-center mb-4">
   <button
@@ -335,12 +366,21 @@ const fetchSali = async () => {
 )}
 
 
-<div className="row mb-4">
-{["Curs", "Laborator", "Seminar"].map((tip) => {
+<div className="row mb-4 justify-content-start">
+
+{["Curs", "Laborator", "Seminar", "Proiect"].map((tip) => {
   const culoare =
-    tip === "Curs" ? "primary" : tip === "Laborator" ? "success" : "warning";
+    tip === "Curs" ? "primary" :
+    tip === "Laborator" ? "success" :
+    tip === "Seminar" ? "warning" :
+    tip === "Proiect" ? "info" :
+    "info";
   const prefix =
-    tip === "Curs" ? "GC" : tip === "Laborator" ? "GA" : "GS";
+    tip === "Curs" ? "GC" :
+    tip === "Laborator" ? "GL" :
+    tip === "Seminar" ? "GS" :
+    tip === "Proiect" ? "GP" :
+    "GP";
 
   const saliFiltrate = saliGenerat
     .filter((s) => s.tip === tip)
@@ -351,13 +391,14 @@ const fetchSali = async () => {
     );
 
     return (
-      <div key={`${tip}-${resetKey}`} className="col-md-4">
+      <div key={`${tip}-${resetKey}`} className="col-lg-3 col-md-4 col-sm-6 mb-3">
         <div className={`card shadow-sm h-100 border-start border-4 border-${culoare}`}>
           <div className="card-body">
             <h5 className={`fw-bold text-${culoare} mb-3`}>
               {tip === "Curs" ? "📘 Săli de Curs (GC)" :
-               tip === "Laborator" ? "🧪 Săli de Laborator (GA)" :
-               "📝 Săli de Seminar (GS)"}
+               tip === "Laborator" ? "🧪 Săli de Laborator (GL)" :
+               tip === "Seminar" ? "📝 Săli de Seminar (GS)" :
+               "💼 Săli de Proiect (GP)"}
             </h5>
 
             {saliFiltrate.length === 0 ? (
