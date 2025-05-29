@@ -164,7 +164,7 @@ const fetchSali = async () => {
   onClick={() => {
     Swal.fire({
       title: "Părăsești această pagină?",
-      text: "Datele nesalvate despre săli vor fi pierdute. Ești sigur că vrei să revii la pagina anterioară?",
+      text: "Datele nesalvate despre săli vor fi pierdute. Ești sigur că vrei să revii la pagina de început?",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Da, sunt sigur(ă)",
@@ -185,7 +185,7 @@ const fetchSali = async () => {
     className="btn btn-outline-danger"
     onClick={() => {
       Swal.fire({
-        title: "Revenire la început?",
+        title: "Revenire la grupe?",
         text: "Datele nesalvate despre săli vor fi pierdute. Ești sigur că vrei să revii?",
         icon: "warning",
         showCancelButton: true,

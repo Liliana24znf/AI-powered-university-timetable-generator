@@ -121,57 +121,6 @@ def genereaza_orar():
         print(orar_raw)
         return jsonify({"error": "Orarul generat nu este într-un format JSON valid."}), 500
 
-@app.route("/adauga_disciplina", methods=["POST"])
-def adauga_disciplina():
-    data = request.json
-    nume = data.get("nume")
-    tip = data.get("tip")
-    nivel = data.get("nivel")
-    an = data.get("an")
-    semestru = data.get("semestru")
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO discipline (nume, tip, nivel, an, semestru) VALUES (%s, %s, %s, %s, %s)",
-            (nume, tip, nivel, an, semestru)
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({"success": True, "message": "Disciplina adăugată cu succes."})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-@app.route("/toate_disciplina", methods=["GET"])
-def toate_disciplina():
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM discipline")
-        discipline = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(discipline)
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-    
-    
-@app.route("/sterge_disciplina", methods=["POST"])
-def sterge_disciplina():
-    data = request.json
-    disciplina_id = data.get("id")
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM discipline WHERE id = %s", (disciplina_id,))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({"success": True, "message": "Disciplina ștearsă cu succes."})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/adauga_profesor", methods=["POST"])

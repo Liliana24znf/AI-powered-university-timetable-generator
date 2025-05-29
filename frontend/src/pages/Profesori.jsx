@@ -104,9 +104,9 @@ discipline: typeof p.discipline === "string"
   const handleReincarcareClick = async () => {
   try {
     await fetchProfesori();
-    toast.info("🔄 Lista sălilor a fost reîncărcată cu succes!");
+    toast.info("🔄 Lista profesorilor a fost reîncărcată cu succes!");
   } catch {
-    toast.error("❌ Eroare la reîncărcare săli.");
+    toast.error("❌ Eroare la reîncărcare profesori.");
   }
 };
 
@@ -224,169 +224,242 @@ body: JSON.stringify({
   };
 
   return (
-    <div className="container-fluid pt-4 px-4">
+
+
+
+ <div className="container-fluid pt-4 px-4">
       <ToastContainer />
-<nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
-  <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
-    
-    {/* Buton stânga: Logo sau link acasă */}
-    <Link to="/" className="position-absolute start-0 text-primary fw-bold fs-4 text-decoration-none">
-      Generator Orare
-    </Link>
+      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
+        <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
+<button
+  type="button"
+  className="position-absolute start-0 text-primary fw-bold fs-4 text-decoration-none btn btn-link p-0"
+  style={{ cursor: "pointer" }}
+  onClick={() => {
+    Swal.fire({
+      title: "Părăsești această pagină?",
+      text: "Datele nesalvate despre profesori vor fi pierdute. Ești sigur că vrei să revii la pagina de început?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Da, sunt sigur(ă)",
+      cancelButtonText: "Rămâi aici"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/dashboard");
+      }
+    });
+  }}
+>
+  Generator Orare
+</button>
 
-    {/* Titlu centrat */}
-    <span className="text-primary fw-bold fs-4">
-      👨‍🏫 Gestionare Profesori
-    </span>
+          <span className="text-primary fw-bold fs-4">👨‍🏫 Gestionare Profesori</span>
+          <div className="position-absolute end-0 d-flex gap-2">
+            <button
+    className="btn btn-outline-danger"
+    onClick={() => {
+      Swal.fire({
+        title: "Revenire la săli?",
+        text: "Datele nesalvate despre profesori vor fi pierdute. Ești sigur că vrei să revii?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Da, revin",
+        cancelButtonText: "Rămân aici",
+      }).then((result) => {
+        if (result.isConfirmed) navigate("/grupe");
+      });
+    }}
+  >
+    🔙 Înapoi
+  </button>
 
-    {/* Butoane în dreapta */}
-    <div className="position-absolute end-0">
-      <button className="btn btn-outline-primary me-2" onClick={handleReincarcareClick}>
-        🔄 Reîncarcă
-      </button>
-      <button className="btn btn-primary" onClick={() => navigate("/orar-generat")}>
-        ➡ Continuă
-      </button>
-    </div>
-  </div>
-</nav>
+  <button
+    className="btn btn-outline-secondary"
+    onClick={() => {
+      Swal.fire({
+        title: "Reîncarcă profesorii?",
+        text: "Profesorii actuali vor fi reîncărcați din baza de date. Modificările nesalvate vor fi pierdute.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Da, reîncarcă",
+        cancelButtonText: "Nu",
+      }).then((result) => {
+        if (result.isConfirmed) fetchProfesori();
+      });
+    }}
+  >
+    🔄 Reîncarcă
+  </button>
 
-      
-<div className="container mb-4">
-  <div className="card shadow-sm border-0 bg-light">
-    <div className="card-body">
-      <p className="mb-2">
-        În această secțiune poți <strong>adauga, edita sau șterge</strong> profesori și disciplinele pe care le predau.
-      </p>
-      <p className="mb-2">
-        Completează <strong>toate câmpurile necesare</strong>: nume, discipline, nivel și tipuri de activitate.
-      </p>
-      <p className="mb-2">
-        Tipurile posibile sunt: <em>cursuri</em>, <em>seminarii</em> și <em>laboratoare</em>.
-      </p>
-      <p className="mb-0">
-        După completare, apasă pe <strong>„Continuă”</strong> pentru a genera orarul.
-      </p>
-    </div>
-  </div>
+  <button
+    className="btn btn-outline-primary"
+    onClick={() => {
+      Swal.fire({
+        title: "Continui către reguli?",
+        text: "Asigură-te că ai salvat toți profeosrii înainte de a continua.",
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonText: "Da, continuă",
+        cancelButtonText: "Rămân aici",
+      }).then((result) => {
+        if (result.isConfirmed) navigate("/generatedtimetable");
+      });
+    }}
+  >
+    ➡ Continuă
+  </button>
+
 </div>
+        </div>
+      </nav>
 
-      
-      <div className="d-flex flex-wrap gap-4">
-        {/* Formular */}
-        <div className="bg-white p-4 shadow-sm rounded" style={{ flex: "1 1 400px" }}>
-          <h4 className="mb-4 text-primary fw-bold">{profesorEditat ? "🔁 Modifică Profesor" : "👨‍🏫 Adaugă Profesor"}</h4>
 
-          <div className="mb-3">
-            <label className="form-label">Nume complet:</label>
-            <input
-              type="text"
-              className={`form-control ${isInvalid(formular.nume) ? "is-invalid" : ""}`}
-              value={formular.nume}
-              onChange={(e) => handleFormChange("nume", e.target.value)}
-              placeholder="ex: Ion Popescu"
-            />
-          </div>
 
-          <div className="mb-3">
-            <label className="form-label">Nivel:</label>
-            {["Licenta", "Master"].map(nivel => (
-              <div key={nivel} className="form-check">
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  checked={formular.niveluri.includes(nivel)}
-                  onChange={() => toggleNivel(nivel)}
-                  id={`nivel-${nivel}`}
-                />
-                <label className="form-check-label" htmlFor={`nivel-${nivel}`}>{nivel}</label>
-              </div>
+
+<div className="d-flex flex-wrap gap-4">
+  {/* Col stângă: formularul */}
+  <div className="bg-white p-4 shadow-sm rounded" style={{ flex: "1 1 400px" }}>
+  <h4 className="mb-4 text-primary fw-bold">
+    {profesorEditat ? "🔁 Modifică profesorul existent" : "👨‍🏫 Adaugă un nou profesor"}
+  </h4>
+
+  {/* Nume complet */}
+  <div className="mb-3">
+    <label className="form-label fw-semibold">👤 Nume complet:</label>
+    <input
+      type="text"
+      className={`form-control ${isInvalid(formular.nume) ? "is-invalid" : ""}`}
+      value={formular.nume}
+      onChange={(e) => handleFormChange("nume", e.target.value)}
+      placeholder="ex: Dr. Andrei Popescu"
+    />
+  </div>
+
+  {/* Nivel de studiu */}
+  <div className="mb-3">
+    <label className="form-label fw-semibold">🎓 Nivel predare:</label>
+    <div className="d-flex gap-3">
+      {["Licenta", "Master"].map(nivel => (
+        <div key={nivel} className="form-check">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            checked={formular.niveluri.includes(nivel)}
+            onChange={() => toggleNivel(nivel)}
+            id={`nivel-${nivel}`}
+          />
+          <label className="form-check-label" htmlFor={`nivel-${nivel}`}>{nivel}</label>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  {/* Tipuri activități */}
+  <div className="mb-3">
+    <label className="form-label fw-semibold">📚 Tipuri de activitate:</label>
+    <div className="d-flex gap-3 flex-wrap">
+      {["Curs", "Seminar", "Laborator"].map(tip => (
+        <div key={tip} className="form-check">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            checked={formular.tipuri.includes(tip)}
+            onChange={() => toggleTipActivitate(tip)}
+            id={`tip-${tip}`}
+          />
+          <label className="form-check-label" htmlFor={`tip-${tip}`}>{tip}</label>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  {/* Discipline predate */}
+  <div className="mb-3">
+    <label className="form-label fw-semibold">📘 Discipline predate:</label>
+    {formular.discipline.map((disc, i) => (
+      <div key={i} className="input-group mb-2">
+        <input
+          type="text"
+          className={`form-control ${isInvalid(disc) ? "is-invalid" : ""}`}
+          value={disc}
+          onChange={(e) => handleDisciplinaChange(i, e.target.value)}
+          placeholder={`Disciplină #${i + 1}`}
+        />
+        {i > 0 && (
+          <button
+            type="button"
+            className="btn btn-outline-danger"
+            onClick={() => stergeDisciplina(i)}
+            title="Șterge disciplina"
+          >
+            🗑️
+          </button>
+        )}
+      </div>
+    ))}
+    <button className="btn btn-sm btn-outline-primary mt-2" onClick={adaugaDisciplina}>
+      ➕ Adaugă altă disciplină
+    </button>
+  </div>
+
+
+
+
+ </div>
+
+  {/* Col dreaptă: disponibilitatea */}
+  <div className="bg-white p-4 shadow-sm rounded" style={{ flex: "1 1 600px", minWidth: "350px" }}>
+    <label className="form-label fw-bold">📅 Disponibilitate săptămânală</label>
+    <p className="text-muted mb-3">
+      Selectează zilele și intervalele orare în care profesorul este disponibil.<br />
+      Click pe o celulă pentru a o activa/dezactiva.
+    </p>
+
+    <div className="table-responsive">
+      <table className="table table-bordered text-center align-middle shadow-sm">
+        <thead className="table-primary">
+          <tr>
+            <th className="bg-light">🕓 Zile / Interval</th>
+            {["08:00-10:00", "10:00-12:00", "12:00-14:00", "14:00-16:00", "16:00-18:00", "18:00-20:00"].map(interval => (
+              <th key={interval} className="small">{interval}</th>
             ))}
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Tipuri activitate:</label>
-            {["Curs", "Seminar", "Laborator"].map(tip => (
-              <div key={tip} className="form-check">
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  checked={formular.tipuri.includes(tip)}
-                  onChange={() => toggleTipActivitate(tip)}
-                  id={`tip-${tip}`}
-                />
-                <label className="form-check-label" htmlFor={`tip-${tip}`}>{tip}</label>
-              </div>
-            ))}
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Discipline:</label>
-            {formular.discipline.map((disc, i) => (
-              <div key={i} className="input-group mb-2">
-                <input
-                  type="text"
-                  className={`form-control ${isInvalid(disc) ? "is-invalid" : ""}`}
-                  value={disc}
-                  onChange={(e) => handleDisciplinaChange(i, e.target.value)}
-                  placeholder={`Disciplină #${i + 1}`}
-                />
-                {i > 0 && (
-                  <button type="button" className="btn btn-outline-danger" onClick={() => stergeDisciplina(i)}>🗑️</button>
-                )}
-              </div>
-            ))}
-            <button className="btn btn-sm btn-outline-secondary" onClick={adaugaDisciplina}>➕ Adaugă disciplină</button>
-          </div>
-
-          <div className="mb-3">
-
-            
-  <label className="form-label fw-bold">📅 Disponibilitate pe zile și intervale:</label>
-  <div className="table-responsive">
-    <table className="table table-bordered text-center align-middle">
-      <thead className="table-light">
-        <tr>
-          <th></th>
-          {["08:00-10:00", "10:00-12:00", "12:00-14:00", "14:00-16:00", "16:00-18:00", "18:00-20:00"].map(interval => (
-            <th key={interval}>{interval}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {["Luni", "Marti", "Miercuri", "Joi", "Vineri"].map(zi => (
-          <tr key={zi}>
-            <td className="fw-bold">{zi}</td>
-            {["08:00-10:00", "10:00-12:00", "12:00-14:00", "14:00-16:00", "16:00-18:00", "18:00-20:00"].map(interval => {
-              const esteSelectat = formular.disponibilitate[zi]?.includes(interval);
-              return (
-                <td
-                  key={interval}
-                  className={`cursor-pointer ${esteSelectat ? 'bg-success text-white' : 'bg-white'}`}
-                  onClick={() => {
-                    const curente = formular.disponibilitate[zi] || [];
-                    const actualizat = curente.includes(interval)
-                      ? curente.filter(i => i !== interval)
-                      : [...curente, interval];
-                    setFormular({
-                      ...formular,
-                      disponibilitate: {
-                        ...formular.disponibilitate,
-                        [zi]: actualizat
-                      }
-                    });
-                  }}
-                >
-                  {esteSelectat ? "✔" : ""}
-                </td>
-              );
-            })}
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
+        </thead>
+        <tbody>
+          {["Luni", "Marti", "Miercuri", "Joi", "Vineri"].map(zi => (
+            <tr key={zi}>
+              <td className="fw-semibold bg-light">{zi}</td>
+              {["08:00-10:00", "10:00-12:00", "12:00-14:00", "14:00-16:00", "16:00-18:00", "18:00-20:00"].map(interval => {
+                const esteSelectat = formular.disponibilitate[zi]?.includes(interval);
+                return (
+                  <td
+                    key={interval}
+                    className={`cursor-pointer ${esteSelectat ? 'bg-success text-white fw-bold' : 'bg-white'} hover-shadow`}
+                    style={{ transition: "0.2s", userSelect: "none" }}
+                    onClick={() => {
+                      const curente = formular.disponibilitate[zi] || [];
+                      const actualizat = curente.includes(interval)
+                        ? curente.filter(i => i !== interval)
+                        : [...curente, interval];
+                      setFormular({
+                        ...formular,
+                        disponibilitate: {
+                          ...formular.disponibilitate,
+                          [zi]: actualizat
+                        }
+                      });
+                    }}
+                  >
+                    {esteSelectat ? "✔️" : ""}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
 
 
           <div className="d-flex justify-content-between">
