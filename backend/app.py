@@ -155,6 +155,8 @@ def toate_disciplina():
         return jsonify(discipline)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+    
 @app.route("/sterge_disciplina", methods=["POST"])
 def sterge_disciplina():
     data = request.json
@@ -175,22 +177,22 @@ def sterge_disciplina():
 @app.route("/adauga_profesor", methods=["POST"])
 def adauga_profesor():
     data = request.json
-    nivel_list = data.get("niveluri") or data.get("nivel", [])  # 🛠 corect și flexibil
-    nivel = ", ".join(nivel_list)
+    nivel = ", ".join(data.get("niveluri", []))
     tipuri = ", ".join(data.get("tipuri", []))
     discipline = ", ".join(data.get("discipline", []))
+    disponibilitate = json.dumps(data.get("disponibilitate", {}))  # nou
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO profesori (nume, nivel, tipuri, discipline) VALUES (%s, %s, %s, %s)",
-            (data.get("nume"), nivel, tipuri, discipline)
+            "INSERT INTO profesori (nume, nivel, tipuri, discipline, disponibilitate) VALUES (%s, %s, %s, %s, %s)",
+            (data.get("nume"), nivel, tipuri, discipline, disponibilitate)
         )
         conn.commit()
         cursor.close()
         conn.close()
-        return jsonify({"success": True, "message": "Profesor adăugat cu succes."})
+        return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -199,14 +201,15 @@ def toti_profesorii():
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM profesori")
+        cursor.execute("SELECT id, nume, nivel, tipuri, discipline, disponibilitate FROM profesori")
         profesori = cursor.fetchall()
         cursor.close()
         conn.close()
         return jsonify(profesori)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-    
+
+
 @app.route("/sterge_profesor/<int:id>", methods=["DELETE"])
 def sterge_profesor(id):
     try:
@@ -222,20 +225,21 @@ def sterge_profesor(id):
 
 @app.route("/actualizeaza_profesor/<int:id>", methods=["PUT"])
 def actualizeaza_profesor(id):
-    data = request.get_json()
+    data = request.json
     nume = data.get("nume")
     nivel = ", ".join(data.get("niveluri", []))
     tipuri = ", ".join(data.get("tipuri", []))
     discipline = ", ".join(data.get("discipline", []))
+    disponibilitate = json.dumps(data.get("disponibilitate", {}))  # nou
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("""
             UPDATE profesori 
-            SET nume = %s, nivel = %s, tipuri = %s, discipline = %s 
+            SET nume = %s, nivel = %s, tipuri = %s, discipline = %s, disponibilitate = %s
             WHERE id = %s
-        """, (nume, nivel, tipuri, discipline, id))
+        """, (nume, nivel, tipuri, discipline, disponibilitate, id))
         conn.commit()
         cursor.close()
         conn.close()

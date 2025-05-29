@@ -12,13 +12,16 @@ const Profesori = () => {
   const navigate = useNavigate();
 
   
+const [formular, setFormular] = useState({
+  nume: "",
+  discipline: [""],
+  niveluri: [],
+  tipuri: [],
+  disponibilitate: {
+    Luni: [], Marti: [], Miercuri: [], Joi: [], Vineri: []
+  },
+});
 
-  const [formular, setFormular] = useState({
-    nume: "",
-    discipline: [""],
-    niveluri: [],
-    tipuri: [],
-  });
 
   const handleFormChange = (field, value) => {
     setFormular({ ...formular, [field]: value });
@@ -68,25 +71,35 @@ const Profesori = () => {
   };
 
   const isInvalid = (value) => value.trim() === "";
+const fetchProfesori = async () => {
+  try {
+    const response = await fetch("http://localhost:5000/toti_profesorii");
+    const data = await response.json();
+    if (Array.isArray(data)) {
+      const sorted = data.sort((a, b) => a.nume.localeCompare(b.nume));
+      setLista(sorted.map(p => ({
+        id: p.id,
+        nume: p.nume,
+        niveluri: typeof p.nivel === "string"
+          ? p.nivel.split(",").map(x => x.trim()).filter(Boolean)
+          : [],
+tipuri: typeof p.tipuri === "string"
+  ? p.tipuri.split(",").map(x => x.trim()).filter(x => x !== "")
+  : [],
+discipline: typeof p.discipline === "string"
+  ? p.discipline.split(",").map(x => x.trim()).filter(x => x !== "")
+  : [],
 
-  const fetchProfesori = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/toti_profesorii");
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        const sorted = data.sort((a, b) => a.nume.localeCompare(b.nume));
-        setLista(sorted.map(p => ({
-          id: p.id,
-          nume: p.nume,
-          niveluri: typeof p.nivel === "string" ? p.nivel.split(",").map(x => x.trim()) : [],
-          tipuri: typeof p.tipuri === "string" ? p.tipuri.split(",").map(x => x.trim()) : [],
-          discipline: typeof p.discipline === "string" ? p.discipline.split(",").map(x => x.trim()) : [],
-        })));
-      }
-    } catch (err) {
-      console.error("Eroare la fetch:", err);
+        disponibilitate: typeof p.disponibilitate === "string"
+          ? JSON.parse(p.disponibilitate)
+          : p.disponibilitate || {},
+      })));
     }
-  };
+  } catch (err) {
+    console.error("Eroare la fetch:", err);
+  }
+};
+
 
   const handleReincarcareClick = async () => {
   try {
@@ -114,12 +127,14 @@ const Profesori = () => {
       const response = await fetch("http://localhost:5000/adauga_profesor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nume: formular.nume.trim(),
-          niveluri: formular.niveluri,
-          tipuri: formular.tipuri,
-          discipline: disciplineCurate,
-        }),
+body: JSON.stringify({
+  nume: formular.nume.trim(),
+  niveluri: formular.niveluri,
+  tipuri: formular.tipuri,
+  discipline: disciplineCurate, // sau formular.discipline
+  disponibilitate: formular.disponibilitate
+}),
+
       });
 
       const result = await response.json();
@@ -147,6 +162,7 @@ const Profesori = () => {
           niveluri: formular.niveluri,
           tipuri: formular.tipuri,
           discipline: formular.discipline,
+          disponibilitate: formular.disponibilitate
         }),
       });
 
@@ -194,7 +210,16 @@ const Profesori = () => {
   };
 
   const resetFormular = () => {
-    setFormular({ nume: "", discipline: [""], niveluri: [], tipuri: [] });
+    setFormular({
+  nume: "",
+  discipline: [""],
+  niveluri: [],
+  tipuri: [],
+  disponibilitate: {
+    Luni: [], Marti: [], Miercuri: [], Joi: [], Vineri: []
+  }
+});
+
     setProfesorEditat(null);
   };
 
@@ -314,6 +339,56 @@ const Profesori = () => {
             <button className="btn btn-sm btn-outline-secondary" onClick={adaugaDisciplina}>➕ Adaugă disciplină</button>
           </div>
 
+          <div className="mb-3">
+
+            
+  <label className="form-label fw-bold">📅 Disponibilitate pe zile și intervale:</label>
+  <div className="table-responsive">
+    <table className="table table-bordered text-center align-middle">
+      <thead className="table-light">
+        <tr>
+          <th></th>
+          {["08:00-10:00", "10:00-12:00", "12:00-14:00", "14:00-16:00", "16:00-18:00", "18:00-20:00"].map(interval => (
+            <th key={interval}>{interval}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {["Luni", "Marti", "Miercuri", "Joi", "Vineri"].map(zi => (
+          <tr key={zi}>
+            <td className="fw-bold">{zi}</td>
+            {["08:00-10:00", "10:00-12:00", "12:00-14:00", "14:00-16:00", "16:00-18:00", "18:00-20:00"].map(interval => {
+              const esteSelectat = formular.disponibilitate[zi]?.includes(interval);
+              return (
+                <td
+                  key={interval}
+                  className={`cursor-pointer ${esteSelectat ? 'bg-success text-white' : 'bg-white'}`}
+                  onClick={() => {
+                    const curente = formular.disponibilitate[zi] || [];
+                    const actualizat = curente.includes(interval)
+                      ? curente.filter(i => i !== interval)
+                      : [...curente, interval];
+                    setFormular({
+                      ...formular,
+                      disponibilitate: {
+                        ...formular.disponibilitate,
+                        [zi]: actualizat
+                      }
+                    });
+                  }}
+                >
+                  {esteSelectat ? "✔" : ""}
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
           <div className="d-flex justify-content-between">
             {profesorEditat ? (
               <>
@@ -352,47 +427,6 @@ const Profesori = () => {
   <div className="text-muted fst-italic px-2">Niciun profesor găsit.</div>
 )}
 
-<div className="row mb-4">
-  {lista
-    .filter(prof => prof.nume.toLowerCase().includes(searchTerm.toLowerCase()))
-    .map((prof) => (
-      <div key={prof.id} className="col-md-6 mb-3">
-        <div className="card shadow-sm h-100">
-          <div className="card-body d-flex flex-column">
-            <h5 className="card-title text-primary">
-              {highlight(prof.nume)}
-            </h5>
-            <div className="mb-2">
-              <strong>Nivel:</strong>
-              <ul>{prof.niveluri.map((n, i) => <li key={i}>{n}</li>)}</ul>
-            </div>
-            <div className="mb-2">
-              <strong>Activități:</strong>
-              <ul>{prof.tipuri.map((t, i) => <li key={i}>{t}</li>)}</ul>
-            </div>
-            <div className="mb-2">
-              <strong>Discipline:</strong>
-              <ul>{prof.discipline.map((d, i) => <li key={i}>{d}</li>)}</ul>
-            </div>
-            <div className="d-flex justify-content-end gap-2 mt-auto">
-              <button className="btn btn-sm btn-warning" onClick={() => {
-                setProfesorEditat(prof);
-                setFormular({
-                  nume: prof.nume,
-                  discipline: prof.discipline,
-                  niveluri: prof.niveluri,
-                  tipuri: prof.tipuri
-                });
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}>✏️ Editează</button>
-              <button className="btn btn-sm btn-danger" onClick={() => stergeProfesor(prof.id)}>🗑️ Șterge</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    ))}
-</div>
-
 
 
           <div className="row">
@@ -404,8 +438,37 @@ const Profesori = () => {
                     <div className="card-body d-flex flex-column">
                       <h5 className="card-title text-primary">{prof.nume}</h5>
                       <div className="mb-2"><strong>Nivel:</strong><ul>{prof.niveluri.map((n, i) => <li key={i}>{n}</li>)}</ul></div>
-                      <div className="mb-2"><strong>Activități:</strong><ul>{prof.tipuri.map((t, i) => <li key={i}>{t}</li>)}</ul></div>
-                      <div className="mb-2"><strong>Discipline:</strong><ul>{prof.discipline.map((d, i) => <li key={i}>{d}</li>)}</ul></div>
+                      <div className="mb-2">
+  <strong>Activități:</strong>
+  {prof.tipuri.length === 0 ? (
+    <p className="fst-italic text-muted">Nicio activitate specificată.</p>
+  ) : (
+    <ul>{prof.tipuri.map((t, i) => <li key={i}>{t}</li>)}</ul>
+  )}
+</div>
+
+<div className="mb-2">
+  <strong>Discipline:</strong>
+  {prof.discipline.length === 0 ? (
+    <p className="fst-italic text-muted">Nicio disciplină introdusă.</p>
+  ) : (
+    <ul>{prof.discipline.map((d, i) => <li key={i}>{d}</li>)}</ul>
+  )}
+</div>
+
+<div className="mb-2">
+  <strong>Disponibilitate:</strong>
+  {prof.disponibilitate && Object.keys(prof.disponibilitate).length > 0 ? (
+    <ul className="mb-0">
+      {Object.entries(prof.disponibilitate).map(([zi, intervale]) => (
+        <li key={zi}><strong>{zi}:</strong> {intervale.join(", ")}</li>
+      ))}
+    </ul>
+  ) : (
+    <p className="fst-italic text-muted">Nicio disponibilitate setată.</p>
+  )}
+</div>
+
                       <div className="d-flex justify-content-end gap-2 mt-auto">
                         <button className="btn btn-sm btn-warning" onClick={() => {
                           setProfesorEditat(prof);
@@ -413,9 +476,10 @@ const Profesori = () => {
                             nume: prof.nume,
                             discipline: prof.discipline,
                             niveluri: prof.niveluri,
-                            tipuri: prof.tipuri
+                            tipuri: prof.tipuri,
+                            disponibilitate: prof.disponibilitate
                           });
-                          window.scrollTo({ top: 0, behavior: "smooth" });
+                          window.scrollTo({ block: "start", behavior: "smooth" });
                         }}>✏️ Editează</button>
                         <button className="btn btn-sm btn-danger" onClick={() => stergeProfesor(prof.id)}>🗑️ Șterge</button>
                       </div>
