@@ -1,66 +1,53 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
+
+const intervaleOrare = [
+  "08:00-10:00", "10:00-12:00", "12:00-14:00",
+  "14:00-16:00", "16:00-18:00", "18:00-20:00"
+];
 
 const Profesori = () => {
   const [lista, setLista] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [profesorEditat, setProfesorEditat] = useState(null);
-  const navigate = useNavigate();
-
-  
-const [formular, setFormular] = useState({
-  nume: "",
-  discipline: [""],
-  niveluri: [],
-  tipuri: [],
-  disponibilitate: {
-    Luni: [], Marti: [], Miercuri: [], Joi: [], Vineri: []
-  },
+  const [touchedFields, setTouchedFields] = useState({
+  nume: false
 });
 
+  const navigate = useNavigate();
+
+  const [formular, setFormular] = useState({
+    nume: "",
+    discipline: [
+      {
+        denumire: "",
+        nivel: "",
+        tipuri: [] 
+        
+
+      }
+    ],
+    disponibilitate: {
+      Luni: [], Marti: [], Miercuri: [], Joi: [], Vineri: []
+    }
+  });
 
   const handleFormChange = (field, value) => {
     setFormular({ ...formular, [field]: value });
   };
-  const highlight = (text) => {
-  const index = text.toLowerCase().indexOf(searchTerm.toLowerCase());
-  if (index === -1 || !searchTerm) return text;
-  return (
-    <>
-      {text.substring(0, index)}
-      <mark>{text.substring(index, index + searchTerm.length)}</mark>
-      {text.substring(index + searchTerm.length)}
-    </>
-  );
-};
 
-
-  const toggleNivel = (nivel) => {
-    const niveluri = formular.niveluri.includes(nivel)
-      ? formular.niveluri.filter(n => n !== nivel)
-      : [...formular.niveluri, nivel];
-    setFormular({ ...formular, niveluri });
-  };
-
-  const toggleTipActivitate = (tip) => {
-    const tipuri = formular.tipuri.includes(tip)
-      ? formular.tipuri.filter(t => t !== tip)
-      : [...formular.tipuri, tip];
-    setFormular({ ...formular, tipuri });
-  };
-
-  const handleDisciplinaChange = (index, value) => {
+  const handleDisciplinaChange = (index, key, value) => {
     const discipline = [...formular.discipline];
-    discipline[index] = value;
+    discipline[index][key] = value;
     setFormular({ ...formular, discipline });
   };
 
   const adaugaDisciplina = () => {
-    setFormular({ ...formular, discipline: [...formular.discipline, ""] });
+    setFormular({ ...formular, discipline: [...formular.discipline, { denumire: "", nivel: "", tipuri: [] }] });
   };
 
   const stergeDisciplina = (index) => {
@@ -70,54 +57,44 @@ const [formular, setFormular] = useState({
     }));
   };
 
-  const isInvalid = (value) => value.trim() === "";
-const fetchProfesori = async () => {
-  try {
-    const response = await fetch("http://localhost:5000/toti_profesorii");
-    const data = await response.json();
-    if (Array.isArray(data)) {
-      const sorted = data.sort((a, b) => a.nume.localeCompare(b.nume));
-      setLista(sorted.map(p => ({
-        id: p.id,
-        nume: p.nume,
-        niveluri: typeof p.nivel === "string"
-          ? p.nivel.split(",").map(x => x.trim()).filter(Boolean)
-          : [],
-tipuri: typeof p.tipuri === "string"
-  ? p.tipuri.split(",").map(x => x.trim()).filter(x => x !== "")
-  : [],
-discipline: typeof p.discipline === "string"
-  ? p.discipline.split(",").map(x => x.trim()).filter(x => x !== "")
-  : [],
-
-        disponibilitate: typeof p.disponibilitate === "string"
-          ? JSON.parse(p.disponibilitate)
-          : p.disponibilitate || {},
-      })));
+  const toggleInterval = (zi, interval) => {
+    const zile = { ...formular.disponibilitate };
+    const index = zile[zi].indexOf(interval);
+    if (index >= 0) {
+      zile[zi].splice(index, 1);
+    } else {
+      zile[zi].push(interval);
     }
-  } catch (err) {
-    console.error("Eroare la fetch:", err);
-  }
-};
+    setFormular({ ...formular, disponibilitate: zile });
+  };
 
+  const isInvalid = (value) => value.trim() === "";
 
-  const handleReincarcareClick = async () => {
-  try {
-    await fetchProfesori();
-    toast.info("🔄 Lista profesorilor a fost reîncărcată cu succes!");
-  } catch {
-    toast.error("❌ Eroare la reîncărcare profesori.");
-  }
-};
-
+  const fetchProfesori = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/toti_profesorii");
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        const sorted = data.sort((a, b) => a.nume.localeCompare(b.nume));
+        setLista(sorted.map(p => ({
+          id: p.id,
+          nume: p.nume,
+          disponibilitate: typeof p.disponibilitate === "string" ? JSON.parse(p.disponibilitate) : p.disponibilitate || {},
+          discipline: Array.isArray(p.discipline) ? p.discipline : []
+        })));
+      }
+    } catch (err) {
+      console.error("Eroare la fetch:", err);
+    }
+  };
 
   useEffect(() => {
     fetchProfesori();
   }, []);
 
   const adaugaProfesor = async () => {
-    const disciplineCurate = formular.discipline.filter((d) => d.trim() !== "");
-    if (formular.nume.trim() === "" || disciplineCurate.length === 0 || formular.tipuri.length === 0 || formular.niveluri.length === 0) {
+    const disciplineCurate = formular.discipline.filter(d => d.denumire.trim() !== "");
+    if (formular.nume.trim() === "" || disciplineCurate.length === 0) {
       toast.warning("⚠️ Te rugăm să completezi toate câmpurile.");
       return;
     }
@@ -127,14 +104,18 @@ discipline: typeof p.discipline === "string"
       const response = await fetch("http://localhost:5000/adauga_profesor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-body: JSON.stringify({
-  nume: formular.nume.trim(),
-  niveluri: formular.niveluri,
-  tipuri: formular.tipuri,
-  discipline: disciplineCurate, // sau formular.discipline
-  disponibilitate: formular.disponibilitate
-}),
+        body: JSON.stringify({
+          nume: formular.nume.trim(),
+          disponibilitate: formular.disponibilitate,
+          discipline: disciplineCurate.flatMap(d =>
+  d.tipuri.map(tip => ({
+    denumire: d.denumire,
+    nivel: d.nivel,
+    tip
+  }))
+)
 
+        })
       });
 
       const result = await response.json();
@@ -159,11 +140,9 @@ body: JSON.stringify({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nume: formular.nume.trim(),
-          niveluri: formular.niveluri,
-          tipuri: formular.tipuri,
-          discipline: formular.discipline,
-          disponibilitate: formular.disponibilitate
-        }),
+          disponibilitate: formular.disponibilitate,
+          discipline: formular.discipline
+        })
       });
 
       const result = await response.json();
@@ -209,26 +188,39 @@ body: JSON.stringify({
     setLoading(false);
   };
 
+
+const handleBlur = (field) => {
+  setTouchedFields((prev) => ({ ...prev, [field]: true }));
+};
+
+
   const resetFormular = () => {
     setFormular({
-  nume: "",
-  discipline: [""],
-  niveluri: [],
-  tipuri: [],
-  disponibilitate: {
-    Luni: [], Marti: [], Miercuri: [], Joi: [], Vineri: []
-  }
-});
-
+      nume: "",
+      discipline: [{ denumire: "", nivel: "", tipuri: [] }],
+      disponibilitate: {
+        Luni: [], Marti: [], Miercuri: [], Joi: [], Vineri: []
+      }
+    });
     setProfesorEditat(null);
   };
+const toggleTipActivitate = (index, tip) => {
+  const discipline = [...formular.discipline];
+  const tipuri = discipline[index].tipuri || [];
+
+  if (tipuri.includes(tip)) {
+    discipline[index].tipuri = tipuri.filter(t => t !== tip);
+  } else {
+    discipline[index].tipuri = [...tipuri, tip];
+  }
+
+  setFormular({ ...formular, discipline });
+};
 
   return (
-
-
-
- <div className="container-fluid pt-4 px-4">
+    <div className="container-fluid pt-4 px-4">
       <ToastContainer />
+
       <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
         <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
 <button
@@ -273,23 +265,28 @@ body: JSON.stringify({
     🔙 Înapoi
   </button>
 
-  <button
-    className="btn btn-outline-secondary"
-    onClick={() => {
-      Swal.fire({
-        title: "Reîncarcă profesorii?",
-        text: "Profesorii actuali vor fi reîncărcați din baza de date. Modificările nesalvate vor fi pierdute.",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Da, reîncarcă",
-        cancelButtonText: "Nu",
-      }).then((result) => {
-        if (result.isConfirmed) fetchProfesori();
-      });
-    }}
-  >
-    🔄 Reîncarcă
-  </button>
+<button
+  className="btn btn-outline-secondary"
+  onClick={() => {
+    Swal.fire({
+      title: "Reîncarcă profesorii?",
+      text: "Profesorii actuali vor fi reîncărcați din baza de date. Modificările nesalvate vor fi pierdute.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Da, reîncarcă",
+      cancelButtonText: "Nu",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetchProfesori();      // 🔄 Reîncarcă din backend
+        resetFormular();       // ♻️ Golește formularul
+        setProfesorEditat(null); // 🔚 Dezactivează modul editare
+      }
+    });
+  }}
+>
+  🔄 Reîncarcă
+</button>
+
 
   <button
     className="btn btn-outline-primary"
@@ -313,9 +310,6 @@ body: JSON.stringify({
         </div>
       </nav>
 
-
-
-
 <div className="d-flex flex-wrap gap-4">
   {/* Col stângă: formularul */}
   <div className="bg-white p-4 shadow-sm rounded" style={{ flex: "1 1 400px" }}>
@@ -323,72 +317,72 @@ body: JSON.stringify({
     {profesorEditat ? "🔁 Modifică profesorul existent" : "👨‍🏫 Adaugă un nou profesor"}
   </h4>
 
-  {/* Nume complet */}
-  <div className="mb-3">
-    <label className="form-label fw-semibold">👤 Nume complet:</label>
-    <input
-      type="text"
-      className={`form-control ${isInvalid(formular.nume) ? "is-invalid" : ""}`}
-      value={formular.nume}
-      onChange={(e) => handleFormChange("nume", e.target.value)}
-      placeholder="ex: Dr. Andrei Popescu"
-    />
-  </div>
-
-  {/* Nivel de studiu */}
-  <div className="mb-3">
-    <label className="form-label fw-semibold">🎓 Nivel predare:</label>
-    <div className="d-flex gap-3">
-      {["Licenta", "Master"].map(nivel => (
-        <div key={nivel} className="form-check">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            checked={formular.niveluri.includes(nivel)}
-            onChange={() => toggleNivel(nivel)}
-            id={`nivel-${nivel}`}
-          />
-          <label className="form-check-label" htmlFor={`nivel-${nivel}`}>{nivel}</label>
-        </div>
-      ))}
+<div className="mb-3">
+  <label className="form-label fw-semibold">👤 Nume complet:</label>
+  <input
+    type="text"
+    className={`form-control ${touchedFields.nume && isInvalid(formular.nume) ? "is-invalid" : ""}`}
+    value={formular.nume}
+    onChange={(e) => handleFormChange("nume", e.target.value)}
+    onBlur={() => handleBlur("nume")}
+    placeholder="ex: Dr. Andrei Popescu"
+  />
+  {touchedFields.nume && isInvalid(formular.nume) && (
+    <div className="invalid-feedback">
+      Numele profesorului este obligatoriu.
     </div>
-  </div>
+  )}
+</div>
 
-  {/* Tipuri activități */}
-  <div className="mb-3">
-    <label className="form-label fw-semibold">📚 Tipuri de activitate:</label>
-    <div className="d-flex gap-3 flex-wrap">
-      {["Curs", "Seminar", "Laborator"].map(tip => (
-        <div key={tip} className="form-check">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            checked={formular.tipuri.includes(tip)}
-            onChange={() => toggleTipActivitate(tip)}
-            id={`tip-${tip}`}
-          />
-          <label className="form-check-label" htmlFor={`tip-${tip}`}>{tip}</label>
-        </div>
-      ))}
-    </div>
-  </div>
 
-  {/* Discipline predate */}
-  <div className="mb-3">
-    <label className="form-label fw-semibold">📘 Discipline predate:</label>
-    {formular.discipline.map((disc, i) => (
-      <div key={i} className="input-group mb-2">
+<div className="mb-3">
+  <label className="form-label fw-semibold">📘 Discipline predate:</label>
+
+  {formular.discipline.map((disc, i) => (
+    <div key={i} className="card border-0 shadow-sm mb-3">
+      <div className="card-body d-flex flex-wrap align-items-center gap-3">
+
         <input
           type="text"
-          className={`form-control ${isInvalid(disc) ? "is-invalid" : ""}`}
-          value={disc}
-          onChange={(e) => handleDisciplinaChange(i, e.target.value)}
-          placeholder={`Disciplină #${i + 1}`}
+          className="form-control"
+          placeholder="Denumire disciplină"
+          value={disc.denumire}
+          onChange={(e) => handleDisciplinaChange(i, "denumire", e.target.value)}
+          style={{ minWidth: 160, flex: 2 }}
         />
+
+        <select
+          className="form-select"
+          value={disc.nivel}
+          onChange={(e) => handleDisciplinaChange(i, "nivel", e.target.value)}
+          style={{ minWidth: 130 }}
+        >
+          <option value="">Selectează nivel</option>
+          <option value="Licenta">Licenta</option>
+          <option value="Master">Master</option>
+        </select>
+
+        <div className="d-flex gap-3 flex-wrap">
+          {["Curs", "Seminar", "Laborator", "Proiect"].map(tip => (
+            <div key={tip} className="form-check">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id={`tip-${i}-${tip}`}
+                checked={disc.tipuri?.includes(tip)}
+                onChange={() => toggleTipActivitate(i, tip)}
+              />
+              <label className="form-check-label" htmlFor={`tip-${i}-${tip}`}>
+                {tip}
+              </label>
+            </div>
+          ))}
+        </div>
+
         {i > 0 && (
           <button
             type="button"
-            className="btn btn-outline-danger"
+            className="btn btn-outline-danger btn-sm ms-auto"
             onClick={() => stergeDisciplina(i)}
             title="Șterge disciplina"
           >
@@ -396,13 +390,13 @@ body: JSON.stringify({
           </button>
         )}
       </div>
-    ))}
-    <button className="btn btn-sm btn-outline-primary mt-2" onClick={adaugaDisciplina}>
-      ➕ Adaugă altă disciplină
-    </button>
-  </div>
+    </div>
+  ))}
 
-
+  <button className="btn btn-sm btn-outline-primary mt-2" onClick={adaugaDisciplina}>
+    ➕ Adaugă altă disciplină
+  </button>
+</div>
 
 
  </div>
@@ -481,93 +475,107 @@ body: JSON.stringify({
           </div>
         </div>
 
-        {/* Lista profesori */}
-        <div className="bg-white p-4 shadow-sm rounded flex-grow-1" style={{ minInlineSize: 400 }}>
-          <h5 className="mb-3">📋 Profesori existenți:</h5>
+<div className="bg-white p-4 shadow-sm rounded flex-grow-1" style={{ minInlineSize: 400 }}>
+  <h5 className="mb-3">📋 Profesori existenți:</h5>
 
+  <input
+    type="text"
+    className="form-control mb-3"
+    placeholder="🔍 Caută profesor după nume..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+  />
 
-
-          <input
-  type="text"
-  className="form-control mb-3"
-  placeholder="🔍 Caută profesor după nume..."
-  value={searchTerm}
-  onChange={(e) => setSearchTerm(e.target.value)}
-/>
-
-{/* Mesaj dacă nu există rezultate */}
-{lista.filter(prof => prof.nume.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
-  <div className="text-muted fst-italic px-2">Niciun profesor găsit.</div>
-)}
-
-
-
-          <div className="row">
-            {lista
-              .filter(prof => prof.nume.toLowerCase().includes(searchTerm.toLowerCase()))
-              .map((prof) => (
-                <div key={prof.id} className="col-md-6 mb-3">
-                  <div className="card shadow-sm h-100">
-                    <div className="card-body d-flex flex-column">
-                      <h5 className="card-title text-primary">{prof.nume}</h5>
-                      <div className="mb-2"><strong>Nivel:</strong><ul>{prof.niveluri.map((n, i) => <li key={i}>{n}</li>)}</ul></div>
-                      <div className="mb-2">
-  <strong>Activități:</strong>
-  {prof.tipuri.length === 0 ? (
-    <p className="fst-italic text-muted">Nicio activitate specificată.</p>
-  ) : (
-    <ul>{prof.tipuri.map((t, i) => <li key={i}>{t}</li>)}</ul>
+  {lista.filter(prof => prof.nume.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+    <div className="text-muted fst-italic px-2">Niciun profesor găsit.</div>
   )}
-</div>
 
-<div className="mb-2">
-  <strong>Discipline:</strong>
-  {prof.discipline.length === 0 ? (
-    <p className="fst-italic text-muted">Nicio disciplină introdusă.</p>
-  ) : (
-    <ul>{prof.discipline.map((d, i) => <li key={i}>{d}</li>)}</ul>
-  )}
-</div>
+  <div className="row">
+    {lista
+      .filter(prof => prof.nume.toLowerCase().includes(searchTerm.toLowerCase()))
+      .map((prof) => (
+        <div key={prof.id} className="col-md-6 mb-4">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body d-flex flex-column">
+              <h5 className="card-title text-primary fw-semibold mb-2">
+                👨‍🏫 {prof.nume}
+              </h5>
 
-<div className="mb-2">
-  <strong>Disponibilitate:</strong>
-  {prof.disponibilitate && Object.keys(prof.disponibilitate).length > 0 ? (
-    <ul className="mb-0">
-      {Object.entries(prof.disponibilitate).map(([zi, intervale]) => (
-        <li key={zi}><strong>{zi}:</strong> {intervale.join(", ")}</li>
-      ))}
-    </ul>
-  ) : (
-    <p className="fst-italic text-muted">Nicio disponibilitate setată.</p>
-  )}
-</div>
+              <div className="mb-2">
+                <strong>📚 Discipline:</strong>
+                {prof.discipline?.length === 0 ? (
+                  <p className="fst-italic text-muted">Nicio disciplină introdusă.</p>
+                ) : (
+                  <div className="d-flex flex-wrap gap-2 mt-1">
+{prof.discipline.map((d, i) => (
+  <span
+    key={i}
+    className="badge text-bg-light border border-primary-subtle px-3 py-2"
+  >
+    {d.denumire} – <span className="text-info">{d.tipuri?.join(", ")}</span>{" "}
+    <small className="text-muted">({d.nivel})</small>
+  </span>
+))}
 
-                      <div className="d-flex justify-content-end gap-2 mt-auto">
-                        <button className="btn btn-sm btn-warning" onClick={() => {
-                          setProfesorEditat(prof);
-                          setFormular({
-                            nume: prof.nume,
-                            discipline: prof.discipline,
-                            niveluri: prof.niveluri,
-                            tipuri: prof.tipuri,
-                            disponibilitate: prof.disponibilitate
-                          });
-                          window.scrollTo({ block: "start", behavior: "smooth" });
-                        }}>✏️ Editează</button>
-                        <button className="btn btn-sm btn-danger" onClick={() => stergeProfesor(prof.id)}>🗑️ Șterge</button>
-                      </div>
-                    </div>
+
                   </div>
-                </div>
-              ))}
+                )}
+              </div>
+
+              <div className="mb-2">
+                <strong>🕒 Disponibilitate:</strong>
+                {prof.disponibilitate && Object.keys(prof.disponibilitate).length > 0 ? (
+                  <ul className="mb-0 mt-1 ps-3">
+                    {["Luni", "Marti", "Miercuri", "Joi", "Vineri"].map((zi) => (
+  <li key={zi}>
+    <strong>{zi}:</strong>{" "}
+    {prof.disponibilitate?.[zi]?.length > 0
+      ? prof.disponibilitate[zi].join(", ")
+      : <span className="text-muted fst-italic">Nu este disponibil(ă)</span>}
+  </li>
+))}
+
+                  </ul>
+                ) : (
+                  <p className="fst-italic text-muted">Nicio disponibilitate setată.</p>
+                )}
+              </div>
+
+              <div className="d-flex justify-content-end gap-2 mt-auto pt-3">
+                <button
+                  className="btn btn-outline-warning btn-sm"
+                  onClick={() => {
+                    setProfesorEditat(prof);
+                    setFormular({
+                      nume: prof.nume,
+                      discipline: prof.discipline,
+                      disponibilitate: prof.disponibilitate
+                    });
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                >
+                  ✏️ Editează
+                </button>
+                 <button className="btn btn-sm btn-danger" onClick={() => stergeProfesor(prof.id)}>🗑️ Șterge</button>
+
+              </div>
+            </div>
           </div>
         </div>
+      ))}
+  </div>
+</div>
+
       </div>
+
+
+
 
             {/* Footer */}
       <footer className="bg-light text-center py-4 mt-auto">
         <p className="mb-0">© 2023 Generator Orare. Toate drepturile rezervate.</p>
       </footer>
+
     </div>
   );
 };

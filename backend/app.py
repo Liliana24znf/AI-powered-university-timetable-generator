@@ -126,18 +126,37 @@ def genereaza_orar():
 @app.route("/adauga_profesor", methods=["POST"])
 def adauga_profesor():
     data = request.json
-    nivel = ", ".join(data.get("niveluri", []))
-    tipuri = ", ".join(data.get("tipuri", []))
-    discipline = ", ".join(data.get("discipline", []))
-    disponibilitate = json.dumps(data.get("disponibilitate", {}))  # nou
+    nume = data.get("nume", "").strip()
+    disponibilitate = json.dumps(data.get("disponibilitate", {}))
+    discipline = data.get("discipline", [])
+
+    if not nume or not discipline:
+        return jsonify({"success": False, "error": "Nume sau discipline lipsă"}), 400
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
+
+        # Adăugare profesor
         cursor.execute(
-            "INSERT INTO profesori (nume, nivel, tipuri, discipline, disponibilitate) VALUES (%s, %s, %s, %s, %s)",
-            (data.get("nume"), nivel, tipuri, discipline, disponibilitate)
+            "INSERT INTO profesori (nume, disponibilitate) VALUES (%s, %s)",
+            (nume, disponibilitate)
         )
+        profesor_id = cursor.lastrowid
+
+       # Cod în backend Flask pentru inserare
+        for disciplina in discipline:
+            denumire = disciplina["denumire"]
+            nivel = disciplina["nivel"]
+            tipuri = disciplina.get("tipuri", [])
+            
+            for tip in tipuri:
+                cursor.execute(
+                    "INSERT INTO discipline_profesori (profesor_id, denumire, nivel, tip) VALUES (%s, %s, %s, %s)",
+                    (profesor_id, denumire, nivel, tip)
+                )
+
+
         conn.commit()
         cursor.close()
         conn.close()
@@ -145,13 +164,44 @@ def adauga_profesor():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
 @app.route("/toti_profesorii", methods=["GET"])
 def toti_profesorii():
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, nume, nivel, tipuri, discipline, disponibilitate FROM profesori")
+
+        # Obține toți profesorii
+        cursor.execute("SELECT * FROM profesori")
         profesori = cursor.fetchall()
+
+        # Atașează disciplinele la fiecare profesor, grupate după denumire + nivel
+        for prof in profesori:
+            prof_id = prof["id"]
+            cursor.execute(
+                "SELECT denumire, nivel, tip FROM discipline_profesori WHERE profesor_id = %s",
+                (prof_id,)
+            )
+            rows = cursor.fetchall()
+
+            # Grupare discipline după denumire + nivel
+            discipline_dict = {}
+            for row in rows:
+                key = (row["denumire"], row["nivel"])
+                if key not in discipline_dict:
+                    discipline_dict[key] = []
+                discipline_dict[key].append(row["tip"])
+
+            # Construiește lista finală
+            prof["discipline"] = [
+                {
+                    "denumire": den,
+                    "nivel": niv,
+                    "tipuri": tipuri
+                }
+                for (den, niv), tipuri in discipline_dict.items()
+            ]
+
         cursor.close()
         conn.close()
         return jsonify(profesori)
@@ -175,27 +225,43 @@ def sterge_profesor(id):
 @app.route("/actualizeaza_profesor/<int:id>", methods=["PUT"])
 def actualizeaza_profesor(id):
     data = request.json
-    nume = data.get("nume")
-    nivel = ", ".join(data.get("niveluri", []))
-    tipuri = ", ".join(data.get("tipuri", []))
-    discipline = ", ".join(data.get("discipline", []))
-    disponibilitate = json.dumps(data.get("disponibilitate", {}))  # nou
+    nume = data.get("nume", "").strip()
+    disponibilitate = json.dumps(data.get("disponibilitate", {}))
+    discipline = data.get("discipline", [])
+
+    if not nume or not discipline:
+        return jsonify({"success": False, "error": "Date lipsă"}), 400
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE profesori 
-            SET nume = %s, nivel = %s, tipuri = %s, discipline = %s, disponibilitate = %s
-            WHERE id = %s
-        """, (nume, nivel, tipuri, discipline, disponibilitate, id))
+
+        # Update profesor
+        cursor.execute(
+            "UPDATE profesori SET nume = %s, disponibilitate = %s WHERE id = %s",
+            (nume, disponibilitate, id)
+        )
+
+        # Șterge discipline vechi
+        cursor.execute("DELETE FROM discipline_profesori WHERE profesor_id = %s", (id,))
+
+        # Adaugă discipline noi
+        for disciplina in discipline:
+            denumire = disciplina["denumire"]
+            nivel = disciplina["nivel"]
+            tipuri = disciplina.get("tipuri", [])
+            for tip in tipuri:
+                cursor.execute("""
+                    INSERT INTO discipline_profesori (profesor_id, denumire, nivel, tip)
+                    VALUES (%s, %s, %s, %s)
+                """, (id, denumire, nivel, tip))
+
         conn.commit()
         cursor.close()
         conn.close()
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 
 @app.route("/adauga_sali", methods=["POST"])
