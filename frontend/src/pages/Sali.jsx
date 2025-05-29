@@ -10,6 +10,7 @@ const [numarLaboratoare, setNumarLaboratoare] = useState(0);
 const [numarSeminare, setNumarSeminare] = useState(0);
   const [saliGenerat, setSaliGenerat] = useState([]);
   const [saliSelectate, setSaliSelectate] = useState([]);
+  const [resetKey, setResetKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -78,15 +79,23 @@ const genereazaSali = async () => {
 
 
 
-  const fetchSali = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/toate_sali");
-      const data = await response.json();
-      if (Array.isArray(data)) setSaliGenerat(data);
-    } catch (err) {
-      console.error("Eroare la încărcare săli:", err);
+const fetchSali = async () => {
+  try {
+    const response = await fetch("http://localhost:5000/toate_sali");
+    const data = await response.json();
+    if (Array.isArray(data)) {
+      setSaliSelectate([]);      // resetare selecții
+      setNumarCursuri(0);
+      setNumarLaboratoare(0);
+      setNumarSeminare(0);
+      setSaliGenerat(data);      // setare noi săli
+      setResetKey(prev => prev + 1); // 🔄 forțare rerender
     }
-  };
+  } catch (err) {
+    console.error("Eroare la încărcare săli:", err);
+  }
+};
+
 
 
 
@@ -212,7 +221,7 @@ const genereazaSali = async () => {
     className="btn btn-outline-primary"
     onClick={() => {
       Swal.fire({
-        title: "Continui către săli?",
+        title: "Continui către profesori?",
         text: "Asigură-te că ai salvat toate sălile înainte de a continua.",
         icon: "info",
         showCancelButton: true,
@@ -327,22 +336,22 @@ const genereazaSali = async () => {
 
 
 <div className="row mb-4">
-  {["Curs", "Laborator", "Seminar"].map((tip) => {
-    const culoare =
-      tip === "Curs" ? "primary" : tip === "Laborator" ? "success" : "warning";
-    const prefix =
-      tip === "Curs" ? "GC" : tip === "Laborator" ? "GA" : "GS";
+{["Curs", "Laborator", "Seminar"].map((tip) => {
+  const culoare =
+    tip === "Curs" ? "primary" : tip === "Laborator" ? "success" : "warning";
+  const prefix =
+    tip === "Curs" ? "GC" : tip === "Laborator" ? "GA" : "GS";
 
-    const saliFiltrate = saliGenerat
-      .filter((s) => s.tip === tip)
-      .sort(
-        (a, b) =>
-          parseInt(a.cod.replace(/\D/g, "")) -
-          parseInt(b.cod.replace(/\D/g, ""))
-      );
+  const saliFiltrate = saliGenerat
+    .filter((s) => s.tip === tip)
+    .sort(
+      (a, b) =>
+        parseInt(a.cod.replace(/\D/g, "")) -
+        parseInt(b.cod.replace(/\D/g, ""))
+    );
 
     return (
-      <div key={tip} className="col-md-4">
+      <div key={`${tip}-${resetKey}`} className="col-md-4">
         <div className={`card shadow-sm h-100 border-start border-4 border-${culoare}`}>
           <div className="card-body">
             <h5 className={`fw-bold text-${culoare} mb-3`}>
