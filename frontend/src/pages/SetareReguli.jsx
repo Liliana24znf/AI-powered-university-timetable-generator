@@ -5,7 +5,8 @@ import Swal from "sweetalert2";
 
 const SetareReguli = () => {
   const navigate = useNavigate();
- 
+ const [idRegulaEditata, setIdRegulaEditata] = useState(null);
+
 
 
 const regulaVizibila = `✅ OBIECTIV:
@@ -101,7 +102,15 @@ useEffect(() => {
 
 
 const salveazaReguli = async () => {
-  try {
+    if (!numeRegula.trim()) {
+    Swal.fire({
+      icon: "warning",
+      title: "Denumirea este necesară",
+      text: "Te rog să introduci o denumire pentru regulă înainte de a salva.",
+    });
+    return;
+  }
+    try {
     setLoading(true);
     const response = await fetch("http://localhost:5000/salveaza_reguli", {
       method: "POST",
@@ -267,9 +276,11 @@ const salveazaReguli = async () => {
 
       {/* CONȚINUT */}
       <div className="container-lg">
-        {/* TEXTAREA */}
-<div className="card border-0 shadow-sm mb-5">
-  <div className="card-header bg-primary text-white fw-bold">
+        <div className="row">
+    {/* Coloana Stânga – Reguli */}
+    <div className="col-md-8">
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-header bg-primary text-white fw-bold">
     📜 REGULI STRICTE PENTRU GENERAREA ORARULUI
   </div>
   <div className="card-body p-0">
@@ -306,6 +317,149 @@ const salveazaReguli = async () => {
   />
 </div>
 
+{idRegulaEditata && (
+  <div className="alert alert-warning d-flex justify-content-between align-items-center">
+    <div>
+      <strong>Modifici o regulă existentă:</strong> <em>{numeRegula}</em>
+    </div>
+    <div className="d-flex gap-2">
+      <button
+        className="btn btn-sm btn-outline-success"
+        onClick={async () => {
+          try {
+            setLoading(true);
+            const response = await fetch("http://localhost:5000/actualizeaza_regula", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: idRegulaEditata,
+                reguli,
+                denumire: numeRegula,
+              }),
+            });
+            const data = await response.json();
+            if (data.success) {
+              Swal.fire("Actualizat!", "Regula a fost actualizată.", "success");
+              setIdRegulaEditata(null); // ieși din modul editare
+              setNumeRegula("");
+              const refresh = await fetch("http://localhost:5000/ultimele_reguli");
+              const noi = await refresh.json();
+              setUltimeleReguli(noi);
+            } else {
+              throw new Error(data.error || "Eroare necunoscută");
+            }
+          } catch (e) {
+            Swal.fire("Eroare", e.message, "error");
+          } finally {
+            setLoading(false);
+          }
+        }}
+      >
+        💾 Actualizează
+      </button>
+
+      <button
+  className="btn btn-sm btn-outline-primary"
+  onClick={async () => {
+    const regulaOriginala = ultimeleReguli.find((r) => r.id === idRegulaEditata);
+
+    if (regulaOriginala && regulaOriginala.denumire === numeRegula.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Denumirea este neschimbată",
+        text: "Te rog să alegi o denumire diferită pentru a salva ca regulă nouă.",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:5000/salveaza_reguli", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reguli,
+          denumire: numeRegula,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        Swal.fire("✅ Regula salvată", "Regula a fost salvată ca una nouă.", "success");
+        setIdRegulaEditata(null);       // ieși din modul editare
+        setNumeRegula("");              // resetează denumirea
+        const refresh = await fetch("http://localhost:5000/ultimele_reguli");
+        const noi = await refresh.json();
+        setUltimeleReguli(noi);
+      } else {
+        throw new Error(data.error || "Eroare necunoscută");
+      }
+    } catch (e) {
+      Swal.fire("Eroare", e.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  }}
+>
+  💡 Salvează ca nouă
+</button>
+
+
+<button
+  className="btn btn-sm btn-outline-danger"
+  onClick={() => {
+  if (!idRegulaEditata) {
+    Swal.fire("Nicio regulă selectată", "Te rog să selectezi o regulă înainte de a o șterge.", "info");
+    return;
+  }
+
+  Swal.fire({
+    title: "Sigur vrei să ștergi această regulă?",
+    text: `Regula: ${numeRegula}`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Da, șterge",
+    cancelButtonText: "Anulează",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        setLoading(true);
+        const response = await fetch("http://localhost:5000/sterge_regula", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: idRegulaEditata }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          Swal.fire("✅ ștearsă", "Regula a fost ștearsă cu succes.", "success");
+          setIdRegulaEditata(null);
+          setNumeRegula("");
+          const refresh = await fetch("http://localhost:5000/ultimele_reguli");
+          const noi = await refresh.json();
+          setUltimeleReguli(noi);
+        } else {
+          throw new Error(data.error || "Eroare necunoscută");
+        }
+      } catch (e) {
+        Swal.fire("Eroare", e.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+  });
+}}
+
+>
+  🗑️ Șterge
+</button>
+
+
+    </div>
+  </div>
+)}
+
+
         {/* BUTOANE */}
         <div className="d-flex gap-2 mb-5">
           <button className="btn btn-success" onClick={salveazaReguli} disabled={loading}>
@@ -341,56 +495,70 @@ const salveazaReguli = async () => {
           </button>
         </div>
 
+        </div>
+</div>
+</div>
 
 
-{ultimeleReguli.length > 0 && (
-  <div className="mb-4">
-    <h5 className="text-primary">📂 Încarcă reguli salvate</h5>
-    <div style={{ maxHeight: "250px", overflowY: "auto" }} className="border rounded shadow-sm">
-  <ul className="list-group list-group-flush">
+    {/* Coloana Dreapta – Reguli din bază */}
+    <div className="col-md-4">
+      {ultimeleReguli.length > 0 && (
+        <>
+          <h5 className="text-primary">📂 Încarcă reguli salvate</h5>
+          <div
+            style={{ maxHeight: "650px", overflowY: "auto" }}
+            className="border rounded shadow-sm"
+          >
+             <ul className="list-group list-group-flush">
     {ultimeleReguli.map((r) => (
       <li
         key={r.id}
         className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
         style={{ cursor: "pointer" }}
         onClick={() => {
-          Swal.fire({
-            title: "Încarci această regulă?",
-            text: `Titlu: ${r.denumire}\nData: ${new Date(r.data_adaugare).toLocaleString()}`,
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonText: "Da, încarcă",
-            cancelButtonText: "Nu",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              setReguli(r.continut);
-              setNumeRegula(r.denumire);
-            }
-          });
-        }}
+  Swal.fire({
+    title: "Încarci această regulă?",
+    text: `Titlu: ${r.denumire}\nData: ${new Date(r.data_adaugare).toLocaleString()}`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Da, încarcă",
+    cancelButtonText: "Nu",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      setReguli(r.continut);
+      setNumeRegula(r.denumire);
+      setIdRegulaEditata(r.id); // ✅ marchez regula ca fiind în editare
+    }
+  });
+}}
+
       >
         <span>{r.denumire}</span>
         <small className="text-muted">{new Date(r.data_adaugare).toLocaleString()}</small>
       </li>
     ))}
   </ul>
+          </div>
+        </>
+      )}
+
 </div>
 
-  </div>
-)}
-
-  </div>
-</div>
 
 
+    </div>
+    </div>
 
-      </div>
+
+
+
 
       {/* FOOTER */}
       <footer className="bg-white text-center text-muted py-3 border-top mt-auto">
         <p className="mb-0">© {new Date().getFullYear()} Generator Orare – Setare Reguli</p>
       </footer>
     </div>
+    
   );
 };
 

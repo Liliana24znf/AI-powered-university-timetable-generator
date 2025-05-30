@@ -509,6 +509,39 @@ def get_regula_by_id(id):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/actualizeaza_regula", methods=["PUT"])
+def actualizeaza_regula():
+    data = request.get_json()
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE reguli SET denumire = %s, continut = %s, data_adaugare = NOW() WHERE id = %s",
+            (data["denumire"], data["reguli"], data["id"])
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/sterge_regula", methods=["DELETE"])
+def sterge_regula():
+    data = request.get_json()
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM reguli WHERE id = %s", (data["id"],))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route("/date_orar", methods=["GET"])
 def date_orar():
     try:
