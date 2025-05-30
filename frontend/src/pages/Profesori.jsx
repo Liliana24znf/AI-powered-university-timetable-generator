@@ -328,6 +328,13 @@ const toggleTipActivitate = (index, tip) => {
         fetchProfesori();      // 🔄 Reîncarcă din backend
         resetFormular();       // ♻️ Golește formularul
         setProfesorEditat(null); // 🔚 Dezactivează modul editare
+        setSearchTerm("");      // 🔄 Resetează termenul de căutare
+        setTouchedFields({
+          nume: false,
+          discipline: Array(formular.discipline.length).fill(false) // Resetează starea câmpurilor de disciplină
+        });
+        toast.info("🔄 Lista profesorilor a fost reîncărcată.");      // ℹ️ Afișează mesaj de informare
+
       }
     });
   }}
