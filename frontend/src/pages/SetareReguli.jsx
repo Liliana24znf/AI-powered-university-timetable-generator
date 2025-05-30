@@ -108,7 +108,7 @@ const salveazaReguli = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         reguli,
-        denumire: numeRegula, // ← AICI adăugăm și titlul
+        denumire: numeRegula,
       }),
     });
 
@@ -120,6 +120,14 @@ const salveazaReguli = async () => {
         showConfirmButton: false,
         timer: 1500,
       });
+
+      // ✅ Resetare câmp denumire regulă
+      setNumeRegula("");
+
+      // ✅ Reîncarcă regulile salvate
+      const response = await fetch("http://localhost:5000/ultimele_reguli");
+      const reguliNoi = await response.json();
+      setUltimeleReguli(reguliNoi);
     } else {
       throw new Error(data.error || "Eroare necunoscută");
     }
@@ -133,6 +141,7 @@ const salveazaReguli = async () => {
     setLoading(false);
   }
 };
+
 
 
 
@@ -337,30 +346,36 @@ const salveazaReguli = async () => {
 {ultimeleReguli.length > 0 && (
   <div className="mb-4">
     <h5 className="text-primary">📂 Încarcă reguli salvate</h5>
-    <ul className="list-group">
-      {ultimeleReguli.map((r) => (
-        <li
-          key={r.id}
-          className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-          style={{ cursor: "pointer" }}
-          onClick={() => {
-            Swal.fire({
-              title: "Încarci această regulă?",
-              text: `Titlu: ${r.denumire}\nData: ${new Date(r.data_adaugare).toLocaleString()}`,
-              icon: "question",
-              showCancelButton: true,
-              confirmButtonText: "Da, încarcă",
-              cancelButtonText: "Nu",
-            }).then((result) => {
-              if (result.isConfirmed) setReguli(r.continut);
-            });
-          }}
-        >
-          <span>{r.denumire}</span>
-          <small className="text-muted">{new Date(r.data_adaugare).toLocaleString()}</small>
-        </li>
-      ))}
-    </ul>
+    <div style={{ maxHeight: "250px", overflowY: "auto" }} className="border rounded shadow-sm">
+  <ul className="list-group list-group-flush">
+    {ultimeleReguli.map((r) => (
+      <li
+        key={r.id}
+        className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+        style={{ cursor: "pointer" }}
+        onClick={() => {
+          Swal.fire({
+            title: "Încarci această regulă?",
+            text: `Titlu: ${r.denumire}\nData: ${new Date(r.data_adaugare).toLocaleString()}`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Da, încarcă",
+            cancelButtonText: "Nu",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              setReguli(r.continut);
+              setNumeRegula(r.denumire);
+            }
+          });
+        }}
+      >
+        <span>{r.denumire}</span>
+        <small className="text-muted">{new Date(r.data_adaugare).toLocaleString()}</small>
+      </li>
+    ))}
+  </ul>
+</div>
+
   </div>
 )}
 

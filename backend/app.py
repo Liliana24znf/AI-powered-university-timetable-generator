@@ -487,7 +487,7 @@ def ultimele_reguli():
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, denumire, continut, data_adaugare FROM reguli ORDER BY data_adaugare DESC LIMIT 5")
+        cursor.execute("SELECT id, denumire, continut, data_adaugare FROM reguli ORDER BY data_adaugare DESC ")
         reguli = cursor.fetchall()
         cursor.close()
         conn.close()
