@@ -187,7 +187,7 @@ const adaugaProfesor = async () => {
           nume: false,
           discipline: Array(formular.discipline.length).fill(false) // Resetează starea câmpurilor de disciplină
         });
-
+        
         setProfesorEditat(null);
       } else {
         toast.error("❌ " + result.error);
@@ -327,10 +327,6 @@ const toggleTipActivitate = (index, tip) => {
       if (result.isConfirmed) {
         fetchProfesori();      // 🔄 Reîncarcă din backend
         resetFormular();       // ♻️ Golește formularul
-        setTouchedFields({
-          nume: false,
-          discipline: Array(formular.discipline.length).fill(false) // Resetează starea câmpurilor de disciplină
-        });
         setProfesorEditat(null); // 🔚 Dezactivează modul editare
       }
     });
@@ -358,8 +354,8 @@ const toggleTipActivitate = (index, tip) => {
     ➡ Continuă
   </button>
 
-</div>
-        </div>
+      </div>
+      </div>
       </nav>
 
 <div className="d-flex flex-wrap gap-4">
@@ -460,6 +456,7 @@ const toggleTipActivitate = (index, tip) => {
 
 
  </div>
+
 
   {/* Col dreaptă: disponibilitatea */}
   <div className="bg-white p-4 shadow-sm rounded" style={{ flex: "1 1 600px", minInlineSize: "350px" }}>
@@ -628,37 +625,57 @@ const toggleTipActivitate = (index, tip) => {
               </div>
 
               <div className="d-flex justify-content-end gap-2 mt-auto pt-3">
-                <button
-                  className="btn btn-outline-warning btn-sm"
-                  onClick={() => {
-                    setProfesorEditat(prof);
-                    setFormular({
-                      nume: prof.nume,
-                      discipline: prof.discipline,
-                      disponibilitate: prof.disponibilitate
-                    });
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                >
-                  ✏️ Editează
-                </button>
-                 <button className="btn btn-sm btn-danger" onClick={() => stergeProfesor(prof.id)}>🗑️ Șterge</button>
+  <button
+    className="btn btn-outline-warning btn-sm"
+    onClick={() => {
+      setProfesorEditat(prof);
 
-              </div>
+      // Deep copy pentru a preveni mutarea referinței directe
+      const disciplineCopiate = prof.discipline.map(d => ({
+        denumire: d.denumire || "",
+        nivel: d.nivel || "",
+        tipuri: d.tipuri || []
+      }));
+
+      setFormular({
+        nume: prof.nume || "",
+        discipline: disciplineCopiate,
+        disponibilitate: prof.disponibilitate || {}
+      });
+
+      // Opțional: Resetează stările de validare, dacă ai
+      // setTouched(false);
+
+      // Derulare sus
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }}
+  >
+    <span className="text-warning">✏️</span> Editează
+  </button>
+
+  <button
+    className="btn btn-sm btn-danger"
+    onClick={() => stergeProfesor(prof.id)}
+  >
+    🗑️ Șterge
+  </button>
+</div>
+
             </div>
           </div>
         </div>
       ))}
   </div>
+
+
+
+
+{/* Footer */}
+<footer className="bg-light text-center py-4 mt-auto">
+  <p className="mb-0">© 2023 Generator Orare. Toate drepturile rezervate.</p>
+</footer>
 </div>
-
-
-            {/* Footer */}
-      <footer className="bg-light text-center py-4 mt-auto">
-        <p className="mb-0">© 2023 Generator Orare. Toate drepturile rezervate.</p>
-      </footer>
-
-    </div>
+</div>
   );
 };
 
