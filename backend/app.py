@@ -460,6 +460,38 @@ def actualizeaza_grupa():
         conn.close()
 
 
+
+@app.route("/salveaza_reguli", methods=["POST"])
+def salveaza_reguli():
+    data = request.get_json()
+    reguli_text = data.get("reguli", "")
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO reguli (continut) VALUES (%s)", (reguli_text,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/ultima_regula", methods=["GET"])
+def ultima_regula():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT continut FROM reguli ORDER BY id DESC LIMIT 1")
+        rezultat = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return jsonify(rezultat if rezultat else {"continut": ""})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 @app.route("/date_orar", methods=["GET"])
 def date_orar():
     try:
@@ -476,13 +508,19 @@ def date_orar():
 
         # Săli
         cursor.execute("""
-  SELECT * FROM sali
-  ORDER BY tip, CAST(SUBSTRING(cod, 3) AS UNSIGNED)
-""")
+            SELECT * FROM sali
+            ORDER BY tip, CAST(SUBSTRING(cod, 3) AS UNSIGNED)
+        """)
+        sali = cursor.fetchall()
 
         # Grupe
         cursor.execute("SELECT * FROM grupe")
         grupe = cursor.fetchall()
+
+        # Ultima regulă salvată
+        cursor.execute("SELECT continut FROM reguli ORDER BY id DESC LIMIT 1")
+        regula = cursor.fetchone()
+        continut_regula = regula["continut"] if regula else ""
 
         cursor.close()
         conn.close()
@@ -490,7 +528,8 @@ def date_orar():
         return jsonify({
             "profesori": profesori,
             "sali": sali,
-            "grupe": grupe
+            "grupe": grupe,
+            "reguli": continut_regula
         })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500

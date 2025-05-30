@@ -10,20 +10,22 @@ const GeneratedTimetable = () => {
   const [grupe, setGrupe] = useState([]);
 
 
-  useEffect(() => {
-    const incarcaDate = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/date_orar");
-        const data = await response.json();
-        setProfesori(data.profesori || []);
-        setSali(data.sali || []);
-        setGrupe(data.grupe || []);
-      } catch (err) {
-        console.error("Eroare la încărcarea datelor:", err);
-      }
-    };
-    incarcaDate();
-  }, []);
+useEffect(() => {
+  const incarcaDate = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/date_orar");
+      const data = await response.json();
+      setProfesori(data.profesori || []);
+      setSali(data.sali || []);
+      setGrupe(data.grupe || []);
+      setReguli(data.reguli || ""); 
+    } catch (err) {
+      console.error("Eroare la încărcarea datelor:", err);
+    }
+  };
+  incarcaDate();
+}, []);
+
 
 const [reguli, setReguli] = useState(` 📜 REGULI STRICTE PENTRU GENERAREA ORARULUI:
 Toti ani, toate grupele si toate subgrupele de la Licenta si Master sa fie completate.

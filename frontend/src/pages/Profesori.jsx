@@ -334,7 +334,6 @@ const toggleTipActivitate = (index, tip) => {
           discipline: Array(formular.discipline.length).fill(false) // Resetează starea câmpurilor de disciplină
         });
         toast.info("🔄 Lista profesorilor a fost reîncărcată.");      // ℹ️ Afișează mesaj de informare
-
       }
     });
   }}
@@ -354,7 +353,10 @@ const toggleTipActivitate = (index, tip) => {
         confirmButtonText: "Da, continuă",
         cancelButtonText: "Rămân aici",
       }).then((result) => {
-        if (result.isConfirmed) navigate("/generatedtimetable");
+        if (result.isConfirmed) navigate("/setare-reguli");
+        else {
+          toast.info("🔄 Rămâi aici pentru a adăuga sau modifica profesori.");
+        }
       });
     }}
   >

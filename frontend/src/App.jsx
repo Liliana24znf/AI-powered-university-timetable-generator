@@ -7,6 +7,7 @@ import GeneratedTimetable from "./pages/GeneratedTimetable";
 import Profesori from "./pages/Profesori.jsx";
 import Sali from "./pages/Sali.jsx";
 import Grupe from "./pages/Grupe.jsx";
+import SetareReguli from "./pages/SetareReguli.jsx";
 
 
 
@@ -23,6 +24,7 @@ function App() {
         <Route path="/orar-generat" element={<GeneratedTimetable />} />
         <Route path="/sali" element={<Sali />} />
         <Route path="/grupe" element={<Grupe />} />
+        <Route path="/setare-reguli" element={<SetareReguli />} />
         {/* Adaugă alte rute după cum este necesar */}
        
       </Routes>
