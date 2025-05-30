@@ -279,39 +279,40 @@ const salveazaReguli = async () => {
         <div className="row">
     {/* Coloana Stânga – Reguli */}
     <div className="col-md-8">
-      <div className="card border-0 shadow-sm mb-4">
-        <div className="card-header bg-primary text-white fw-bold">
-    📜 REGULI STRICTE PENTRU GENERAREA ORARULUI
-  </div>
-  <div className="card-body p-0">
-    <textarea
-      className="form-control"
-    style={{
-  fontFamily: "Fira Code, monospace",
-  whiteSpace: "pre-wrap",
-  backgroundColor: "#f9f9f9",
-  border: "none",
-  borderRadius: "0 0 0.375rem 0.375rem",
-  padding: "1.5rem",
-  minHeight: "500px", // ✅ în loc de minBlockSize
-  lineHeight: "1.6",  // ✅ în loc de lineblock-size
-  fontSize: "0.95rem",
-  borderLeft: "5px dotted #0d6efd", // ✅ în loc de borderinset-inline-start
-  borderTop: "1px solid #dee2e6"    // ✅ în loc de borderinset-block-start
-}}
+    <div className="card shadow-sm border-0 mb-4 h-100">
+    <div className="card-header bg-primary text-white fw-bold fs-5 d-flex align-items-center">
+      📜 REGULI STRICTE PENTRU GENERAREA ORARULUI
+    </div>
+    <div className="card-body px-4 py-4">
+      <div className="mb-4">
+        <label className="form-label fw-semibold text-secondary">✏️ Reguli de generare</label>
+        <textarea
+          className="form-control"
+          style={{
+            fontFamily: "Fira Code, monospace",
+            whiteSpace: "pre-wrap",
+            backgroundColor: "#f9f9f9",
+            border: "1px solid #dee2e6",
+            borderRadius: "0.375rem",
+            padding: "1rem",
+            minHeight: "400px",
+            lineHeight: "1.6",
+            fontSize: "0.95rem",
+          }}
+          rows={20}
+          placeholder="📜 Introdu aici regulile..."
+          value={reguli}
+          onChange={(e) => setReguli(e.target.value)}
+        />
+      </div>
 
-      rows={20}
-      placeholder="📜 Introdu aici regulile..."
-      value={reguli}
-      onChange={(e) => setReguli(e.target.value)}
-    />
 
-    <div className="mb-3">
-  <label className="form-label fw-bold">📝 Denumire regulă salvată</label>
-  <input
+   <div className="mb-4">
+        <label className="form-label fw-semibold text-secondary">📝 Denumire regulă</label>
+        <input
     type="text"
     className="form-control"
-    placeholder="Ex: Reguli examen vară"
+    placeholder="Ex: Reguli orare Licență și Master"
     value={numeRegula}
     onChange={(e) => setNumeRegula(e.target.value)}
   />
@@ -435,6 +436,7 @@ const salveazaReguli = async () => {
           Swal.fire("✅ ștearsă", "Regula a fost ștearsă cu succes.", "success");
           setIdRegulaEditata(null);
           setNumeRegula("");
+          setReguli(regulaVizibila); 
           const refresh = await fetch("http://localhost:5000/ultimele_reguli");
           const noi = await refresh.json();
           setUltimeleReguli(noi);
@@ -453,6 +455,18 @@ const salveazaReguli = async () => {
 >
   🗑️ Șterge
 </button>
+
+<button
+  className="btn btn-sm btn-outline-secondary"
+  onClick={() => {
+    setIdRegulaEditata(null);
+    setNumeRegula("");
+    setReguli(regulaVizibila); // ✅ revine la regula de bază (default)
+  }}
+>
+  ❌ Anulează editarea
+</button>
+
 
 
     </div>
@@ -500,49 +514,59 @@ const salveazaReguli = async () => {
 </div>
 
 
-    {/* Coloana Dreapta – Reguli din bază */}
-    <div className="col-md-4">
-      {ultimeleReguli.length > 0 && (
-        <>
-          <h5 className="text-primary">📂 Încarcă reguli salvate</h5>
-          <div
-            style={{ maxHeight: "650px", overflowY: "auto" }}
-            className="border rounded shadow-sm"
-          >
-             <ul className="list-group list-group-flush">
-    {ultimeleReguli.map((r) => (
-      <li
-        key={r.id}
-        className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-        style={{ cursor: "pointer" }}
-        onClick={() => {
-  Swal.fire({
-    title: "Încarci această regulă?",
-    text: `Titlu: ${r.denumire}\nData: ${new Date(r.data_adaugare).toLocaleString()}`,
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Da, încarcă",
-    cancelButtonText: "Nu",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      setReguli(r.continut);
-      setNumeRegula(r.denumire);
-      setIdRegulaEditata(r.id); // ✅ marchez regula ca fiind în editare
-    }
-  });
-}}
-
-      >
-        <span>{r.denumire}</span>
-        <small className="text-muted">{new Date(r.data_adaugare).toLocaleString()}</small>
-      </li>
-    ))}
-  </ul>
-          </div>
-        </>
+<div className="col-md-4">
+  <div className="card shadow-sm border-0 mb-4 h-100">
+    <div className="card-header bg-light border-bottom fw-semibold text-primary fs-6 d-flex align-items-center">
+      📂 Reguli salvate recent
+    </div>
+    <div
+      className="card-body p-0"
+      style={{ maxHeight: "650px", overflowY: "auto" }}
+    >
+      {ultimeleReguli.length === 0 ? (
+        <div className="text-center text-muted p-4">
+          <i className="bi bi-inbox fs-2 d-block mb-2"></i>
+          <p className="mb-0">Nu există reguli salvate momentan.</p>
+        </div>
+      ) : (
+        <ul className="list-group list-group-flush">
+          {ultimeleReguli.map((r) => (
+            <li
+              key={r.id}
+              className="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-3 py-2"
+              style={{ cursor: "pointer", transition: "background 0.2s" }}
+              onClick={() => {
+                Swal.fire({
+                  title: "Încarci această regulă?",
+                  text: `Titlu: ${r.denumire}\nData: ${new Date(r.data_adaugare).toLocaleString()}`,
+                  icon: "question",
+                  showCancelButton: true,
+                  confirmButtonText: "Da, încarcă",
+                  cancelButtonText: "Nu",
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    setReguli(r.continut);
+                    setNumeRegula(r.denumire);
+                    setIdRegulaEditata(r.id);
+                  }
+                });
+              }}
+            >
+              <div className="d-flex flex-column">
+                <span className="fw-semibold text-dark">{r.denumire}</span>
+                <small className="text-muted">
+                  {new Date(r.data_adaugare).toLocaleString()}
+                </small>
+              </div>
+              <i className="bi bi-box-arrow-in-down text-secondary"></i>
+            </li>
+          ))}
+        </ul>
       )}
-
+    </div>
+  </div>
 </div>
+
 
 
 
