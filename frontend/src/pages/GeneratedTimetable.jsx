@@ -123,7 +123,7 @@ NU folosi un singur string lung. NU combina detaliile într-un câmp. Fiecare ac
 ).join("\n");
 
 
-    const promptFinal = `
+const promptFinal = `
 ✅ LISTA COMPLETĂ de profesori și discipline (nu inventa altele):
 ${instructiuniProfesori}
 
@@ -134,7 +134,10 @@ ${instructiuniSali}
 ${instructiuniGrupe}
 
 ${reguli}
+
+${instructiuniGPT}
 `;
+
 
     try {
       const response = await fetch("http://127.0.0.1:5000/genereaza_orar", {

@@ -465,11 +465,15 @@ def actualizeaza_grupa():
 def salveaza_reguli():
     data = request.get_json()
     reguli_text = data.get("reguli", "")
+    denumire = data.get("denumire", "Fără denumire")
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO reguli (continut) VALUES (%s)", (reguli_text,))
+        cursor.execute(
+            "INSERT INTO reguli (denumire, continut, data_adaugare) VALUES (%s, %s, NOW())",
+            (denumire, reguli_text)
+        )
         conn.commit()
         cursor.close()
         conn.close()
@@ -477,19 +481,32 @@ def salveaza_reguli():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route("/ultima_regula", methods=["GET"])
-def ultima_regula():
+
+@app.route("/ultimele_reguli", methods=["GET"])
+def ultimele_reguli():
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT continut FROM reguli ORDER BY id DESC LIMIT 1")
-        rezultat = cursor.fetchone()
+        cursor.execute("SELECT id, denumire, continut, data_adaugare FROM reguli ORDER BY data_adaugare DESC LIMIT 5")
+        reguli = cursor.fetchall()
         cursor.close()
         conn.close()
-        return jsonify(rezultat if rezultat else {"continut": ""})
+        return jsonify(reguli)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/regula/<int:id>", methods=["GET"])
+def get_regula_by_id(id):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM reguli WHERE id = %s", (id,))
+        regula = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return jsonify(regula if regula else {"error": "Nu s-a găsit regula"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 
 @app.route("/date_orar", methods=["GET"])
@@ -517,10 +534,9 @@ def date_orar():
         cursor.execute("SELECT * FROM grupe")
         grupe = cursor.fetchall()
 
-        # Ultima regulă salvată
-        cursor.execute("SELECT continut FROM reguli ORDER BY id DESC LIMIT 1")
+        # Ultima regulă salvată (cu id și denumire)
+        cursor.execute("SELECT id, denumire, continut FROM reguli ORDER BY id DESC LIMIT 1")
         regula = cursor.fetchone()
-        continut_regula = regula["continut"] if regula else ""
 
         cursor.close()
         conn.close()
@@ -529,7 +545,7 @@ def date_orar():
             "profesori": profesori,
             "sali": sali,
             "grupe": grupe,
-            "reguli": continut_regula
+            "reguli": regula if regula else {"id": None, "denumire": "", "continut": ""}
         })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500

@@ -367,6 +367,27 @@ const toggleTipActivitate = (index, tip) => {
       </div>
       </nav>
 
+      <div className="row mb-4">
+  <div className="col-md-8 mx-auto">
+    <div className="bg-white border-start border-4 border-primary p-4 rounded shadow-sm">
+      <h4 className="fw-bold text-primary mb-3">👨‍🏫 Despre gestionarea profesorilor</h4>
+      <p className="text-secondary mb-2">
+        În această secțiune poți introduce <strong>profesorii disponibili</strong> pentru activitățile didactice: <strong>cursuri</strong>, <strong>seminarii</strong> și <strong>laboratoare</strong>.
+      </p>
+      <p className="text-secondary mb-2">
+        Fiecare profesor trebuie să aibă completate informațiile despre <strong>nume</strong>, <strong>disciplinele predate</strong> (cu nivel și tip de activitate) și <strong>disponibilitatea săptămânală</strong>.
+      </p>
+      <p className="text-secondary mb-2">
+        Apasă <strong>"Salvează profesor"</strong> pentru a adăuga un nou profesor în sistem.
+      </p>
+      <p className="text-secondary">
+        Poți folosi <strong>"Reîncarcă"</strong> pentru a actualiza lista profesorilor și a vizualiza ultimele modificări efectuate.
+      </p>
+    </div>
+  </div>
+</div>
+
+
 <div className="d-flex flex-wrap gap-4">
   {/* Col stângă: formularul */}
   <div className="bg-white p-4 shadow-sm rounded" style={{ flex: "1 1 400px" }}>
