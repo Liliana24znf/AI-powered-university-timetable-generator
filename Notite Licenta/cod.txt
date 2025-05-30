@@ -1,9 +1,4 @@
- return (
 
-
-
- <div className="container-fluid pt-4 px-4">
-      <ToastContainer />
       <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
         <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
 <button
@@ -325,8 +320,3 @@
       <footer className="bg-light text-center py-4 mt-auto">
         <p className="mb-0">© 2023 Generator Orare. Toate drepturile rezervate.</p>
       </footer>
-    </div>
-  );
-};
-
-export default Profesori;

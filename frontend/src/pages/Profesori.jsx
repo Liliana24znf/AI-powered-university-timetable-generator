@@ -14,9 +14,11 @@ const Profesori = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [profesorEditat, setProfesorEditat] = useState(null);
-  const [touchedFields, setTouchedFields] = useState({
-  nume: false
+const [touchedFields, setTouchedFields] = useState({
+  nume: false,
+  discipline: [],
 });
+
 
   const navigate = useNavigate();
 
@@ -92,45 +94,34 @@ const Profesori = () => {
     fetchProfesori();
   }, []);
 
-  const adaugaProfesor = async () => {
-    const disciplineCurate = formular.discipline.filter(d => d.denumire.trim() !== "");
-    if (formular.nume.trim() === "" || disciplineCurate.length === 0) {
-      toast.warning("⚠️ Te rugăm să completezi toate câmpurile.");
-      return;
+const adaugaProfesor = async () => {
+  if (!validateFormular()) return;
+
+  setLoading(true);
+  try {
+    const response = await fetch("http://localhost:5000/adauga_profesor", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formular),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      Swal.fire("✅ Succes", "Profesorul a fost salvat cu succes!", "success");
+      fetchProfesori(); // 🔁 Reîncarcă lista profesorilor
+      // Dacă vrei, poți adăuga și resetarea formularului aici
+    } else {
+      Swal.fire("❌ Eroare", data.message || "A apărut o eroare.", "error");
     }
-
-    setLoading(true);
-    try {
-      const response = await fetch("http://localhost:5000/adauga_profesor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nume: formular.nume.trim(),
-          disponibilitate: formular.disponibilitate,
-          discipline: disciplineCurate.flatMap(d =>
-  d.tipuri.map(tip => ({
-    denumire: d.denumire,
-    nivel: d.nivel,
-    tip
-  }))
-)
-
-        })
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        toast.success("✅ Profesor adăugat!");
-        fetchProfesori();
-        resetFormular();
-      } else {
-        toast.error("❌ " + result.error);
-      }
-    } catch (error) {
-      toast.error("❌ Eroare la conexiune.");
-    }
+  } catch (err) {
+    Swal.fire("❌ Eroare", "A apărut o eroare la salvare.", "error");
+  } finally {
     setLoading(false);
-  };
+  }
+};
+
+
 
   const actualizeazaProfesor = async () => {
     setLoading(true);
@@ -189,9 +180,15 @@ const Profesori = () => {
   };
 
 
-const handleBlur = (field) => {
-  setTouchedFields((prev) => ({ ...prev, [field]: true }));
+const handleBlurDisciplina = (index) => {
+  setTouchedFields((prev) => {
+    const updated = [...prev.discipline];
+    updated[index] = true;
+    return { ...prev, discipline: updated };
+  });
 };
+
+
 
 
   const resetFormular = () => {
@@ -343,19 +340,27 @@ const toggleTipActivitate = (index, tip) => {
       <div className="card-body d-flex flex-wrap align-items-center gap-3">
 
         <input
-          type="text"
-          className="form-control"
-          placeholder="Denumire disciplină"
-          value={disc.denumire}
-          onChange={(e) => handleDisciplinaChange(i, "denumire", e.target.value)}
-          style={{ minWidth: 160, flex: 2 }}
-        />
+  type="text"
+  className={`form-control ${
+    touchedFields.discipline[i] && !disc.denumire ? "is-invalid" : ""
+  }`}
+  placeholder="Denumire disciplină"
+  value={disc.denumire}
+  onChange={(e) => handleDisciplinaChange(i, "denumire", e.target.value)}
+  onBlur={() => handleBlurDisciplina(i)}
+/>
+{touchedFields.discipline[i] && !disc.denumire && (
+  <div className="invalid-feedback">
+    Denumirea disciplinei este obligatorie.
+  </div>
+)}
+
 
         <select
           className="form-select"
           value={disc.nivel}
           onChange={(e) => handleDisciplinaChange(i, "nivel", e.target.value)}
-          style={{ minWidth: 130 }}
+          style={{ minInlineSize: 130 }}
         >
           <option value="">Selectează nivel</option>
           <option value="Licenta">Licenta</option>
@@ -402,7 +407,7 @@ const toggleTipActivitate = (index, tip) => {
  </div>
 
   {/* Col dreaptă: disponibilitatea */}
-  <div className="bg-white p-4 shadow-sm rounded" style={{ flex: "1 1 600px", minWidth: "350px" }}>
+  <div className="bg-white p-4 shadow-sm rounded" style={{ flex: "1 1 600px", minInlineSize: "350px" }}>
     <label className="form-label fw-bold">📅 Disponibilitate săptămânală</label>
     <p className="text-muted mb-3">
       Selectează zilele și intervalele orare în care profesorul este disponibil.<br />
@@ -467,8 +472,9 @@ const toggleTipActivitate = (index, tip) => {
             ) : (
               <>
                 <button className="btn btn-success" onClick={adaugaProfesor} disabled={loading}>
-                  {loading ? "Salvare..." : "✅ Salvează profesor"}
-                </button>
+  {loading ? "Salvare..." : "✅ Salvează profesor"}
+</button>
+
                 <button className="btn btn-outline-secondary" onClick={resetFormular}>🔄 Resetare</button>
               </>
             )}
@@ -490,11 +496,12 @@ const toggleTipActivitate = (index, tip) => {
     <div className="text-muted fst-italic px-2">Niciun profesor găsit.</div>
   )}
 
-  <div className="row">
-    {lista
-      .filter(prof => prof.nume.toLowerCase().includes(searchTerm.toLowerCase()))
-      .map((prof) => (
-        <div key={prof.id} className="col-md-6 mb-4">
+
+<div className="d-flex flex-column gap-3">
+  {lista
+    .filter(prof => prof.nume.toLowerCase().includes(searchTerm.toLowerCase()))
+    .map((prof) => (
+      <div key={prof.id} className="card border-0 shadow-sm">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body d-flex flex-column">
               <h5 className="card-title text-primary fw-semibold mb-2">
