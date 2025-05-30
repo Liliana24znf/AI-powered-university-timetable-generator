@@ -94,6 +94,41 @@ const [touchedFields, setTouchedFields] = useState({
     fetchProfesori();
   }, []);
 
+
+  const validateFormular = () => {
+  let valid = true;
+
+  // Verifică numele
+  if (isInvalid(formular.nume)) {
+    setTouchedFields(prev => ({ ...prev, nume: true }));
+    valid = false;
+  }
+
+  // Verifică fiecare disciplină
+  const disciplineTouched = [...touchedFields.discipline];
+  for (let i = 0; i < formular.discipline.length; i++) {
+    const disc = formular.discipline[i];
+    if (!disc.denumire || !disc.nivel || !disc.tipuri?.length) {
+      disciplineTouched[i] = true;
+      valid = false;
+    }
+  }
+  setTouchedFields(prev => ({ ...prev, discipline: disciplineTouched }));
+
+  // Verifică dacă există cel puțin un interval selectat
+  const hasDisponibilitate = Object.values(formular.disponibilitate).some(list => list.length > 0);
+  if (!hasDisponibilitate) {
+    Swal.fire("⚠️ Atenție", "Selectează cel puțin un interval de disponibilitate.", "warning");
+    valid = false;
+  }
+
+  if (!valid) {
+    Swal.fire("⚠️ Atenție", "Te rugăm să completezi toate câmpurile obligatorii.", "warning");
+  }
+
+  return valid;
+};
+
 const adaugaProfesor = async () => {
   if (!validateFormular()) return;
 
@@ -110,6 +145,12 @@ const adaugaProfesor = async () => {
     if (data.success) {
       Swal.fire("✅ Succes", "Profesorul a fost salvat cu succes!", "success");
       fetchProfesori(); // 🔁 Reîncarcă lista profesorilor
+      
+      resetFormular(); // ♻️ Resetează formularul
+      setTouchedFields({
+        nume: false,
+        discipline: Array(formular.discipline.length).fill(false) // Resetează starea câmpurilor de disciplină
+      });
       // Dacă vrei, poți adăuga și resetarea formularului aici
     } else {
       Swal.fire("❌ Eroare", data.message || "A apărut o eroare.", "error");
@@ -141,6 +182,12 @@ const adaugaProfesor = async () => {
         toast.success("🔁 Profesor actualizat!");
         fetchProfesori();
         resetFormular();
+        
+        setTouchedFields({
+          nume: false,
+          discipline: Array(formular.discipline.length).fill(false) // Resetează starea câmpurilor de disciplină
+        });
+
         setProfesorEditat(null);
       } else {
         toast.error("❌ " + result.error);
@@ -178,6 +225,10 @@ const adaugaProfesor = async () => {
     }
     setLoading(false);
   };
+
+const handleBlur = (field) => {
+  setTouchedFields((prev) => ({ ...prev, [field]: true }));
+};
 
 
 const handleBlurDisciplina = (index) => {
@@ -276,6 +327,10 @@ const toggleTipActivitate = (index, tip) => {
       if (result.isConfirmed) {
         fetchProfesori();      // 🔄 Reîncarcă din backend
         resetFormular();       // ♻️ Golește formularul
+        setTouchedFields({
+          nume: false,
+          discipline: Array(formular.discipline.length).fill(false) // Resetează starea câmpurilor de disciplină
+        });
         setProfesorEditat(null); // 🔚 Dezactivează modul editare
       }
     });
@@ -457,11 +512,37 @@ const toggleTipActivitate = (index, tip) => {
           ))}
         </tbody>
       </table>
+
+      <div className="text-end mt-3">
+  <button
+    className="btn btn-sm btn-outline-primary mt-2"
+    onClick={() => {
+      setFormular(prev => ({
+        ...prev,
+        disponibilitate: {
+          Luni: [],
+          Marti: [],
+          Miercuri: [],
+          Joi: [],
+          Vineri: []
+        }
+      }));
+    }}
+  >
+    🔄 Resetează disponibilitatea
+  </button>
+</div>
+
     </div>
 
+        </div>
+
+          
+
+      </div>
 
 
-          <div className="d-flex justify-content-between">
+<div className="d-flex justify-content-between mt-4">
             {profesorEditat ? (
               <>
                 <button className="btn btn-warning" onClick={actualizeazaProfesor} disabled={loading}>
@@ -479,9 +560,8 @@ const toggleTipActivitate = (index, tip) => {
               </>
             )}
           </div>
-        </div>
 
-<div className="bg-white p-4 shadow-sm rounded flex-grow-1" style={{ minInlineSize: 400 }}>
+          <div className="bg-white p-4 shadow-sm rounded flex-grow-1" style={{ minInlineSize: 400 }}>
   <h5 className="mb-3">📋 Profesori existenți:</h5>
 
   <input
@@ -496,12 +576,11 @@ const toggleTipActivitate = (index, tip) => {
     <div className="text-muted fst-italic px-2">Niciun profesor găsit.</div>
   )}
 
-
-<div className="d-flex flex-column gap-3">
-  {lista
-    .filter(prof => prof.nume.toLowerCase().includes(searchTerm.toLowerCase()))
-    .map((prof) => (
-      <div key={prof.id} className="card border-0 shadow-sm">
+  <div className="row">
+    {lista
+      .filter(prof => prof.nume.toLowerCase().includes(searchTerm.toLowerCase()))
+      .map((prof) => (
+        <div key={prof.id} className="col-md-6 mb-4">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body d-flex flex-column">
               <h5 className="card-title text-primary fw-semibold mb-2">
@@ -572,10 +651,6 @@ const toggleTipActivitate = (index, tip) => {
       ))}
   </div>
 </div>
-
-      </div>
-
-
 
 
             {/* Footer */}
