@@ -50,50 +50,63 @@ def completeaza_ani_lipsa(orar_json):
 @app.route('/genereaza_orar', methods=['POST'])
 def genereaza_orar():
     data = request.get_json()
-    reguli = data.get("reguli", "")
+    regula_id = data.get("regula_id")
 
-
-    if not reguli:
-        return jsonify({"error": "Trebuie să furnizezi un set de reguli."}), 400
-    
-        # ✅ Obține grupele înainte de a trimite promptul la GPT
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT denumire FROM grupe WHERE nivel = 'Licenta'")
-    grupele_licenta = [g['denumire'] for g in cursor.fetchall()]
-
-    cursor.execute("SELECT denumire FROM grupe WHERE nivel = 'Master'")
-    grupele_master = [g['denumire'] for g in cursor.fetchall()]
-    cursor.close()
-    conn.close()
-
-    prompt_grupe = (
-        "Grupele pentru care trebuie să generezi orar:\n"
-        f"Licenta: {', '.join(grupele_licenta)}\n"
-        f"Master: {', '.join(grupele_master)}\n\n"
-    )
-
-    reguli = prompt_grupe + reguli
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": "Răspunde DOAR cu JSON valid. Fără explicații. Începe cu { și termină cu }."},
-            {"role": "user", "content": reguli}
-        ]
-    )
-
-    orar_raw = response.choices[0].message.content.strip()
+    if not regula_id:
+        return jsonify({"error": "ID-ul regulii nu a fost transmis."}), 400
 
     try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 🔍 Ia regula din baza de date
+        cursor.execute("SELECT continut FROM reguli WHERE id = %s", (regula_id,))
+        regula_row = cursor.fetchone()
+
+        if not regula_row:
+            cursor.close()
+            conn.close()
+            return jsonify({"error": "Regula nu a fost găsită în baza de date."}), 404
+
+        reguli = regula_row["continut"]
+
+        # 🔄 Ia grupele din DB
+        cursor.execute("SELECT denumire FROM grupe WHERE nivel = 'Licenta'")
+        grupele_licenta = [g['denumire'] for g in cursor.fetchall()]
+
+        cursor.execute("SELECT denumire FROM grupe WHERE nivel = 'Master'")
+        grupele_master = [g['denumire'] for g in cursor.fetchall()]
+
+        cursor.close()
+        conn.close()
+
+        # 🔧 Concatenează în prompt
+        prompt_grupe = (
+            "Grupele pentru care trebuie să generezi orar:\n"
+            f"Licenta: {', '.join(grupele_licenta)}\n"
+            f"Master: {', '.join(grupele_master)}\n\n"
+        )
+        reguli = prompt_grupe + reguli
+
+        # 🧠 Trimite la GPT
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Răspunde DOAR cu JSON valid. Fără explicații. Începe cu { și termină cu }."},
+                {"role": "user", "content": reguli}
+            ]
+        )
+
+        orar_raw = response.choices[0].message.content.strip()
+
+        # ✅ Extrage conținutul JSON
         start = orar_raw.find('{')
         end = orar_raw.rfind('}') + 1
         json_str = orar_raw[start:end]
 
-        # Normalizează ghilimelele
+        # 🔧 Curățare simboluri greșite
         json_str = json_str.replace("“", "\"").replace("”", "\"").replace("‘", "'").replace("’", "'")
 
-        # Elimină liniile care conțin "..."
         lines = json_str.splitlines()
         clean_lines = []
         for line in lines:
@@ -101,15 +114,12 @@ def genereaza_orar():
             if "..." not in line and line.strip():
                 clean_lines.append(line)
         json_str_cleaned = "\n".join(clean_lines)
-
-        # Elimină virgule care preced închiderea obiectului sau array-ului
         json_str_cleaned = re.sub(r",\s*([\]})])", r"\1", json_str_cleaned)
 
         orar_json = json.loads(json_str_cleaned)
 
-        # Completează anii și zilele lipsă
+        # 🔄 Completează structura
         orar_json = completeaza_grupe_lipsa(orar_json)
-
 
         print(">>> Orar generat (parsare reușită) <<<")
         print(json.dumps(orar_json, indent=2, ensure_ascii=False))

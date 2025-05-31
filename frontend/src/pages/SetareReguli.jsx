@@ -102,7 +102,7 @@ useEffect(() => {
 
 
 const salveazaReguli = async () => {
-    if (!numeRegula.trim()) {
+  if (!numeRegula.trim()) {
     Swal.fire({
       icon: "warning",
       title: "Denumirea este necesară",
@@ -110,8 +110,10 @@ const salveazaReguli = async () => {
     });
     return;
   }
-    try {
+
+  try {
     setLoading(true);
+
     const response = await fetch("http://localhost:5000/salveaza_reguli", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -122,24 +124,32 @@ const salveazaReguli = async () => {
     });
 
     const data = await response.json();
+
     if (data.success) {
       Swal.fire({
         icon: "success",
-        title: "Regulile au fost salvate",
+        title: "Regula a fost salvată",
         showConfirmButton: false,
         timer: 1500,
       });
 
-      // ✅ Resetare câmp denumire regulă
-      setNumeRegula("");
-
-      // ✅ Reîncarcă regulile salvate
-      const response = await fetch("http://localhost:5000/ultimele_reguli");
-      const reguliNoi = await response.json();
+      // 🔁 Reîncarcă toate regulile salvate din backend
+      const reload = await fetch("http://localhost:5000/ultimele_reguli");
+      const reguliNoi = await reload.json();
       setUltimeleReguli(reguliNoi);
+
+      // 🔎 Caută regula abia salvată în lista returnată
+      const regulaNoua = reguliNoi.find(r => r.denumire.trim() === numeRegula.trim());
+
+      if (regulaNoua) {
+        setIdRegulaEditata(regulaNoua.id); // ✅ setezi regula activă
+        setNumeRegula(regulaNoua.denumire);
+      }
+
     } else {
       throw new Error(data.error || "Eroare necunoscută");
     }
+
   } catch (error) {
     Swal.fire({
       icon: "error",
@@ -150,6 +160,7 @@ const salveazaReguli = async () => {
     setLoading(false);
   }
 };
+
 
 
 
@@ -226,14 +237,32 @@ const salveazaReguli = async () => {
               className="btn btn-outline-primary"
               onClick={() => {
                 Swal.fire({
-                  title: "Salvezi regulile și continui?",
-                  text: "Veți fi redirecționat către pagina de generare orar.",
+                  title: "Continui spre generare?",
+                  text: `Vei genera orarul pe baza regulii: ${numeRegula}`,
                   icon: "info",
                   showCancelButton: true,
                   confirmButtonText: "Da, continuă",
                   cancelButtonText: "Rămân aici",
                 }).then((result) => {
-                  if (result.isConfirmed) salveazaReguli();
+                  if (result.isConfirmed) {
+  if (!idRegulaEditata) {
+    Swal.fire({
+      icon: "info",
+      title: "Regulă neselectată",
+      text: "Pentru a continua, te rog selectează sau salvează o regulă.",
+    });
+    return;
+  }
+
+  navigate("/orar-generat", {
+    state: {
+      regula_id: idRegulaEditata,
+      denumire: numeRegula,
+      continut: reguli,
+    },
+  });
+}
+                    
                 });
               }}
               disabled={loading}
@@ -277,6 +306,37 @@ const salveazaReguli = async () => {
       {/* CONȚINUT */}
       <div className="container-lg">
         <div className="row">
+
+{numeRegula.trim() === "" ? (
+  <div className="alert alert-danger d-flex justify-content-between align-items-center mt-3">
+    <div>
+      <i className="bi bi-exclamation-triangle-fill me-2"></i>
+      Mai întâi trebuie să <strong>creezi</strong> sau să <strong>selectezi o regulă</strong> pentru a continua.
+    </div>
+    <span className="badge bg-danger">Nespecificată</span>
+  </div>
+) : (
+  <div className="alert alert-warning d-flex justify-content-between align-items-center mt-3">
+    <div>
+      <i className="bi bi-info-circle me-2"></i>
+      Mergi mai departe cu{" "}
+      {idRegulaEditata ? (
+        <>
+          <strong>regula selectată:</strong>{" "}
+          <em className="text-dark">{numeRegula}</em>
+        </>
+      ) : (
+        <>
+          <strong>regula personalizată</strong> creată chiar acum.
+        </>
+      )}
+    </div>
+    <span className="badge bg-primary text-light">
+      📘 {numeRegula}
+    </span>
+  </div>
+)}
+
     {/* Coloana Stânga – Reguli */}
     <div className="col-md-8">
     <div className="card shadow-sm border-0 mb-4 h-100">
@@ -317,6 +377,8 @@ const salveazaReguli = async () => {
     onChange={(e) => setNumeRegula(e.target.value)}
   />
 </div>
+
+
 
 {idRegulaEditata && (
   <div className="alert alert-warning d-flex justify-content-between align-items-center">
@@ -476,6 +538,7 @@ const salveazaReguli = async () => {
 
         {/* BUTOANE */}
         <div className="d-flex gap-2 mb-5">
+            
           <button className="btn btn-success" onClick={salveazaReguli} disabled={loading}>
             {loading ? (
               <>
@@ -490,6 +553,8 @@ const salveazaReguli = async () => {
               "🚀 Salvează"
             )}
           </button>
+
+
           <button
             className="btn btn-outline-danger"
             onClick={() => {
@@ -507,7 +572,24 @@ const salveazaReguli = async () => {
           >
             🔄 Golește
           </button>
+
+          
         </div>
+
+{idRegulaEditata && (
+  <div className="card border-start border-4 border-primary shadow-sm mb-4">
+    <div className="card-body d-flex justify-content-between align-items-center">
+      <div>
+        <i className="bi bi-check-circle-fill me-2 text-primary fs-5"></i>
+        <span className="fw-semibold">Regulă selectată:</span>{" "}
+        <em className="text-dark">{numeRegula}</em>
+      </div>
+      <span className="badge bg-primary px-3 py-2">ID #{idRegulaEditata}</span>
+    </div>
+  </div>
+)}
+
+
 
         </div>
 </div>
@@ -519,6 +601,8 @@ const salveazaReguli = async () => {
     <div className="card-header bg-light border-bottom fw-semibold text-primary fs-6 d-flex align-items-center">
       📂 Reguli salvate recent
     </div>
+
+    
     <div
       className="card-body p-0"
       style={{ maxHeight: "650px", overflowY: "auto" }}

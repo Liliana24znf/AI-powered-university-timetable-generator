@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import html2pdf from "html2pdf.js";
+import { useLocation } from "react-router-dom";
 
 const GeneratedTimetable = () => {
   const [orar, setOrar] = useState(null);
@@ -8,6 +9,9 @@ const GeneratedTimetable = () => {
   const [profesori, setProfesori] = useState([]);
   const [sali, setSali] = useState([]);
   const [grupe, setGrupe] = useState([]);
+  const location = useLocation();
+  const { regula_id, denumire: denumireRegulaSelectata, continut: continutRegula } = location.state || {};
+
 
 
 useEffect(() => {
@@ -143,7 +147,10 @@ ${instructiuniGPT}
       const response = await fetch("http://127.0.0.1:5000/genereaza_orar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reguli: promptFinal }),
+        body: JSON.stringify({
+  regula_id: regula_id,
+}),
+
       });
 
       const data = await response.json();
@@ -346,11 +353,34 @@ const exportPDF = () => {
     </div>
   </div>
 </div>
+
+  {regula_id && denumireRegulaSelectata && (
+  <div className="alert alert-info d-flex justify-content-between align-items-center mt-3">
+    <div>
+      <i className="bi bi-check-circle-fill me-2 text-primary"></i>
+      <strong>Regulă selectată:</strong> <em>{denumireRegulaSelectata}</em>
+    </div>
+    <span className="badge bg-primary text-white">ID: {regula_id}</span>
+  </div>
+)}
+
+{regula_id && continutRegula && (
+  <div className="card shadow-sm border-0 mt-3">
+    <div className="card-header bg-light fw-bold text-primary">
+      📜 Conținutul regulii selectate
+    </div>
+    <div className="card-body" style={{ whiteSpace: "pre-wrap", fontFamily: "monospace", backgroundColor: "#f8f9fa" }}>
+      {continutRegula}
+    </div>
+  </div>
+)}
+
   
       {/* CONȚINUT */}
       <div className="container py-4">
         <h2 className="mb-3">📅 Generare Orar cu GPT-4</h2>
-  
+
+
         <div className="mb-3">
           <label className="form-label fw-semibold">📝 Editare reguli:</label>
           <textarea
