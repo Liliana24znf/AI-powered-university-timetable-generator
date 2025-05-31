@@ -6,6 +6,8 @@ import Swal from "sweetalert2";
 const SetareReguli = () => {
   const navigate = useNavigate();
  const [idRegulaEditata, setIdRegulaEditata] = useState(null);
+ const [reguliFiltrate, setReguliFiltrate] = useState([]);
+
 
 
 
@@ -93,6 +95,7 @@ useEffect(() => {
       const data = await response.json();
       console.log("Reguli primite:", data); // ✅ vezi în consola browserului
       setUltimeleReguli(data);
+      setReguliFiltrate(data);
     } catch (err) {
       console.error("Eroare la încărcarea regulilor:", err);
     }
@@ -340,241 +343,39 @@ const salveazaReguli = async () => {
     {/* Coloana Stânga – Reguli */}
     <div className="col-md-8">
     <div className="card shadow-sm border-0 mb-4 h-100">
-    <div className="card-header bg-primary text-white fw-bold fs-5 d-flex align-items-center">
-      📜 REGULI STRICTE PENTRU GENERAREA ORARULUI
-    </div>
-    <div className="card-body px-4 py-4">
-      <div className="mb-4">
-        <label className="form-label fw-semibold text-secondary">✏️ Reguli de generare</label>
-        <textarea
-          className="form-control"
-          style={{
-            fontFamily: "Fira Code, monospace",
-            whiteSpace: "pre-wrap",
-            backgroundColor: "#f9f9f9",
-            border: "1px solid #dee2e6",
-            borderRadius: "0.375rem",
-            padding: "1rem",
-            minHeight: "400px",
-            lineHeight: "1.6",
-            fontSize: "0.95rem",
-          }}
-          rows={20}
-          placeholder="📜 Introdu aici regulile..."
-          value={reguli}
-          onChange={(e) => setReguli(e.target.value)}
-        />
-      </div>
-
-
-   <div className="mb-4">
-        <label className="form-label fw-semibold text-secondary">📝 Denumire regulă</label>
-        <input
-    type="text"
-    className="form-control"
-    placeholder="Ex: Reguli orare Licență și Master"
-    value={numeRegula}
-    onChange={(e) => setNumeRegula(e.target.value)}
-  />
+<div className="card-header d-flex align-items-center py-3 px-4 border-bottom shadow-sm rounded-top" style={{ backgroundColor: "#f8f9fa", borderLeft: "5px solid #0d6efd" }}>
+  <i className="bi bi-journal-code me-3 text-primary fs-5"></i>
+  <span className="fw-semibold text-dark fs-6">REGULI STRICTE PENTRU GENERAREA ORARULUI</span>
 </div>
 
 
+    <div className="card-body px-4 py-4">
+      <div className="mb-4">
+  <label className="form-label fw-semibold text-secondary d-flex align-items-center mb-2">
+    <i className="bi bi-pencil-square me-2 text-primary fs-5"></i>
+    ✏️ Reguli de generare
+  </label>
+  <textarea
+    className="form-control shadow-sm"
+    style={{
+      fontFamily: "'Fira Code', monospace",
+      whiteSpace: "pre-wrap",
+      backgroundColor: "#fefefe",
+      border: "1px solid #ced4da",
+      borderRadius: "0.5rem",
+      padding: "1rem",
+      minHeight: "400px",
+      lineHeight: "1.6",
+      fontSize: "0.95rem",
+      resize: "vertical",
+    }}
+    rows={20}
+    placeholder="📜 Scrie aici regulile pentru generarea orarului..."
+    value={reguli}
+    onChange={(e) => setReguli(e.target.value)}
+  />
+</div>
 
-{idRegulaEditata && (
-  <div className="alert alert-warning d-flex justify-content-between align-items-center">
-    <div>
-      <strong>Modifici o regulă existentă:</strong> <em>{numeRegula}</em>
-    </div>
-    <div className="d-flex gap-2">
-      <button
-        className="btn btn-sm btn-outline-success"
-        onClick={async () => {
-          try {
-            setLoading(true);
-            const response = await fetch("http://localhost:5000/actualizeaza_regula", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                id: idRegulaEditata,
-                reguli,
-                denumire: numeRegula,
-              }),
-            });
-            const data = await response.json();
-            if (data.success) {
-              Swal.fire("Actualizat!", "Regula a fost actualizată.", "success");
-              setIdRegulaEditata(null); // ieși din modul editare
-              setNumeRegula("");
-              const refresh = await fetch("http://localhost:5000/ultimele_reguli");
-              const noi = await refresh.json();
-              setUltimeleReguli(noi);
-            } else {
-              throw new Error(data.error || "Eroare necunoscută");
-            }
-          } catch (e) {
-            Swal.fire("Eroare", e.message, "error");
-          } finally {
-            setLoading(false);
-          }
-        }}
-      >
-        💾 Actualizează
-      </button>
-
-      <button
-  className="btn btn-sm btn-outline-primary"
-  onClick={async () => {
-    const regulaOriginala = ultimeleReguli.find((r) => r.id === idRegulaEditata);
-
-    if (regulaOriginala && regulaOriginala.denumire === numeRegula.trim()) {
-      Swal.fire({
-        icon: "warning",
-        title: "Denumirea este neschimbată",
-        text: "Te rog să alegi o denumire diferită pentru a salva ca regulă nouă.",
-      });
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await fetch("http://localhost:5000/salveaza_reguli", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reguli,
-          denumire: numeRegula,
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        Swal.fire("✅ Regula salvată", "Regula a fost salvată ca una nouă.", "success");
-        setIdRegulaEditata(null);       // ieși din modul editare
-        setNumeRegula("");              // resetează denumirea
-        const refresh = await fetch("http://localhost:5000/ultimele_reguli");
-        const noi = await refresh.json();
-        setUltimeleReguli(noi);
-      } else {
-        throw new Error(data.error || "Eroare necunoscută");
-      }
-    } catch (e) {
-      Swal.fire("Eroare", e.message, "error");
-    } finally {
-      setLoading(false);
-    }
-  }}
->
-  💡 Salvează ca nouă
-</button>
-
-
-<button
-  className="btn btn-sm btn-outline-danger"
-  onClick={() => {
-  if (!idRegulaEditata) {
-    Swal.fire("Nicio regulă selectată", "Te rog să selectezi o regulă înainte de a o șterge.", "info");
-    return;
-  }
-
-  Swal.fire({
-    title: "Sigur vrei să ștergi această regulă?",
-    text: `Regula: ${numeRegula}`,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Da, șterge",
-    cancelButtonText: "Anulează",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        setLoading(true);
-        const response = await fetch("http://localhost:5000/sterge_regula", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: idRegulaEditata }),
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          Swal.fire("✅ ștearsă", "Regula a fost ștearsă cu succes.", "success");
-          setIdRegulaEditata(null);
-          setNumeRegula("");
-          setReguli(regulaVizibila); 
-          const refresh = await fetch("http://localhost:5000/ultimele_reguli");
-          const noi = await refresh.json();
-          setUltimeleReguli(noi);
-        } else {
-          throw new Error(data.error || "Eroare necunoscută");
-        }
-      } catch (e) {
-        Swal.fire("Eroare", e.message, "error");
-      } finally {
-        setLoading(false);
-      }
-    }
-  });
-}}
-
->
-  🗑️ Șterge
-</button>
-
-<button
-  className="btn btn-sm btn-outline-secondary"
-  onClick={() => {
-    setIdRegulaEditata(null);
-    setNumeRegula("");
-    setReguli(regulaVizibila); // ✅ revine la regula de bază (default)
-  }}
->
-  ❌ Anulează editarea
-</button>
-
-
-
-    </div>
-  </div>
-)}
-
-
-        {/* BUTOANE */}
-        <div className="d-flex gap-2 mb-5">
-            
-          <button className="btn btn-success" onClick={salveazaReguli} disabled={loading}>
-            {loading ? (
-              <>
-                <span
-                  className="spinner-border spinner-border-sm me-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-                Se salvează...
-              </>
-            ) : (
-              "🚀 Salvează"
-            )}
-          </button>
-
-
-          <button
-            className="btn btn-outline-danger"
-            onClick={() => {
-              Swal.fire({
-                title: "Ești sigur?",
-                text: "Regulile vor fi șterse complet.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Da, șterge",
-                cancelButtonText: "Anulează",
-              }).then((result) => {
-                if (result.isConfirmed) setReguli("");
-              });
-            }}
-          >
-            🔄 Golește
-          </button>
-
-          
-        </div>
 
 {idRegulaEditata && (
   <div className="card border-start border-4 border-primary shadow-sm mb-4">
@@ -591,38 +392,307 @@ const salveazaReguli = async () => {
 
 
 
+<div className="mb-4">
+  <label className="form-label fw-semibold text-secondary">📝 Denumire regulă</label>
+  <div className="input-group">
+    <span className="input-group-text bg-white border-end-0">
+      <i className="bi bi-type"></i>
+    </span>
+    <input
+      type="text"
+      className="form-control border-start-0"
+      placeholder="Ex: Reguli orare Licență și Master"
+      value={numeRegula}
+      onChange={(e) => setNumeRegula(e.target.value)}
+      style={{ borderRadius: "0 0.375rem 0.375rem 0" }}
+    />
+  </div>
+</div>
+
+
+
+
+{idRegulaEditata && (
+  <div className="alert alert-warning border-start border-4 border-warning-subtle shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 p-3 mt-3">
+    <div>
+      <i className="bi bi-pencil-square me-2 text-warning"></i>
+      <strong>Modifici o regulă existentă:</strong>{" "}
+      <em className="text-dark">{numeRegula}</em>
+    </div>
+
+    <div className="d-flex flex-wrap gap-2 justify-content-md-end">
+      {/* Actualizează */}
+      <button
+        className="btn btn-sm btn-success"
+        disabled={loading}
+        onClick={async () => {
+          try {
+            setLoading(true);
+            const response = await fetch("http://localhost:5000/actualizeaza_regula", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: idRegulaEditata,
+                reguli,
+                denumire: numeRegula,
+              }),
+            });
+            const data = await response.json();
+            if (data.success) {
+              Swal.fire("Actualizat!", "Regula a fost actualizată.", "success");
+              setIdRegulaEditata(null);
+              setNumeRegula("");
+              const refresh = await fetch("http://localhost:5000/ultimele_reguli");
+              const noi = await refresh.json();
+              setUltimeleReguli(noi);
+              window.scrollTo(0, 0); // Scroll la începutul paginii după actualizare
+            } else {
+              throw new Error(data.error || "Eroare necunoscută");
+            }
+          } catch (e) {
+            Swal.fire("Eroare", e.message, "error");
+          } finally {
+            setLoading(false);
+          }
+        }}
+      >
+        💾 Actualizează
+      </button>
+
+      {/* Salvează ca nouă */}
+      <button
+        className="btn btn-sm btn-primary"
+        disabled={loading}
+        onClick={async () => {
+          const regulaOriginala = ultimeleReguli.find((r) => r.id === idRegulaEditata);
+
+          if (regulaOriginala && regulaOriginala.denumire === numeRegula.trim()) {
+            Swal.fire({
+              icon: "warning",
+              title: "Denumirea este neschimbată",
+              text: "Te rog să alegi o denumire diferită pentru a salva ca regulă nouă.",
+            });
+            return;
+          }
+
+          try {
+            setLoading(true);
+            const response = await fetch("http://localhost:5000/salveaza_reguli", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ reguli, denumire: numeRegula }),
+            });
+
+            const data = await response.json();
+            if (data.success) {
+              Swal.fire("✅ Regula salvată", "Regula a fost salvată ca una nouă.", "success");
+              setIdRegulaEditata(null);
+              setNumeRegula("");
+              const refresh = await fetch("http://localhost:5000/ultimele_reguli");
+              const noi = await refresh.json();
+              setUltimeleReguli(noi);
+              window.scrollTo(0, 0); // Scroll la începutul paginii după salvare
+            } else {
+              throw new Error(data.error || "Eroare necunoscută");
+            }
+          } catch (e) {
+            Swal.fire("Eroare", e.message, "error");
+          } finally {
+            setLoading(false);
+          }
+        }}
+      >
+        💡 Salvează ca nouă
+      </button>
+
+      {/* Șterge */}
+      <button
+        className="btn btn-sm btn-danger"
+        disabled={loading}
+        onClick={() => {
+          Swal.fire({
+            title: "Sigur vrei să ștergi această regulă?",
+            text: `Regula: ${numeRegula}`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Da, șterge",
+            cancelButtonText: "Anulează",
+          }).then(async (result) => {
+            if (result.isConfirmed) {
+              try {
+                setLoading(true);
+                const response = await fetch("http://localhost:5000/sterge_regula", {
+                  method: "DELETE",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ id: idRegulaEditata }),
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                  Swal.fire("✅ Ștearsă", "Regula a fost ștearsă cu succes.", "success");
+                  setIdRegulaEditata(null);
+                  setNumeRegula("");
+                  setReguli(regulaVizibila);
+
+
+                  const refresh = await fetch("http://localhost:5000/ultimele_reguli");
+                  const noi = await refresh.json();
+                  setUltimeleReguli(noi);
+                } else {
+                  throw new Error(data.error || "Eroare necunoscută");
+                }
+              } catch (e) {
+                Swal.fire("Eroare", e.message, "error");
+              } finally {
+                setLoading(false);
+                window.scrollTo(0, 0); // Scroll la începutul paginii după ștergere
+              }
+            }
+          });
+        }}
+      >
+        🗑️ Șterge
+      </button>
+
+      {/* Anulează editarea */}
+      <button
+        className="btn btn-sm btn-outline-secondary"
+        onClick={() => {
+          setIdRegulaEditata(null);
+          setNumeRegula("");
+          setReguli(regulaVizibila);
+            Swal.fire({
+                icon: "info",
+                title: "Editare anulată",
+                text: "Ai revenit la regula inițială.",
+            });
+            window.scrollTo(0, 0);
+        }}
+      >
+        ❌ Anulează
+      </button>
+    </div>
+  </div>
+)}
+
+
+
+        {/* BUTOANE ACȚIUNE */}
+<div className="d-flex flex-wrap gap-3 mb-5 mt-3">
+  {/* Salvează */}
+  <button
+    className="btn btn-success d-flex align-items-center"
+    onClick={salveazaReguli}
+    disabled={loading}
+  >
+    {loading ? (
+        
+      <>
+        <span
+          className="spinner-border spinner-border-sm me-2"
+          role="status"
+          aria-hidden="true"
+
+        ></span>
+        Se salvează...
+
+      </>
+    ) : (
+      <>
+        <i className="bi bi-cloud-arrow-up me-2"></i>
+        🚀 Salvează
+        
+      </>
+      
+    )}
+  </button>
+
+  {/* Golește */}
+<button
+  className="btn btn-outline-danger d-flex align-items-center"
+  onClick={() => {
+    if (!reguli.trim()) return; 
+
+    Swal.fire({
+      title: "Ești sigur?",
+      text: "Toate regulile introduse vor fi șterse.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Da, șterge",
+      cancelButtonText: "Anulează",
+    }).then((result) => {
+      if (result.isConfirmed) setReguli("");
+    });
+  }}
+>
+  <i className="bi bi-x-circle me-2"></i>
+  🔄 Golește
+</button>
+
+</div>
+
+
+
+
+
         </div>
 </div>
 </div>
 
-
+{/* Coloana Dreapta – Reguli */}
 <div className="col-md-4">
   <div className="card shadow-sm border-0 mb-4 h-100">
     <div className="card-header bg-light border-bottom fw-semibold text-primary fs-6 d-flex align-items-center">
-      📂 Reguli salvate recent
+      <i className="bi bi-folder2-open me-2"></i> Reguli salvate recent
     </div>
 
-    
-    <div
-      className="card-body p-0"
-      style={{ maxHeight: "650px", overflowY: "auto" }}
-    >
-      {ultimeleReguli.length === 0 ? (
+    <div className="card-body px-3 pt-3" style={{ maxHeight: "650px", overflowY: "auto" }}>
+      {/* Input de căutare */}
+      <div className="input-group mb-3">
+        <input
+          type="text"
+          className="form-control"
+          placeholder="🔍 Caută după denumire..."
+          onChange={(e) => {
+            const query = e.target.value.toLowerCase();
+            const filtrate = ultimeleReguli.filter((r) =>
+              r.denumire.toLowerCase().includes(query)
+            );
+            setReguliFiltrate(filtrate);
+          }}
+        />
+        <button
+          className="btn btn-outline-secondary"
+          type="button"
+          title="Resetează"
+          onClick={() => setReguliFiltrate(ultimeleReguli)}
+        >
+          ✖
+        </button>
+      </div>
+
+      {/* Listă reguli filtrate */}
+      {reguliFiltrate.length === 0 ? (
         <div className="text-center text-muted p-4">
           <i className="bi bi-inbox fs-2 d-block mb-2"></i>
-          <p className="mb-0">Nu există reguli salvate momentan.</p>
+          <p className="mb-0">Nu există reguli salvate.</p>
         </div>
       ) : (
         <ul className="list-group list-group-flush">
-          {ultimeleReguli.map((r) => (
+          {reguliFiltrate.map((r) => (
             <li
               key={r.id}
-              className="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-3 py-2"
-              style={{ cursor: "pointer", transition: "background 0.2s" }}
+              className="list-group-item d-flex justify-content-between align-items-center px-3 py-3 list-group-item-hover"
+              style={{
+                backgroundColor: r.id === idRegulaEditata ? "#e7f3ff" : "transparent",
+                cursor: "pointer",
+                transition: "background 0.3s",
+                borderBottom: "1px solid #f0f0f0",
+              }}
               onClick={() => {
                 Swal.fire({
                   title: "Încarci această regulă?",
-                  text: `Titlu: ${r.denumire}\nData: ${new Date(r.data_adaugare).toLocaleString()}`,
+                  html: `<strong>${r.denumire}</strong><br/><small>${new Date(r.data_adaugare).toLocaleString()}</small>`,
                   icon: "question",
                   showCancelButton: true,
                   confirmButtonText: "Da, încarcă",
@@ -632,17 +702,35 @@ const salveazaReguli = async () => {
                     setReguli(r.continut);
                     setNumeRegula(r.denumire);
                     setIdRegulaEditata(r.id);
+                    Swal.fire({
+                      icon: "success",
+                      title: "Regula încărcată",
+                      text: `Regula "${r.denumire}" a fost încărcată cu succes.`,
+                      showConfirmButton: false,
+                      timer: 1500,
+                    });
+                    window.scrollTo(0, 0);
+                    setLoading(false);
                   }
                 });
               }}
             >
               <div className="d-flex flex-column">
-                <span className="fw-semibold text-dark">{r.denumire}</span>
-                <small className="text-muted">
-                  {new Date(r.data_adaugare).toLocaleString()}
-                </small>
+                <span className="fw-semibold text-dark">
+                  <i className="bi bi-file-earmark-text me-1 text-primary"></i> {r.denumire}
+                </span>
+                <span className="badge bg-light text-muted mt-1">
+                  {new Date(r.data_adaugare).toLocaleString("ro-RO", {
+                    timeZone: "UTC",
+                    hour12: false,
+                    dateStyle: "short",
+                    timeStyle: "short",
+                  })}
+                </span>
               </div>
-              <i className="bi bi-box-arrow-in-down text-secondary"></i>
+              <button className="btn btn-sm btn-outline-primary">
+                <i className="bi bi-download"></i> Încarcă
+              </button>
             </li>
           ))}
         </ul>
@@ -650,6 +738,8 @@ const salveazaReguli = async () => {
     </div>
   </div>
 </div>
+
+
 
 
 
