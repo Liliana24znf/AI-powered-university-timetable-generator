@@ -1,74 +1,445 @@
-<div className="col-md-8">
-  <div className="card shadow-sm border-0 mb-4 h-100">
-    <div className="card-header bg-primary text-white fw-bold fs-5 d-flex align-items-center">
-      📜 REGULI STRICTE PENTRU GENERAREA ORARULUI
+import React, { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
+import html2pdf from "html2pdf.js";
+import { useLocation } from "react-router-dom";
+
+const GeneratedTimetable = () => {
+  const [orar, setOrar] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [profesori, setProfesori] = useState([]);
+  const [sali, setSali] = useState([]);
+  const [grupe, setGrupe] = useState([]);
+  const location = useLocation();
+  const { regula_id, denumire: denumireRegulaSelectata, continut: continutRegula } = location.state || {};
+
+  const [anSelectat, setAnSelectat] = useState("");
+
+
+
+
+useEffect(() => {
+  
+  const incarcaDate = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/date_orar");
+      const data = await response.json();
+      setProfesori(data.profesori || []);
+      setSali(data.sali || []);
+      setGrupe(data.grupe || []);
+      setReguli(data.reguli || ""); 
+    } catch (err) {
+      console.error("Eroare la încărcarea datelor:", err);
+    }
+  };
+  incarcaDate();
+}, []);
+
+
+const [reguli, setReguli] = useState(` 📜 REGULI STRICTE PENTRU GENERAREA ORARULUI:
+Toti ani, toate grupele si toate subgrupele de la Licenta si Master sa fie completate.
+1. Orarul trebuie să acopere întreaga săptămână (Luni–Vineri) pentru TOATE grupele disponibile, structurate astfel:
+   - Cursurile se desfășoară pe AN.
+   - Seminarele și proiectele pe GRUPĂ.
+   - Laboratoarele pe SUBGRUPĂ.
+
+2. Intervalele orare disponibile sunt:
+   - "08:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00".
+
+3. Programul zilnic:
+   - **Licență**: între 08:00 și 20:00.
+   - **Master**: între 16:00 și 20:00.
+   - Fiecare zi trebuie să conțină între **4 și 8 ore** de activități (adică 2–4 activități de câte 2 ore).
+   - NU este permisă mai mult de **o pauză (fereastră de 2 ore)** pe zi.
+   - Este RECOMANDAT ca programul să nu aibă ferestre. Dacă nu se poate evita (lipsă sală/profesor), pauza trebuie să fie inclusă în limita maximă de 8 ore.
+
+4. Tipuri de activități:
+   - Cursurile se susțin doar în săli cu prefix **GC** (ex: GC1, GC2).
+   - Seminarele și laboratoarele se desfășoară doar în săli cu prefix **GA** (ex: GA1, GA2).
+   - **Sălile NU pot fi folosite simultan de licență și master** în același interval orar.
+   - **O sală NU poate fi folosită de mai multe activități în același interval orar**.
+
+5. **Ziua de miercuri, intervalul 14:00–16:00 va fi liber** pentru toate grupele (niciun curs, seminar sau laborator).
+
+6. La activități se vor afișa detalii astfel:
+   - **Cursuri**: denumirea completă + prescurtarea disciplinei + numele profesorului + sala.
+     Ex: „Programare (PR) – Ion Popescu – GC1”
+   - **Seminare/Laboratoare**: doar acronimul + numele profesorului + sala.
+     Ex: „PR – Ion Popescu – GA1”
+
+7. NU inventa discipline, profesori sau săli. Folosește DOAR datele primite.
+
+8. Structura JSON a orarului trebuie să fie VALIDĂ și COMPLETĂ.
+
+Pentru fiecare nivel (Licență și Master), trebuie să generezi orarul pentru TOATE grupele și subgrupele existente. Listele exacte de grupe sunt furnizate mai sus (ex: I1a, I1b, I2a, I2b, M1a etc.). Nu omite niciuna.
+
+Pentru fiecare grupă sau subgrupă:
+- Generează orarul complet de luni până vineri.
+- Pentru fiecare zi, include toate intervalele orare permise (ex: 08:00–10:00, 10:00–12:00 etc.).
+- Completează fiecare interval cu o activitate validă în formatul:
+🧠 IMPORTANT: Grupele pentru care trebuie să generezi orar sunt cele listate mai sus. Completează orarul pentru TOATE, fără a omite nicio grupă. Dacă există 24 de grupe la Licență și 4 la Master, orarul trebuie generat pentru toate 28.
+
+Dacă nu există suficienți profesori, discipline sau săli, reutilizează-le în mod inteligent, astfel încât să respecți regulile și să umpli toate zilele și grupele.
+{
+  "Licenta": {
+    "I1a": { ... },
+    "I1b": { ... },
+    ...
+  },
+  "Master": {
+    "MI1": { ... },
+    "MI2": { ... },
+    ...
+  }
+}
+
+La fiecare activitate, folosește formatul:
+
+"interval": {
+  "activitate": "Denumire completă",
+  "tip": "Curs/Seminar/Laborator",
+  "profesor": "Prenume Nume",
+  "sala": "GC1/GA2 etc."
+}
+  Dacă nu sunt suficiente activități, profesori sau săli, reutilizează-le inteligent astfel încât fiecare grupă să aibă activități în fiecare zi (respectând regulile).
+
+NU folosi un singur string lung. NU combina detaliile într-un câmp. Fiecare activitate TREBUIE să aibă cele 4 câmpuri distincte: activitate, tip, profesor, sala.
+
+‼️ NU omite nicio zi. Fiecare grupă/subgrupă trebuie să aibă activități în fiecare zi (cu excepția intervalului 14:00–16:00 miercuri). NU trimite JSON incomplet sau cu erori de sintaxă.
+
+{"role": "system", "content": "Răspunde DOAR cu JSON VALID. FĂRĂ comentarii, fără explicații, fără // sau ... . Începe cu { și termină cu }."},
+
+`);
+
+
+  const genereazaOrar = async () => {
+    setLoading(true);
+
+    const instructiuniProfesori = profesori.map(
+  (p) => `- ${p.nume} (${p.disciplina})`
+).join("\n");
+
+    const instructiuniSali = sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n");
+
+    const instructiuniGrupe = grupe.map(
+  (g) =>
+    `- ${g.denumire} (${g.nivel}, anul ${g.an}, grupa ${g.grupa}, subgrupa ${g.subgrupa})`
+).join("\n");
+
+const instructiuniGPT = `Asigură-te că răspunsul este un JSON valid și complet, fără comentarii sau explicații, doar obiectul JSON.`; 
+
+
+const promptFinal = `
+✅ LISTA COMPLETĂ de profesori și discipline (nu inventa altele):
+${instructiuniProfesori}
+
+🏫 Săli disponibile:
+${instructiuniSali}
+
+👥 Grupe disponibile:
+${instructiuniGrupe}
+
+${reguli}
+
+${instructiuniGPT}
+`;
+
+
+    try {
+      const response = await fetch("http://127.0.0.1:5000/genereaza_orar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+  regula_id: regula_id,
+  an_selectat: anSelectat,
+}),
+
+      });
+
+      const data = await response.json();
+      setOrar(data);
+    } catch (error) {
+      console.error("Eroare la generare orar:", error);
+    }
+
+    setLoading(false);
+  };
+
+
+  const zileOrdine = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"];
+
+const exportExcel = () => {
+  if (!orar) return;
+  const wb = XLSX.utils.book_new();
+
+  for (const nivel in orar) {
+    for (const an in orar[nivel]) {
+      const data = [];
+
+      for (const zi in orar[nivel][an]) {
+        const activitati = orar[nivel][an][zi];
+
+        for (const interval in activitati) {
+          const item = activitati[interval];
+
+          data.push({
+            Nivel: nivel,
+            An: an,
+            Zi: zi,
+            Interval: interval,
+            Disciplina: item?.activitate || "", // dacă este string simplu
+            Tip: item?.tip || "",                // dacă ai separat tipul
+            Profesor: item?.profesor || "",
+            Sala: item?.sala || ""
+          });
+        }
+      }
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, `${nivel}-${an}`);
+    }
+  }
+
+  XLSX.writeFile(wb, "orar.xlsx");
+};
+
+const exportPDF = () => {
+  if (!orar) return;
+  const element = document.getElementById("orar-afisat");
+
+  html2pdf()
+    .set({
+      margin: [0.5, 0.5, 0.5, 0.5],
+      filename: "orar.pdf",
+      image: { type: "jpeg", quality: 1 },
+      html2canvas: { scale: 3, useCORS: true },
+      jsPDF: {
+        unit: "in",
+        format: "a4",
+        orientation: "landscape"
+      },
+      pagebreak: {
+        mode: ['css', 'legacy']
+      }
+    })
+    .from(element)
+    .save();
+};
+
+const grupeFiltrate = grupe.filter((g) => g.an === anSelectat);
+
+
+const instructiuniGrupe = grupeFiltrate.map(
+  (g) =>
+    `- ${g.denumire} (${g.nivel}, anul ${g.an}, grupa ${g.grupa}, subgrupa ${g.subgrupa})`
+).join("\n");
+
+const denumiriGrupeAnCurent = grupe
+  .filter(g => g.an === anSelectat)
+  .map(g => g.denumire);
+
+const grupeAnCurent = grupe
+  .filter((g) => g.an === anSelectat)
+  .map((g) => g.denumire);
+
+
+const renderOrar = () => {
+  if (!orar) return null;
+
+  const extrageIntervale = (orarNivel) => {
+    const intervaleSet = new Set();
+    for (const zi of zileOrdine) {
+      for (const grupa in orarNivel) {
+        if (!grupeAnCurent.includes(grupa)) continue;
+        const ziGrupa = orarNivel[grupa][zi];
+        if (ziGrupa) {
+          Object.keys(ziGrupa).forEach((interval) =>
+            intervaleSet.add(interval)
+          );
+        }
+      }
+    }
+    return Array.from(intervaleSet).sort();
+  };
+
+  const getBadgeClass = (tipActivitate) => {
+    if (tipActivitate.toLowerCase().includes("curs")) return "bg-info";
+    if (tipActivitate.toLowerCase().includes("laborator")) return "bg-success";
+    if (tipActivitate.toLowerCase().includes("seminar")) return "bg-warning";
+    return "bg-secondary";
+  };
+
+  return (
+    <div className="table-responsive" id="orar-afisat">
+      {Object.entries(orar).map(([nivel, grupeOrar]) => {
+        if (!["Licenta", "Master"].includes(nivel)) return null;
+
+        const grupeFiltrate = Object.entries(grupeOrar).filter(
+          ([denumireGrupa]) => grupeAnCurent.includes(denumireGrupa)
+        );
+
+        if (grupeFiltrate.length === 0) return null;
+
+        const intervale = extrageIntervale(grupeOrar);
+
+        return (
+          <div key={nivel}>
+            <h2>{nivel}</h2>
+            {grupeFiltrate.map(([denumireGrupa, zile]) => (
+              <div key={`${nivel}-${denumireGrupa}`} className="mb-4 page-break">
+                <h4>📘 {nivel} – {denumireGrupa}</h4>
+                <table className="table table-bordered text-center align-middle">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Interval</th>
+                      {zileOrdine.map((zi) => (
+                        <th key={zi}>{zi}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {intervale.map((interval) => (
+                      <tr key={interval}>
+                        <td><strong>{interval}</strong></td>
+                        {zileOrdine.map((zi) => {
+                          const activitate = zile?.[zi]?.[interval];
+                          return (
+                            <td key={`${zi}-${interval}`}>
+                              {activitate ? (
+                                <div>
+                                  {typeof activitate === "object" ? (
+                                    <>
+                                      <span
+                                        className={`badge ${getBadgeClass(
+                                          activitate.tip
+                                        )} mb-1`}
+                                      >
+                                        {activitate.activitate}
+                                      </span>
+                                      <div>{activitate.profesor}</div>
+                                      <div className="text-muted">
+                                        {activitate.sala}
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <span className="badge bg-secondary">
+                                      {activitate}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                ""
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        );
+      })}
     </div>
-    <div className="card-body px-4 py-4">
-      <div className="mb-4">
-        <label className="form-label fw-semibold text-secondary">✏️ Reguli de generare</label>
-        <textarea
-          className="form-control"
-          style={{
-            fontFamily: "Fira Code, monospace",
-            whiteSpace: "pre-wrap",
-            backgroundColor: "#f9f9f9",
-            border: "1px solid #dee2e6",
-            borderRadius: "0.375rem",
-            padding: "1rem",
-            minHeight: "400px",
-            lineHeight: "1.6",
-            fontSize: "0.95rem",
-          }}
-          rows={20}
-          placeholder="📜 Introdu aici regulile..."
-          value={reguli}
-          onChange={(e) => setReguli(e.target.value)}
-        />
-      </div>
+  );
+};
 
-      <div className="mb-4">
-        <label className="form-label fw-semibold text-secondary">📝 Denumire regulă</label>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Ex: Reguli orare Licență și Master"
-          value={numeRegula}
-          onChange={(e) => setNumeRegula(e.target.value)}
-        />
-      </div>
 
-      {idRegulaEditata && (
-        <div className="alert alert-warning d-flex justify-content-between align-items-center">
-          <div>
-            <strong>Modifici o regulă existentă:</strong> <em>{numeRegula}</em>
-          </div>
-          <div className="d-flex gap-2">
-            <button
-              className="btn btn-sm btn-outline-success"
-              onClick={handleActualizeazaRegula}
-            >
-              💾 Actualizează
-            </button>
-            <button
-              className="btn btn-sm btn-outline-primary"
-              onClick={handleSalveazaCaNoua}
-            >
-              💡 Salvează ca nouă
-            </button>
-            <button
-              className="btn btn-sm btn-outline-danger"
-              onClick={handleStergeRegula}
-            >
-              🗑️ Șterge
-            </button>
-          </div>
-        </div>
-      )}
 
-      <div className="d-flex justify-content-between gap-3 mt-4">
+
+
+
+useEffect(() => {
+  if (grupe.length > 0 && !anSelectat) {
+    const ani = Array.from(new Set(grupe.map(g => g.an))).sort();
+    setAnSelectat(ani[0]);
+  }
+}, [grupe]);
+
+useEffect(() => {
+  const incarcaDate = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/date_orar");
+      const data = await response.json();
+
+      console.log("GRUPE RECEPȚIONATE:", data.grupe); // ← AICI
+
+      setProfesori(data.profesori || []);
+      setSali(data.sali || []);
+      setGrupe(data.grupe || []);
+      setReguli(data.reguli || ""); 
+    } catch (err) {
+      console.error("Eroare la încărcarea datelor:", err);
+    }
+  };
+  incarcaDate();
+}, []);
+
+
+const aniDisponibili = Array.from(new Set(grupe.map((g) => g.an))).sort();
+
+  return (
+   <div className="container-fluid pt-4 px-4">
+{/* NAVBAR */}
+      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
+        <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
+    
+    {/* Stânga: Logo */}
+    <span className="position-absolute start-0 navbar-brand fw-bold text-primary fs-4">
+      Generator Orare
+    </span>
+
+    {/* Centru: Titlu */}
+   <span className="text-primary fw-bold fs-4">
+      📅 Orar Generat
+    </span>
+
+    {/* Dreapta: Butoane */}
+    <div className="position-absolute end-0 d-flex">
+      <button className="btn btn-outline-primary me-2" onClick={exportExcel}>
+        ⬇ Export Excel
+      </button>
+      <button className="btn btn-outline-primary me-2" onClick={exportPDF}>
+        🖨️ Export PDF
+      </button>
+    </div>
+  </div>
+</nav>
+
+
+<div className="container mb-4">
+  <div className="card shadow-sm border-0 bg-light">
+    <div className="card-body">
+      <p className="mb-2">
+        <strong>🔍 Informații:</strong> Această pagină afișează orarul generat pentru studenți, incluzând profesori și săli disponibile.
+      </p>
+      <p className="mb-0">
+        <strong>ℹ️ Notă:</strong> Asigură-te că ai introdus toate regulile și informațiile necesare pentru generarea orarului.
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<div className="d-flex align-items-center mb-4 gap-3">
+        <label className="me-2 fw-semibold text-primary">🎯 Selectează anul:</label>
+        <select
+  className="form-select w-auto"
+  value={anSelectat}
+  onChange={(e) => setAnSelectat(e.target.value)}
+>
+  <option value="" disabled>-- Selectează anul --</option>
+  {aniDisponibili.map((an, idx) => (
+    <option key={idx} value={an}>
+      {an}
+    </option>
+  ))}
+</select>
+
         <button
-          className="btn btn-success w-100"
-          onClick={salveazaReguli}
+          className="btn btn-success"
+          onClick={genereazaOrar}
           disabled={loading}
         >
           {loading ? (
@@ -78,31 +449,72 @@
                 role="status"
                 aria-hidden="true"
               ></span>
-              Se salvează...
+              Se generează...
             </>
           ) : (
-            "🚀 Salvează"
+            "🚀 Generează orar"
           )}
         </button>
-
-        <button
-          className="btn btn-outline-danger w-100"
-          onClick={() => {
-            Swal.fire({
-              title: "Ești sigur?",
-              text: "Regulile vor fi șterse complet.",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "Da, șterge",
-              cancelButtonText: "Anulează",
-            }).then((result) => {
-              if (result.isConfirmed) setReguli("");
-            });
-          }}
-        >
-          🔄 Golește
-        </button>
       </div>
+
+
+
+
+
+
+{regula_id && continutRegula && (
+  <div
+    className="card shadow-sm border-0"
+    style={{
+      fontSize: "0.85rem",
+      marginTop: "0.5rem",
+      maxWidth: "500px", // opțional, pentru a-l face mai îngust
+    }}
+  >
+
+      {regula_id && denumireRegulaSelectata && (
+  <div className="alert alert-info d-flex justify-content-between align-items-center mt-3">
+    <div>
+      <i className="bi bi-check-circle-fill me-2 text-primary"></i>
+      <strong>Regulă selectată:</strong> <em>{denumireRegulaSelectata}</em>
+    </div>
+    <span className="badge bg-primary text-white">ID: {regula_id}</span>
+  </div>
+)}
+
+
+    <div
+      className="card-header bg-light fw-bold text-primary py-1 px-2"
+      style={{ fontSize: "0.9rem" }}
+    >
+      📜 Conținutul regulii selectate
+    </div>
+    <div
+      className="card-body py-2 px-2"
+      style={{
+        whiteSpace: "pre-wrap",
+        fontFamily: "monospace",
+        backgroundColor: "#f8f9fa",
+        fontSize: "0.8rem",
+        lineHeight: "1.3",
+      }}
+    >
+      {continutRegula}
     </div>
   </div>
-</div>
+)}
+
+
+  
+
+  
+      {/* FOOTER */}
+      <footer className="bg-white text-center text-muted py-3 border-top mt-auto">
+        <p className="mb-0">© {new Date().getFullYear()} Generator Orare</p>
+      </footer>
+    </div>
+  );
+  
+};
+
+export default GeneratedTimetable;

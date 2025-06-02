@@ -47,19 +47,50 @@ def completeaza_ani_lipsa(orar_json):
     return orar_json
 
 
+def completeaza_grupe_lipsa(orar_json, grupe_licenta=None, grupe_master=None):
+    grupe_licenta = grupe_licenta or []
+    grupe_master = grupe_master or []
+    zile = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"]
+
+    if "Licenta" not in orar_json:
+        orar_json["Licenta"] = {}
+    for grupa in grupe_licenta:
+        if grupa not in orar_json["Licenta"]:
+            orar_json["Licenta"][grupa] = {}
+        for zi in zile:
+            if zi not in orar_json["Licenta"][grupa]:
+                orar_json["Licenta"][grupa][zi] = {}
+
+    if "Master" not in orar_json:
+        orar_json["Master"] = {}
+    for grupa in grupe_master:
+        if grupa not in orar_json["Master"]:
+            orar_json["Master"][grupa] = {}
+        for zi in zile:
+            if zi not in orar_json["Master"][grupa]:
+                orar_json["Master"][grupa][zi] = {}
+
+    return orar_json
+
+
 @app.route('/genereaza_orar', methods=['POST'])
 def genereaza_orar():
     data = request.get_json()
     regula_id = data.get("regula_id")
+    an_selectat = data.get("an_selectat")
+    nivel_selectat = data.get("nivel_selectat")
+    grupe_selectate = data.get("grupe_selectate", [])
 
     if not regula_id:
         return jsonify({"error": "ID-ul regulii nu a fost transmis."}), 400
+    if not grupe_selectate:
+        return jsonify({"error": "Nu au fost selectate grupele."}), 400
 
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # 🔍 Ia regula din baza de date
+        # 🔍 Ia regula
         cursor.execute("SELECT continut FROM reguli WHERE id = %s", (regula_id,))
         regula_row = cursor.fetchone()
 
@@ -70,43 +101,62 @@ def genereaza_orar():
 
         reguli = regula_row["continut"]
 
-        # 🔄 Ia grupele din DB
-        cursor.execute("SELECT denumire FROM grupe WHERE nivel = 'Licenta'")
-        grupele_licenta = [g['denumire'] for g in cursor.fetchall()]
+        # 🔄 Grupele selectate
+        prompt_grupe = (
+            f"Grupele selectate pentru nivelul {nivel_selectat}, anul {an_selectat}:\n"
+            f"{', '.join(grupe_selectate)}\n\n"
+        )
 
-        cursor.execute("SELECT denumire FROM grupe WHERE nivel = 'Master'")
-        grupele_master = [g['denumire'] for g in cursor.fetchall()]
+        # 🔗 Relații profesori-discipline-tip-nivel
+        cursor.execute("""
+            SELECT p.nume AS profesor,
+                   dp.denumire AS disciplina,
+                   dp.tip,
+                   dp.nivel
+            FROM discipline_profesori dp
+            JOIN profesori p ON dp.profesor_id = p.id
+        """)
+        rows = cursor.fetchall()
+
+        relatii_profesori = {}
+        for row in rows:
+            nume = row["profesor"]
+            if nume not in relatii_profesori:
+                relatii_profesori[nume] = []
+            relatii_profesori[nume].append({
+                "denumire": row["disciplina"],
+                "tip": row["tip"].split(",") if "," in row["tip"] else [row["tip"]],
+                "nivel": row["nivel"]
+            })
+
+        lista_finala = [
+            {"profesor": nume, "discipline": discipline}
+            for nume, discipline in relatii_profesori.items()
+        ]
 
         cursor.close()
         conn.close()
 
-        # 🔧 Concatenează în prompt
-        prompt_grupe = (
-            "Grupele pentru care trebuie să generezi orar:\n"
-            f"Licenta: {', '.join(grupele_licenta)}\n"
-            f"Master: {', '.join(grupele_master)}\n\n"
-        )
-        reguli = prompt_grupe + reguli
+        prompt_profesori = "📚 Relații profesori-discipline:\n" + json.dumps(lista_finala, indent=2, ensure_ascii=False) + "\n\n"
+        instructiuni = prompt_grupe + prompt_profesori + reguli
 
         # 🧠 Trimite la GPT
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Răspunde DOAR cu JSON valid. Fără explicații. Începe cu { și termină cu }."},
-                {"role": "user", "content": reguli}
+                {"role": "system", "content": "Răspunde DOAR cu JSON VALID, fără explicații. STRUCTURA OBLIGATORIE: { Licenta: { grupa: { zi: { interval: { activitate, tip, profesor, sala }}}}, Master: { ... } }. NU adăuga chei globale precum 'Luni', 'Marti' etc. Orarul trebuie să fie împărțit exclusiv pe grupe."},
+                {"role": "user", "content": instructiuni}
             ]
         )
 
         orar_raw = response.choices[0].message.content.strip()
 
-        # ✅ Extrage conținutul JSON
+        # ✅ Curățare și parsare JSON
         start = orar_raw.find('{')
         end = orar_raw.rfind('}') + 1
         json_str = orar_raw[start:end]
 
-        # 🔧 Curățare simboluri greșite
         json_str = json_str.replace("“", "\"").replace("”", "\"").replace("‘", "'").replace("’", "'")
-
         lines = json_str.splitlines()
         clean_lines = []
         for line in lines:
@@ -118,8 +168,12 @@ def genereaza_orar():
 
         orar_json = json.loads(json_str_cleaned)
 
-        # 🔄 Completează structura
-        orar_json = completeaza_grupe_lipsa(orar_json)
+        # 🔁 Completează doar grupele selectate
+        orar_json = completeaza_grupe_lipsa(
+            orar_json,
+            grupe_licenta=grupe_selectate if nivel_selectat == "Licenta" else [],
+            grupe_master=grupe_selectate if nivel_selectat == "Master" else []
+        )
 
         print(">>> Orar generat (parsare reușită) <<<")
         print(json.dumps(orar_json, indent=2, ensure_ascii=False))
@@ -418,35 +472,6 @@ def sterge_grupe_selectate():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-def completeaza_grupe_lipsa(orar_json):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT nivel, denumire FROM grupe")
-        toate_grupele = cursor.fetchall()
-        cursor.close()
-        conn.close()
-
-        zile = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"]
-
-        for grupa in toate_grupele:
-            nivel = grupa["nivel"]
-            denumire = grupa["denumire"]
-
-            if nivel not in orar_json:
-                orar_json[nivel] = {}
-
-            if denumire not in orar_json[nivel]:
-                orar_json[nivel][denumire] = {}
-
-            for zi in zile:
-                if zi not in orar_json[nivel][denumire]:
-                    orar_json[nivel][denumire][zi] = {}
-
-        return orar_json
-    except Exception as e:
-        print("Eroare la completarea grupelor lipsă:", e)
-        return orar_json
 
 @app.route('/actualizeaza_grupa', methods=['PUT'])
 def actualizeaza_grupa():
@@ -561,10 +586,6 @@ def date_orar():
         # Profesori
         cursor.execute("SELECT * FROM profesori")
         profesori = cursor.fetchall()
-        for p in profesori:
-            p["niveluri"] = [x.strip() for x in p["nivel"].split(",")] if p["nivel"] else []
-            p["tipuri"] = [x.strip() for x in p["tipuri"].split(",")] if p["tipuri"] else []
-            p["discipline"] = [x.strip() for x in p["discipline"].split(",")] if p["discipline"] else []
 
         # Săli
         cursor.execute("""
