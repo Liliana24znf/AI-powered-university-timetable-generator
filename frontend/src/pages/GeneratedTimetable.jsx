@@ -365,122 +365,38 @@ const exportPDF = () => {
 )}
 
 {regula_id && continutRegula && (
-  <div className="card shadow-sm border-0 mt-3">
-    <div className="card-header bg-light fw-bold text-primary">
+  <div
+    className="card shadow-sm border-0"
+    style={{
+      fontSize: "0.85rem",
+      marginTop: "0.5rem",
+      maxWidth: "500px", // opțional, pentru a-l face mai îngust
+    }}
+  >
+    <div
+      className="card-header bg-light fw-bold text-primary py-1 px-2"
+      style={{ fontSize: "0.9rem" }}
+    >
       📜 Conținutul regulii selectate
     </div>
-    <div className="card-body" style={{ whiteSpace: "pre-wrap", fontFamily: "monospace", backgroundColor: "#f8f9fa" }}>
+    <div
+      className="card-body py-2 px-2"
+      style={{
+        whiteSpace: "pre-wrap",
+        fontFamily: "monospace",
+        backgroundColor: "#f8f9fa",
+        fontSize: "0.8rem",
+        lineHeight: "1.3",
+      }}
+    >
       {continutRegula}
     </div>
   </div>
 )}
 
+
   
-      {/* CONȚINUT */}
-      <div className="container py-4">
-        <h2 className="mb-3">📅 Generare Orar cu GPT-4</h2>
 
-
-        <div className="mb-3">
-          <label className="form-label fw-semibold">📝 Editare reguli:</label>
-          <textarea
-            className="form-control"
-            value={reguli}
-            onChange={(e) => setReguli(e.target.value)}
-            rows={10}
-          />
-        </div>
-  
-        <div className="d-flex flex-wrap gap-2 mb-4">
-          <button className="btn btn-success" onClick={genereazaOrar}>
-            ⚙️ Generează Orar
-          </button>
-          <button className="btn btn-outline-secondary" onClick={() => setOrar(null)}>
-            🔄 Resetează Orar
-          </button>
-          <button className="btn btn-outline-danger" onClick={() => setReguli("")}>
-            🗑️ Resetează Reguli
-          </button>
-        </div>
-  
-        {loading && <p>⏳ Se generează orarul...</p>}
-  
-        {orar && (
-          <>
-            <div id="orar-afisat">
-              <h4 className="mt-4">📋 Orar Generat:</h4>
-              {renderOrar()}
-  
-              <div className="mt-5">
-                <h5>👨‍🏫 Profesori incluși:</h5>
-                <ul className="list-group mb-4">
-                  {profesori.map((p, idx) => (
-                    <li key={idx} className="list-group-item">
-                      <strong>{p.nume}</strong> – {p.nivel} – {p.tipuri.join("/")} – {p.discipline.join(", ")}
-                    </li>
-                  ))}
-                </ul>
-  
-<h5 className="mt-4">🏫 Săli disponibile:</h5>
-
-{["Curs", "Laborator", "Seminar"].map((tip) => {
-  const saliTip = sali
-    .filter((s) => s.tip === tip)
-    .sort((a, b) => parseInt(a.cod.replace(/\D/g, "")) - parseInt(b.cod.replace(/\D/g, "")));
-
-  const culoare =
-    tip === "Curs" ? "text-primary" :
-    tip === "Laborator" ? "text-success" :
-    "text-warning";
-
-  const icon =
-    tip === "Curs" ? "📘" :
-    tip === "Laborator" ? "🧪" :
-    "📝";
-
-  return (
-    <div key={tip} className="mb-3">
-      <h6 className={`fw-bold ${culoare}`}>{icon} Săli de {tip} ({saliTip.length})</h6>
-      {saliTip.length === 0 ? (
-        <p className="text-muted fst-italic">⚠️ Nu există săli de tip {tip} disponibile în sistem.</p>
-      ) : (
-        <ul className="list-group">
-          {saliTip.map((s, i) => (
-            <li key={i} className="list-group-item d-flex justify-content-between align-items-center">
-              {s.cod}
-              <span className="badge bg-light text-dark">{s.tip}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-})}
-
-
-            <h5>👥 Grupe disponibile:</h5>
-{!grupe.length ? (
-  <p className="text-muted">⚠️ Nu există grupe disponibile în acest moment.</p>
-) : (
-  <ul className="list-group mb-4">
-    {grupe.map((g, i) => (
-      <li key={i} className="list-group-item">
-        {g.denumire} – {g.nivel}, anul {g.an}, grupa {g.grupa}, subgrupa {g.subgrupa}
-      </li>
-    ))}
-  </ul>
-)}
-
-
-              </div>
-            </div>
-          </>
-        )}
-  
-        {!orar && !loading && (
-          <p className="text-muted">📭 Nu a fost generat niciun orar încă. Apasă „Generează Orar”.</p>
-        )}
-      </div>
   
       {/* FOOTER */}
       <footer className="bg-white text-center text-muted py-3 border-top mt-auto">
