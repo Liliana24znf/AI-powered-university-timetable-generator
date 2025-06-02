@@ -606,7 +606,7 @@ def date_orar():
         conn.close()
 
         return jsonify({
-            "profesori": profesori,
+            "profesori": profesori,  
             "sali": sali,
             "grupe": grupe,
             "reguli": regula if regula else {"id": None, "denumire": "", "continut": ""}

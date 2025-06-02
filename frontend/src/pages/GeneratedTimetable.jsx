@@ -115,7 +115,7 @@ NU folosi un singur string lung. NU combina detaliile într-un câmp. Fiecare ac
 
     const instructiuniSali = sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n");
 
-    const instructiuniGrupe = grupe.map(
+    const instructiuniGrupe = grupe.map( 
   (g) =>
     `- ${g.denumire} (${g.nivel}, anul ${g.an}, grupa ${g.grupa}, subgrupa ${g.subgrupa})`
 ).join("\n");
