@@ -43,7 +43,7 @@ const genereazaSali = async () => {
 
     const noi = [
       ...genereazaCoduri("GC", "Curs", numarCursuri, existente),
-      ...genereazaCoduri("GA", "Laborator", numarLaboratoare, existente),
+      ...genereazaCoduri("GL", "Laborator", numarLaboratoare, existente),
       ...genereazaCoduri("GS", "Seminar", numarSeminare, existente),
       ...genereazaCoduri("GP", "Proiect", numarProiecte, existente)
 
@@ -296,7 +296,7 @@ const fetchSali = async () => {
 
     <div className="card border-start border-3 border-success shadow-sm h-100">
       <div className="card-body">
-        <h6 className="fw-bold text-success mb-2">🧪 Săli de Laborator (GA)</h6>
+        <h6 className="fw-bold text-success mb-2">🧪 Săli de Laborator (GL)</h6>
         <input
           type="number"
           className="form-control"

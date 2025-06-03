@@ -33,21 +33,30 @@ const toateGrupele = nivelSelectat && orar?.[nivelSelectat]
 useEffect(() => {
   const incarcaTot = async () => {
     try {
-      // date_orar
       const resDate = await fetch("http://localhost:5000/date_orar");
       const data = await resDate.json();
 
-      setProfesori(data.profesori || []);
+      const discipline = data.discipline || [];
+
+      // Leagă disciplinele de profesori
+      const profesoriCuDiscipline = (data.profesori || []).map((prof) => {
+        const disciplineProf = discipline
+          .filter((d) => d.profesor_id === prof.id)
+          .map((d) => `${d.denumire} (${d.nivel}, ${d.tip})`)
+
+        return { ...prof, discipline: disciplineProf };
+      });
+
+      setProfesori(profesoriCuDiscipline);
       setSali(data.sali || []);
       setGrupe(data.grupe || []);
       setReguli(data.reguli?.continut || "");
 
       if ((data.grupe || []).length > 0 && !anSelectat) {
-        const ani = Array.from(new Set(data.grupe.map(g => g.an))).sort();
+        const ani = Array.from(new Set(data.grupe.map((g) => g.an))).sort();
         setAnSelectat(ani[0]);
       }
 
-      // orare_generate
       const resOrare = await fetch("http://localhost:5000/orare_generate");
       const orare = await resOrare.json();
       setOrareSalvate(orare);
@@ -60,92 +69,78 @@ useEffect(() => {
 }, []);
 
 
-const [reguli, setReguli] = useState(` 📜 REGULI STRICTE PENTRU GENERAREA ORARULUI:
-  Se va completa stric pentru ANUL și NIVELUL selectat (Licență sau Master) și pentru TOATE grupele/subgrupele disponibile.
-1. Orarul trebuie să acopere întreaga săptămână (Luni–Vineri) pentru TOATE grupele disponibile, structurate astfel:
-   - Cursurile se desfășoară pe AN.
-   - Seminarele și proiectele pe GRUPĂ.
-   - Laboratoarele pe SUBGRUPĂ.
 
-2. Intervalele orare disponibile sunt:
-   - "08:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00".
+const [reguli, setReguli] = useState("");
 
-3. Programul zilnic:
-   - **Licență**: între 08:00 și 20:00.
-   - **Master**: între 16:00 și 20:00.
-   - Fiecare zi trebuie să conțină între **4 și 8 ore** de activități (adică 2–4 activități de câte 2 ore).
-   - NU este permisă mai mult de **o pauză (fereastră de 2 ore)** pe zi.
-   - Este RECOMANDAT ca programul să nu aibă ferestre. Dacă nu se poate evita (lipsă sală/profesor), pauza trebuie să fie inclusă în limita maximă de 8 ore.
+useEffect(() => {
+  if (continutRegula) {
+    setReguli(continutRegula);
+  }
+}, [continutRegula]);
 
-4. Tipuri de activități:
-   - Cursurile se susțin doar în săli cu prefix **GC** (ex: GC1, GC2).
-   - Seminarele și laboratoarele se desfășoară doar în săli cu prefix **GA** (ex: GA1, GA2).
-   - **Sălile NU pot fi folosite simultan de licență și master** în același interval orar.
-   - **O sală NU poate fi folosită de mai multe activități în același interval orar**.
-
-5. **Ziua de miercuri, intervalul 14:00–16:00 va fi liber** pentru toate grupele (niciun curs, seminar sau laborator).
-
-6. La activități se vor afișa detalii astfel:
-   - **Cursuri**: denumirea completă + prescurtarea disciplinei + numele profesorului + sala.
-     Ex: „Programare (PR) – Ion Popescu – GC1”
-   - **Seminare/Laboratoare**: doar acronimul + numele profesorului + sala.
-     Ex: „PR – Ion Popescu – GA1”
-
-7. NU inventa discipline, profesori sau săli. Folosește DOAR datele primite.
-
-8. Structura JSON a orarului trebuie să fie VALIDĂ și COMPLETĂ.
-
-Pentru fiecare nivel (Licență și Master), trebuie să generezi orarul pentru TOATE grupele și subgrupele existente. Listele exacte de grupe sunt furnizate mai sus (ex: I1a, I1b, I2a, I2b, M1a etc.). Nu omite niciuna.
-
-Pentru fiecare grupă sau subgrupă:
-- Generează orarul complet de luni până vineri.
-- Pentru fiecare zi, include toate intervalele orare permise (ex: 08:00–10:00, 10:00–12:00 etc.).
-- Completează fiecare interval cu o activitate validă în formatul:
-🧠 IMPORTANT: Grupele pentru care trebuie să generezi orar sunt cele listate mai sus. Completează orarul pentru TOATE, fără a omite nicio grupă. Dacă există 24 de grupe la Licență și 4 la Master, orarul trebuie generat pentru toate 28.
-
-
-  Dacă nu sunt suficiente activități, profesori sau săli, reutilizează-le inteligent astfel încât fiecare grupă să aibă activități în fiecare zi (respectând regulile).
-
-NU folosi un singur string lung. NU combina detaliile într-un câmp. Fiecare activitate TREBUIE să aibă cele 4 câmpuri distincte: activitate, tip, profesor, sala.
-
-‼️ NU omite nicio zi. Fiecare grupă/subgrupă trebuie să aibă activități în fiecare zi (cu excepția intervalului 14:00–16:00 miercuri). NU trimite JSON incomplet sau cu erori de sintaxă.
-
-{"role": "system", "content": "Răspunde DOAR cu JSON VALID. FĂRĂ comentarii, fără explicații, fără // sau ... . Începe cu { și termină cu }."},
-
-`);
 
 
   const genereazaOrar = async () => {
     setLoading(true);
 
-    const instructiuniProfesori = profesori.map(
-  (p) => `- ${p.nume} (${p.disciplina})`
-).join("\n");
+const instructiuniProfesori = profesori.map((p) => {
+  const discipline = Array.isArray(p.discipline) && p.discipline.length > 0
+    ? p.discipline.join(", ")
+    : "fără discipline";
 
-    const instructiuniSali = sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n");
+  return `- ${p.nume} (${discipline})`;
+}).join("\n");
 
-    const instructiuniGrupe = grupe.map( 
-  (g) =>
-    `- ${g.denumire} (${g.nivel}, anul ${g.an}, grupa ${g.grupa}, subgrupa ${g.subgrupa})`
-).join("\n");
+
+    const instructiuniSali = `Folosește DOAR următoarele coduri de săli, exact așa cum sunt scrise mai jos:\n` +
+  sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n") +
+  `\nNu inventa denumiri de săli. Afișează DOAR codul (ex: GC101).`;
+
+const instructiuniGrupe = grupe
+  .filter(
+    (gr) =>
+      gr.nivel === nivelSelectat &&
+      gr.an === anSelectat
+  )
+  .map(
+    (gr) =>
+      `- ${gr.denumire} (${gr.nivel}, anul ${gr.an}, grupa ${gr.grupa}, subgrupa ${gr.subgrupa})`
+  )
+  .join("\n");
+
 
 const instructiuniGPT = `NU include chei precum "luni", "marti", etc. la nivel global. Toate activitățile trebuie să fie plasate exclusiv în interiorul structurii de grupe/subgrupe, sub Licenta și Master.
-🔒 RESTRICȚII SUPLIMENTARE:
-1. Un profesor poate ține **cursul** în același timp pentru toate grupele acelui an (ex: LI1a, LI1b etc.).  
-   Însă NU poate ține mai multe **seminare, laboratoare sau proiecte** în același interval orar, chiar dacă sunt la grupe sau subgrupe diferite.
+🔒 REGULI GPT – REPARTIZARE SĂLI ȘI SINCRONIZARE ACTIVITĂȚI:
 
-2. Toate zilele (Luni–Vineri) trebuie să fie prezente pentru fiecare grupă, chiar dacă nu sunt activități în toate intervalele.
+1. 🧠 **Cursurile**:
+   - Cursurile sunt comune pentru întregul **an** (ex: toate grupele MI1a, MI1b).
+   - Fiecare curs trebuie să apară **exact în același interval orar**, în **aceeași zi**, cu **același profesor** și în **aceeași sală**, pentru toate grupele acelui an.
+   - NU este permis ca același curs să fie în momente diferite pentru grupe diferite.
+   - Se folosesc exclusiv săli cu prefix **GC**.
 
-3. Miercuri, intervalul 14:00–16:00 este obligatoriu **liber** pentru toate grupele, dar în restul intervalelor trebuie să existe activități, dacă e posibil.
+2. **Seminarele și proiectele**:
+   - Se desfășoară cu **fiecare grupă** în parte.
+   - Fiecare grupă are seminarul sau proiectul propriu, programat într-un **singur interval orar**, într-o **singură sală**.
+   - NU se suprapun seminarele/proiectele între grupe dacă au același profesor.
+   - Seminarele se țin doar în săli cu prefix **GS**.
+   - Proiectele se țin doar în săli cu prefix **GP**.
 
+3. **Laboratoarele**:
+   - Se desfășoară cu **fiecare subgrupă**.
+   - Trebuie programate în **intervale orare diferite** și, preferabil, în **săli diferite**, pentru a evita conflictele.
+   - Se țin exclusiv în săli cu prefix **GL**.
+   - NU se suprapun laboratoarele între subgrupe dacă au același profesor sau sală.
 
-Fiecare interval orar trebuie să conțină exact 4 câmpuri:
-- "activitate": denumirea completă și prescurtată (ex. Algoritmi (AL))
-- "tip": Curs / Seminar / Laborator
-- "profesor": Nume și prenume
-- "sala": cod sală (ex. GC1)
+4. **Condiții suplimentare pentru săli**:
+   - O sală **NU poate fi folosită simultan** în același interval orar de mai multe activități, indiferent de nivel, grupă sau tip.
+   - O sală **NU poate fi alocată** în același timp la **licență și master**.
 
-Fiecare grupă/subgrupă trebuie să aibă toate zilele (Luni–Vineri) prezente. Chiar dacă unele zile nu conțin activități, acestea trebuie incluse cu {}.
+‼️ IMPORTANT:
+- Respectă strict corespondența între tipul activității și prefixul sălii:  
+  - Curs → GC  
+  - Seminar → GS  
+  - Proiect → GP  
+  - Laborator → GL
 
 NU folosi array-uri pentru activități. Fiecare interval este un obiect.
 {
@@ -164,6 +159,20 @@ NU folosi array-uri pentru activități. Fiecare interval este un obiect.
   },
   
 }
+6. Cursurile se țin cu întregul an și trebuie să apară **simultan** (aceeași zi, oră, sală, profesor) pentru toate grupele din acel an.
+
+7. Seminarele și proiectele se țin cu GRUPA. Ele pot apărea în **zile și intervale orare diferite între grupe**, dar NU pot fi susținute simultan de același profesor la grupe diferite.
+
+8. Laboratoarele se țin cu SUBGRUPA. Ele pot apărea **independent** (altă zi, altă oră) și nu trebuie să fie identice între grupe.
+
+9. Grupele nu trebuie să aibă activități în aceleași intervale orare. Este permis ca o grupă să aibă 4 activități luni, iar alta doar 2. Regula de 4–8 ore/zi/grupă se aplică individual.
+
+10. Fiecare orar generat trebuie să includă toate cele 4 tipuri de activități:
+   - cel puțin 1 Curs (cu anul)
+   - cel puțin 1 Seminar (cu grupa)
+   - cel puțin 1 Proiect (cu grupa)
+   - cel puțin 1 Laborator (cu subgrupa)
+   Distribuie-le pe parcursul săptămânii pentru fiecare grupă/subgrupă.
 
 
 
@@ -171,19 +180,37 @@ NU folosi array-uri pentru activități. Fiecare interval este un obiect.
 
 
 const promptFinal = `
+🔒 GENEREAZĂ EXCLUSIV pentru nivelul: ${nivelSelectat}, anul: ${anSelectat}.
+NU include alte niveluri. NU omite seminare sau laboratoare.
+
+
+
+🔒 GENEREAZĂ DOAR PENTRU NIVELUL: **${nivelSelectat}**, anul: **${anSelectat}**.
+‼️ NU include date din alt nivel. Dacă este Master, NU include Licență.
+
 ✅ LISTA COMPLETĂ de profesori și discipline (nu inventa altele):
 ${instructiuniProfesori}
 
 🏫 Săli disponibile:
 ${instructiuniSali}
 
-👥 Grupe disponibile:
+👥 Grupe selectate (${nivelSelectat}, anul ${anSelectat}):
 ${instructiuniGrupe}
 
-${reguli}
 
+🔒 INSTRUCȚIUNI STRICTE PENTRU GPT – FORMAT ȘI RESTRICȚII:
 ${instructiuniGPT}
+
+Regula ID: ${regula_id || "N/A"}
+
+📜 Conținutul regulii:
+${continutRegula || "Nicio regulă definită"}
+
+
+
+
 `;
+console.log("🎯 PROMPT GPT:\n", promptFinal);
 
 try {
   const response = await fetch("http://127.0.0.1:5000/genereaza_orar", {
@@ -196,6 +223,7 @@ try {
   grupe_selectate: grupe
     .filter(g => g.an === anSelectat && g.nivel === nivelSelectat)
     .map(g => g.denumire),
+    prompt: promptFinal
 }),
 
   });
@@ -305,10 +333,7 @@ const exportPDF = () => {
 const grupeFiltrate = grupe.filter((g) => g.an === anSelectat);
 
 
-const instructiuniGrupe = grupeFiltrate.map(
-  (g) =>
-    `- ${g.denumire} (${g.nivel}, anul ${g.an}, grupa ${g.grupa}, subgrupa ${g.subgrupa})`
-).join("\n");
+
 
 const denumiriGrupeAnCurent = grupe
   .filter(g => g.an === anSelectat)

@@ -11,78 +11,148 @@ const SetareReguli = () => {
 
 
 
-const regulaVizibila = `✅ OBIECTIV:
-Completează orarul pentru TOATE grupele și subgrupele de la Licență și Master, pentru întreaga săptămână (Luni–Vineri), fără a omite vreo grupă sau vreo zi.
+const regulaVizibila = `📜 REGULI STRICTE PENTRU GENERAREA ORARULUI:
+Se vor genera orare complete pentru fiecare NIVEL (Licență/Master) și fiecare AN, GRUPĂ și SUBGRUPĂ disponibilă, pentru zilele Luni–Vineri.
 
-📌 STRUCTURARE ACTIVITĂȚI:
-- Cursurile se desfășoară cu **anul**.
-- Seminarele și proiectele se desfășoară cu **grupa**.
-- Laboratoarele se desfășoară cu **subgrupa**.
+1. Structurarea activităților:
+   - Cursurile se desfășoară cu ANUL (toate grupele dintr-un an participă împreună).
+   - Seminarele și proiectele se desfășoară pe GRUPĂ.
+   - Laboratoarele se desfășoară pe SUBGRUPĂ.
 
-🕓 INTERVALE ORARE DISPONIBILE:
-- "08:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00"
+2. Intervalele orare disponibile:
+   - 08:00–10:00, 10:00–12:00, 12:00–14:00, 14:00–16:00, 16:00–18:00, 18:00–20:00
 
-📅 PROGRAM ZILNIC:
-- **Licență**: 08:00–20:00
-- **Master**: 16:00–20:00
-- Fiecare zi trebuie să conțină între **4 și 8 ore** de activități (adică 2–4 activități a câte 2 ore).
-- **Maxim o pauză (2h) pe zi.** Evită ferestrele, dar dacă nu se poate (din lipsă de sală/profesor), pauza se încadrează în cele 8h/zi.
+3. Program zilnic:
+   - Licență: între 08:00 și 20:00
+   - Master: între 16:00 și 20:00
+   - Fiecare grupă/subgrupă trebuie să aibă între 4 și 8 ore de activități pe zi
+   - Este permisă cel mult o pauză de 2 ore pe zi (maxim o fereastră)
+   - Este recomandat ca programul să nu aibă ferestre
 
-📛 RESTRICȚII:
-- Miercuri, modulul 4 (**14:00–16:00**) este liber pentru TOATE grupele.
-- **O sală nu poate fi folosită de mai multe activități simultan.**
-- **Sălile NU se folosesc simultan de licență și master în același interval.**
+4. Repartizarea sălilor:
+   - Cursurile se țin în săli cu prefix GC (ex: GC1, GC2)
+   - Seminarele se țin în săli cu prefix GS
+   - Proiectele în săli cu prefix GP
+   - Laboratoarele în săli cu prefix GL
 
-🏫 SĂLI DISPONIBILE:
-- Cursuri → prefix **GC** (ex: GC1)
-- Seminare → prefix **GS** (ex: GS2)
-- Laboratoare → prefix **GL** (ex: GL3)
-- Proiecte → prefix **GP** (ex: GP1)
+5. Ziua de miercuri:
+   - Intervalul 14:00–16:00 este liber pentru toate grupele
+   - În restul intervalelor din acea zi trebuie să existe activități
 
-🧠 FORMAT ACTIVITĂȚI:
-- **Cursuri**: denumirea completă + prescurtare + profesor + sală  
-  Ex: „Programare (PR) – Ion Popescu – GC1”
-- **Seminar/Proiect/Laborator**: acronim disciplină + profesor + sală  
-  Ex: „PR – Ion Popescu – GL2”
-`;
+6. Format afișare activități:
+   - Cursuri: denumirea completă + acronim + profesor + sală (ex: Programare (PR) – Ion Popescu – GC1)
+   - Seminare/proiecte/laboratoare: acronim + profesor + sală (ex: PR – Ion Popescu – GL2)
 
-const instructiuniGPT = `
-🚫 NU inventa date. Folosește doar: profesori, discipline și săli furnizate.
+7. Nu se vor inventa profesori, discipline sau săli. Se vor folosi doar datele disponibile.
 
-🧾 STRUCTURĂ JSON:
+8. Orarul trebuie să fie complet, valid și să conțină activități pentru fiecare grupă/subgrupă în fiecare zi (cu excepția intervalului 14:00–16:00 miercuri).
+
+‼️ Activitățile trebuie să conțină câmpuri distincte: activitate, tip, profesor, sală.
+‼️ Nu combina detalii într-un singur câmp și nu omite nicio zi.`;
+
+const instructiuniGPT = `🔒 INSTRUCȚIUNI STRICTE PENTRU STRUCTURA JSON:
+NU include chei precum "luni", "marti", etc. la nivel global. Toate activitățile trebuie să fie plasate exclusiv în interiorul structurii de grupe/subgrupe, sub Licenta și Master.
+🔒 REGULI GPT – REPARTIZARE SĂLI ȘI SINCRONIZARE ACTIVITĂȚI:
+
+1. **Cursurile**:
+   - Se desfășoară cu întregul **an** (ex: toate grupele LI1a, LI1b, LI1c).
+   - Trebuie programate în **același interval orar**, în **aceeași zi**, cu **același profesor** și în **aceeași sală** pentru toate grupele acelui an.
+   - Se alocă **exclusiv săli cu prefix GC** (ex: GC1, GC2).
+   - Cursurile NU se divizează pe grupe sau subgrupe.
+
+2. **Seminarele și proiectele**:
+   - Se desfășoară cu **fiecare grupă** în parte.
+   - Fiecare grupă are seminarul sau proiectul propriu, programat într-un **singur interval orar**, într-o **singură sală**.
+   - NU se suprapun seminarele/proiectele între grupe dacă au același profesor.
+   - Seminarele se țin doar în săli cu prefix **GS**.
+   - Proiectele se țin doar în săli cu prefix **GP**.
+
+3. **Laboratoarele**:
+   - Se desfășoară cu **fiecare subgrupă**.
+   - Trebuie programate în **intervale orare diferite** și, preferabil, în **săli diferite**, pentru a evita conflictele.
+   - Se țin exclusiv în săli cu prefix **GL**.
+   - NU se suprapun laboratoarele între subgrupe dacă au același profesor sau sală.
+
+4. **Condiții suplimentare pentru săli**:
+   - O sală **NU poate fi folosită simultan** în același interval orar de mai multe activități, indiferent de nivel, grupă sau tip.
+   - O sală **NU poate fi alocată** în același timp la **licență și master**.
+
+‼️ IMPORTANT:
+- Respectă strict corespondența între tipul activității și prefixul sălii:  
+  - Curs → GC  
+  - Seminar → GS  
+  - Proiect → GP  
+  - Laborator → GL
+📌 STRUCTURĂ JERARHICĂ OBLIGATORIE:
 {
   "Licenta": {
-    "I1a": {
+    "LI1a": {
       "Luni": {
         "08:00–10:00": {
-          "activitate": "Programare (PR)",
+          "activitate": "Algoritmi (AL)",
           "tip": "Curs",
-          "profesor": "Ion Popescu",
+          "profesor": "Maria Ionescu",
           "sala": "GC1"
-        }
-      }
-    }
+        },
+        ...
+      },
+      ...
+    },
+    ...
   },
   "Master": {
-    "M1a": { ... }
+    ...
   }
 }
 
-⚠️ Fiecare activitate TREBUIE să conțină:
-- "activitate": Denumirea
-- "tip": Curs / Seminar / Laborator / Proiect
-- "profesor": Nume complet
-- "sala": Cod sală (ex: GC1, GL2)
+‼️ NU folosi array-uri pentru activități. Fiecare interval este un obiect-cheie. NU omite nicio zi. Chiar dacă nu există activități într-o zi, ziua trebuie prezentă cu un obiect gol: "Marti": {}.
 
-‼️ NU omite nicio zi. Fiecare grupă/subgrupă are activități în fiecare zi (cu excepția miercuri 14:00–16:00).
+---
 
-🔐 FINAL:
-{"role": "system", "content": "Răspunde DOAR cu JSON VALID. Nu folosi comentarii sau simboluri nepermise. Începe cu { și termină cu }."}
+🔁 RESTRICȚII SUPLIMENTARE:
+
+1. **Cursurile** se pot desfășura **simultan** pentru toate grupele unui an (ex: LI1a, LI1b etc.) – **în aceeași sală și cu același profesor**.
+
+2. **Seminarele, proiectele și laboratoarele** se țin **pe grupe (seminare/proiecte)** și **pe subgrupe (laboratoare)**. Acestea **nu pot fi suprapuse**: un profesor nu poate preda două grupe/subgrupe diferite în același interval orar.
+
+3. Toate zilele **Luni–Vineri** trebuie să fie prezente pentru fiecare grupă/subgrupă, indiferent dacă au sau nu activități în acea zi.
+
+4. **Miercuri între 14:00–16:00** este obligatoriu **liber** pentru toate grupele. În celelalte intervale ale zilei, se recomandă programarea de activități.
+
+5. Cursurile se desfășoară doar în săli cu prefix **GC**, seminarele în **GS**, proiectele în **GP**, iar laboratoarele în **GL**.
+6. Cursurile se țin cu întregul an și trebuie să apară **simultan** (aceeași zi, oră, sală, profesor) pentru toate grupele din acel an.
+
+7. Seminarele și proiectele se țin cu GRUPA. Ele pot apărea în **zile și intervale orare diferite între grupe**, dar NU pot fi susținute simultan de același profesor la grupe diferite.
+
+8. Laboratoarele se țin cu SUBGRUPA. Ele pot apărea **independent** (altă zi, altă oră) și nu trebuie să fie identice între grupe.
+
+9. Grupele nu trebuie să aibă activități în aceleași intervale orare. Este permis ca o grupă să aibă 4 activități luni, iar alta doar 2. Regula de 4–8 ore/zi/grupă se aplică individual.
+
+---
+
+🧠 FORMATUL FIECĂREI ACTIVITĂȚI:
+
+Fiecare interval trebuie să conțină exact 4 câmpuri:
+- **"activitate"**: Denumirea completă + prescurtarea (ex: "Algoritmi (AL)")
+- **"tip"**: Curs / Seminar / Proiect / Laborator
+- **"profesor"**: Nume Prenume (ex: "Maria Ionescu")
+- **"sala"**: Cod sală (ex: "GC1", "GL2", "GS3")
+
+---
+
+📌 IMPORTANT:
+- NU inventa date. Folosește exclusiv profesorii, sălile și disciplinele deja definite.
+- Structura finală trebuie să fie un JSON **VALID și COMPLET**, care poate fi parsată fără erori.
+- Răspunsul tău trebuie să conțină **doar JSON-ul**. NU adăuga explicații, comentarii sau texte suplimentare.
+
+{
+  "role": "system",
+  "content": "Răspunde DOAR cu JSON VALID. FĂRĂ comentarii, fără explicații, fără // sau ... . Începe cu { și termină cu }."
+}
 `;
 
-
  const [reguli, setReguli] = useState(regulaVizibila);
- 
+
   const [loading, setLoading] = useState(false);
 
   const [ultimeleReguli, setUltimeleReguli] = useState([]);

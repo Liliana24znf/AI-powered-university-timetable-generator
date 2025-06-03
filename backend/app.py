@@ -577,42 +577,33 @@ def sterge_regula():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@app.route("/date_orar", methods=["GET"])
+@app.route("/date_orar")
 def date_orar():
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-        # Profesori
-        cursor.execute("SELECT * FROM profesori")
-        profesori = cursor.fetchall()
+    cursor.execute("SELECT * FROM profesori")
+    profesori = cursor.fetchall()
 
-        # Săli
-        cursor.execute("""
-            SELECT * FROM sali
-            ORDER BY tip, CAST(SUBSTRING(cod, 3) AS UNSIGNED)
-        """)
-        sali = cursor.fetchall()
+    cursor.execute("SELECT * FROM sali")
+    sali = cursor.fetchall()
 
-        # Grupe
-        cursor.execute("SELECT * FROM grupe")
-        grupe = cursor.fetchall()
+    cursor.execute("SELECT * FROM grupe")
+    grupe = cursor.fetchall()
 
-        # Ultima regulă salvată (cu id și denumire)
-        cursor.execute("SELECT id, denumire, continut FROM reguli ORDER BY id DESC LIMIT 1")
-        regula = cursor.fetchone()
+    cursor.execute("SELECT * FROM reguli ORDER BY id DESC LIMIT 1")
+    regula = cursor.fetchone()
 
-        cursor.close()
-        conn.close()
+    cursor.execute("SELECT * FROM discipline_profesori")
+    discipline = cursor.fetchall()
 
-        return jsonify({
-            "profesori": profesori,  
-            "sali": sali,
-            "grupe": grupe,
-            "reguli": regula if regula else {"id": None, "denumire": "", "continut": ""}
-        })
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+    return jsonify({
+        "profesori": profesori,
+        "sali": sali,
+        "grupe": grupe,
+        "reguli": regula,
+        "discipline": discipline  # 🔥 asta lipsea în JSON
+    })
 
 
 @app.route("/genereaza_orar_propriu", methods=["GET", "POST"])
