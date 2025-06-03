@@ -657,7 +657,7 @@ def get_orare_generate():
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("SELECT id, nivel, an, data_creare, nume FROM orare_generate ORDER BY data_creare DESC")
+        cursor.execute("SELECT id, nivel, an, data_creare FROM orare_generate ORDER BY data_creare DESC")
         rezultate = cursor.fetchall()
 
         cursor.close()
@@ -685,34 +685,6 @@ def get_orar_by_id(orar_id):
             return jsonify(orar_json)
         else:
             return jsonify({})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route("/sterge_orar/<int:orar_id>", methods=["DELETE"])
-def sterge_orar(orar_id):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM orare_generate WHERE id = %s", (orar_id,))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({"success": True, "message": "Orarul a fost șters."})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route("/editeaza_orar/<int:id>", methods=["PUT"])
-def editeaza_orar(id):
-    data = request.get_json()
-    nume_nou = data.get("nume")
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE orare_generate SET nume = %s WHERE id = %s", (nume_nou, id))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

@@ -11,32 +11,51 @@ const GeneratedTimetable = () => {
   const [grupe, setGrupe] = useState([]);
   const location = useLocation();
   const { regula_id, denumire: denumireRegulaSelectata, continut: continutRegula } = location.state || {};
+const [nivelSelectat, setNivelSelectat] = useState("Licenta");
+const [orareSalvate, setOrareSalvate] = useState([]);
+const [esteOrarSalvat, setEsteOrarSalvat] = useState(false);
 
   const [anSelectat, setAnSelectat] = useState("");
+const [grupaSelectata, setGrupaSelectata] = useState("");
 
 
 
+const toateGrupele = nivelSelectat && orar?.[nivelSelectat]
+  ? Object.keys(orar[nivelSelectat])
+  : [];
 
 useEffect(() => {
-  
-  const incarcaDate = async () => {
+  const incarcaTot = async () => {
     try {
-      const response = await fetch("http://localhost:5000/date_orar");
-      const data = await response.json();
+      // date_orar
+      const resDate = await fetch("http://localhost:5000/date_orar");
+      const data = await resDate.json();
+
       setProfesori(data.profesori || []);
       setSali(data.sali || []);
       setGrupe(data.grupe || []);
-      setReguli(data.reguli || ""); 
+      setReguli(data.reguli?.continut || "");
+
+      if ((data.grupe || []).length > 0 && !anSelectat) {
+        const ani = Array.from(new Set(data.grupe.map(g => g.an))).sort();
+        setAnSelectat(ani[0]);
+      }
+
+      // orare_generate
+      const resOrare = await fetch("http://localhost:5000/orare_generate");
+      const orare = await resOrare.json();
+      setOrareSalvate(orare);
     } catch (err) {
       console.error("Eroare la încărcarea datelor:", err);
     }
   };
-  incarcaDate();
+
+  incarcaTot();
 }, []);
 
 
 const [reguli, setReguli] = useState(` 📜 REGULI STRICTE PENTRU GENERAREA ORARULUI:
-Toti ani, toate grupele si toate subgrupele de la Licenta si Master sa fie completate.
+  Se va completa stric pentru ANUL și NIVELUL selectat (Licență sau Master) și pentru TOATE grupele/subgrupele disponibile.
 1. Orarul trebuie să acopere întreaga săptămână (Luni–Vineri) pentru TOATE grupele disponibile, structurate astfel:
    - Cursurile se desfășoară pe AN.
    - Seminarele și proiectele pe GRUPĂ.
@@ -78,28 +97,7 @@ Pentru fiecare grupă sau subgrupă:
 - Completează fiecare interval cu o activitate validă în formatul:
 🧠 IMPORTANT: Grupele pentru care trebuie să generezi orar sunt cele listate mai sus. Completează orarul pentru TOATE, fără a omite nicio grupă. Dacă există 24 de grupe la Licență și 4 la Master, orarul trebuie generat pentru toate 28.
 
-Dacă nu există suficienți profesori, discipline sau săli, reutilizează-le în mod inteligent, astfel încât să respecți regulile și să umpli toate zilele și grupele.
-{
-  "Licenta": {
-    "I1a": { ... },
-    "I1b": { ... },
-    ...
-  },
-  "Master": {
-    "MI1": { ... },
-    "MI2": { ... },
-    ...
-  }
-}
 
-La fiecare activitate, folosește formatul:
-
-"interval": {
-  "activitate": "Denumire completă",
-  "tip": "Curs/Seminar/Laborator",
-  "profesor": "Prenume Nume",
-  "sala": "GC1/GA2 etc."
-}
   Dacă nu sunt suficiente activități, profesori sau săli, reutilizează-le inteligent astfel încât fiecare grupă să aibă activități în fiecare zi (respectând regulile).
 
 NU folosi un singur string lung. NU combina detaliile într-un câmp. Fiecare activitate TREBUIE să aibă cele 4 câmpuri distincte: activitate, tip, profesor, sala.
@@ -120,12 +118,50 @@ NU folosi un singur string lung. NU combina detaliile într-un câmp. Fiecare ac
 
     const instructiuniSali = sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n");
 
-    const instructiuniGrupe = grupe.map(
+    const instructiuniGrupe = grupe.map( 
   (g) =>
     `- ${g.denumire} (${g.nivel}, anul ${g.an}, grupa ${g.grupa}, subgrupa ${g.subgrupa})`
 ).join("\n");
 
-const instructiuniGPT = `Asigură-te că răspunsul este un JSON valid și complet, fără comentarii sau explicații, doar obiectul JSON.`; 
+const instructiuniGPT = `NU include chei precum "luni", "marti", etc. la nivel global. Toate activitățile trebuie să fie plasate exclusiv în interiorul structurii de grupe/subgrupe, sub Licenta și Master.
+🔒 RESTRICȚII SUPLIMENTARE:
+1. Un profesor poate ține **cursul** în același timp pentru toate grupele acelui an (ex: LI1a, LI1b etc.).  
+   Însă NU poate ține mai multe **seminare, laboratoare sau proiecte** în același interval orar, chiar dacă sunt la grupe sau subgrupe diferite.
+
+2. Toate zilele (Luni–Vineri) trebuie să fie prezente pentru fiecare grupă, chiar dacă nu sunt activități în toate intervalele.
+
+3. Miercuri, intervalul 14:00–16:00 este obligatoriu **liber** pentru toate grupele, dar în restul intervalelor trebuie să existe activități, dacă e posibil.
+
+
+Fiecare interval orar trebuie să conțină exact 4 câmpuri:
+- "activitate": denumirea completă și prescurtată (ex. Algoritmi (AL))
+- "tip": Curs / Seminar / Laborator
+- "profesor": Nume și prenume
+- "sala": cod sală (ex. GC1)
+
+Fiecare grupă/subgrupă trebuie să aibă toate zilele (Luni–Vineri) prezente. Chiar dacă unele zile nu conțin activități, acestea trebuie incluse cu {}.
+
+NU folosi array-uri pentru activități. Fiecare interval este un obiect.
+{
+  "Licenta": {
+    "LI1a": {
+      "Luni": {
+        "08:00–10:00": {
+          "activitate": "Algoritmi (AL)",
+          "tip": "Curs",
+          "profesor": "Maria Ionescu",
+          "sala": "GC1"
+        }
+      },
+      ...
+    }
+  },
+  
+}
+
+
+
+`; 
 
 
 const promptFinal = `
@@ -143,23 +179,51 @@ ${reguli}
 ${instructiuniGPT}
 `;
 
-
-    try {
-      const response = await fetch("http://127.0.0.1:5000/genereaza_orar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+try {
+  const response = await fetch("http://127.0.0.1:5000/genereaza_orar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
   regula_id: regula_id,
   an_selectat: anSelectat,
+  nivel_selectat: nivelSelectat,
+  grupe_selectate: grupe
+    .filter(g => g.an === anSelectat && g.nivel === nivelSelectat)
+    .map(g => g.denumire),
 }),
 
-      });
+  });
 
-      const data = await response.json();
-      setOrar(data);
-    } catch (error) {
-      console.error("Eroare la generare orar:", error);
-    }
+  const data = await response.json();
+
+  try {
+    // Validare JSON (opțională)
+    JSON.stringify(data);
+    setOrar(data);
+    setEsteOrarSalvat(false); // 👈 dezactivează indicatorul
+
+    // Salvează automat în baza de date
+try {
+  await fetch("http://127.0.0.1:5000/salveaza_orar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      nivel: nivelSelectat,
+      an: anSelectat,
+      orar: data
+    })
+  });
+} catch (err) {
+  console.error("Eroare la salvarea orarului:", err);
+}
+
+  } catch (err) {
+    console.error("Răspunsul nu este JSON valid:", err);
+  }
+
+} catch (error) {
+  console.error("Eroare la generare orar:", error);
+}
 
     setLoading(false);
   };
@@ -206,24 +270,31 @@ const exportPDF = () => {
   if (!orar) return;
   const element = document.getElementById("orar-afisat");
 
+  const optiuni = {
+    margin: [0.3, 0.3, 0.3, 0.3],
+    filename: "orar.pdf",
+    image: { type: "jpeg", quality: 1 },
+    html2canvas: {
+      scale: 2.5,
+      useCORS: true,
+      scrollY: 0
+    },
+    jsPDF: {
+      unit: "mm",
+      format: "a3", // A3 pentru lățime mai mare
+      orientation: "landscape"
+    },
+    pagebreak: {
+      mode: ["avoid-all", "css", "legacy"]
+    }
+  };
+
   html2pdf()
-    .set({
-      margin: [0.5, 0.5, 0.5, 0.5],
-      filename: "orar.pdf",
-      image: { type: "jpeg", quality: 1 },
-      html2canvas: { scale: 3, useCORS: true },
-      jsPDF: {
-        unit: "in",
-        format: "a4",
-        orientation: "landscape"
-      },
-      pagebreak: {
-        mode: ['css', 'legacy']
-      }
-    })
+    .set(optiuni)
     .from(element)
     .save();
 };
+
 
 const grupeFiltrate = grupe.filter((g) => g.an === anSelectat);
 
@@ -238,12 +309,23 @@ const denumiriGrupeAnCurent = grupe
   .map(g => g.denumire);
 
 const grupeAnCurent = grupe
-  .filter((g) => g.an === anSelectat)
+  .filter((g) => g.an === anSelectat && g.nivel === nivelSelectat)
   .map((g) => g.denumire);
 
 
 const renderOrar = () => {
-  if (!orar) return null;
+  if (!orar || !anSelectat || !nivelSelectat) return null;
+
+  // Grupele pentru anul și nivelul selectat
+  const grupeAnCurent = grupe
+    .filter((g) => g.an === anSelectat && g.nivel === nivelSelectat)
+    .map((g) => g.denumire);
+
+  console.log("Nivel selectat:", nivelSelectat);
+  console.log("Grupe în orar:", Object.keys(orar[nivelSelectat] || {}));
+  console.log("Grupe an curent:", grupeAnCurent);
+
+  const zileOrdine = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"];
 
   const extrageIntervale = (orarNivel) => {
     const intervaleSet = new Set();
@@ -271,7 +353,7 @@ const renderOrar = () => {
   return (
     <div className="table-responsive" id="orar-afisat">
       {Object.entries(orar).map(([nivel, grupeOrar]) => {
-        if (!["Licenta", "Master"].includes(nivel)) return null;
+        if (nivel !== nivelSelectat) return null;
 
         const grupeFiltrate = Object.entries(grupeOrar).filter(
           ([denumireGrupa]) => grupeAnCurent.includes(denumireGrupa)
@@ -283,7 +365,7 @@ const renderOrar = () => {
 
         return (
           <div key={nivel}>
-            <h2>{nivel}</h2>
+            <h2 className="text-primary fw-bold">{nivel}</h2>
             {grupeFiltrate.map(([denumireGrupa, zile]) => (
               <div key={`${nivel}-${denumireGrupa}`} className="mb-4 page-break">
                 <h4>📘 {nivel} – {denumireGrupa}</h4>
@@ -327,7 +409,7 @@ const renderOrar = () => {
                                   )}
                                 </div>
                               ) : (
-                                ""
+                                "-"
                               )}
                             </td>
                           );
@@ -349,35 +431,37 @@ const renderOrar = () => {
 
 
 
+const aniDisponibili = Array.from(
+  new Set(grupe.filter(g => g.nivel === nivelSelectat).map((g) => g.an))
+).sort();
 
-useEffect(() => {
-  if (grupe.length > 0 && !anSelectat) {
-    const ani = Array.from(new Set(grupe.map(g => g.an))).sort();
-    setAnSelectat(ani[0]);
-  }
-}, [grupe]);
 
-useEffect(() => {
-  const incarcaDate = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/date_orar");
-      const data = await response.json();
 
-      console.log("GRUPE RECEPȚIONATE:", data.grupe); // ← AICI
 
-      setProfesori(data.profesori || []);
-      setSali(data.sali || []);
-      setGrupe(data.grupe || []);
-      setReguli(data.reguli || ""); 
-    } catch (err) {
-      console.error("Eroare la încărcarea datelor:", err);
+const incarcaOrarSalvat = async (id) => {
+  try {
+    const r = await fetch(`http://localhost:5000/orar_generat/${id}`);
+    const json = await r.json();
+    console.log("Orar salvat încărcat:", json);
+    setOrar(json);
+    setEsteOrarSalvat(true); // 👈 marchează că vine din salvări
+
+    const nivel = Object.keys(json)[0];
+    const grupa = Object.keys(json[nivel])[0];
+    const grupaGasita = grupe.find((g) => g.denumire === grupa);
+    if (grupaGasita) {
+      setNivelSelectat(nivel);
+      setAnSelectat(grupaGasita.an);
     }
-  };
-  incarcaDate();
-}, []);
+  } catch (err) {
+    console.error("Eroare la încărcare orar:", err);
+  }
+};
 
 
-const aniDisponibili = Array.from(new Set(grupe.map((g) => g.an))).sort();
+
+
+
 
   return (
    <div className="container-fluid pt-4 px-4">
@@ -408,6 +492,7 @@ const aniDisponibili = Array.from(new Set(grupe.map((g) => g.an))).sort();
 </nav>
 
 
+
 <div className="container mb-4">
   <div className="card shadow-sm border-0 bg-light">
     <div className="card-body">
@@ -423,9 +508,9 @@ const aniDisponibili = Array.from(new Set(grupe.map((g) => g.an))).sort();
 
 
 <div className="d-flex align-items-center mb-4 gap-3">
-        <label className="me-2 fw-semibold text-primary">🎯 Selectează anul:</label>
-        <select
-  className="form-select w-auto"
+<label className="me-2 fw-semibold text-primary">🎯 Selectează anul:</label>
+<select
+  className="form-select w-auto me-3"
   value={anSelectat}
   onChange={(e) => setAnSelectat(e.target.value)}
 >
@@ -436,6 +521,21 @@ const aniDisponibili = Array.from(new Set(grupe.map((g) => g.an))).sort();
     </option>
   ))}
 </select>
+
+<label className="me-2 fw-semibold text-primary">🏫 Selectează nivelul:</label>
+<select
+  className="form-select w-auto me-3"
+  value={nivelSelectat}
+  onChange={(e) => setNivelSelectat(e.target.value)}
+>
+  <option value="Licenta">Licență</option>
+  <option value="Master">Master</option>
+</select>
+
+
+
+
+
 
         <button
           className="btn btn-success"
@@ -457,9 +557,61 @@ const aniDisponibili = Array.from(new Set(grupe.map((g) => g.an))).sort();
         </button>
       </div>
 
+{esteOrarSalvat && (
+  <div className="alert alert-warning d-flex align-items-center gap-2">
+    <i className="bi bi-info-circle-fill fs-5"></i>
+    <span>
+      Orarul afișat provine dintr-o <strong>salvare anterioară</strong>. Selectarea unui an/nivel nou va reseta această vizualizare.
+    </span>
+    <button
+      className="btn btn-sm btn-outline-secondary ms-auto"
+      onClick={() => {
+        setOrar(null);
+        setEsteOrarSalvat(false);
+      }}
+    >
+      ❌ Golește orarul
+    </button>
+  </div>
+)}
 
 
 
+{renderOrar()}
+
+
+<div className="card shadow-sm border-0 mt-5">
+  <div className="card-header bg-light fw-bold text-primary">
+    📂 Orare salvate anterior
+  </div>
+  <div className="card-body">
+    {orareSalvate.length === 0 ? (
+      <p className="text-muted">Nu există orare salvate în sistem.</p>
+    ) : (
+      <ul className="list-group">
+        {orareSalvate.map((orar) => (
+          <li
+            key={orar.id}
+            className="list-group-item d-flex justify-content-between align-items-center"
+          >
+            <div>
+              <strong>{orar.nivel} – {orar.an}</strong>
+              <div className="text-muted" style={{ fontSize: "0.85rem" }}>
+                {new Date(orar.data_creare).toLocaleString()}
+              </div>
+            </div>
+            <button
+              className="btn btn-sm btn-outline-primary"
+              onClick={() => incarcaOrarSalvat(orar.id)}
+            >
+              🔄 Încarcă orar
+            </button>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</div>
 
 
 {regula_id && continutRegula && (
@@ -505,7 +657,6 @@ const aniDisponibili = Array.from(new Set(grupe.map((g) => g.an))).sort();
 )}
 
 
-  
 
   
       {/* FOOTER */}

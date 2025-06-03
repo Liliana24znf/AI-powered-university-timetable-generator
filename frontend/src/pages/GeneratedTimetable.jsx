@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import html2pdf from "html2pdf.js";
 import { useLocation } from "react-router-dom";
-
+import Swal from "sweetalert2"; // pentru prompt elegant
 const GeneratedTimetable = () => {
   const [orar, setOrar] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -10,8 +10,16 @@ const GeneratedTimetable = () => {
   const [sali, setSali] = useState([]);
   const [grupe, setGrupe] = useState([]);
   const location = useLocation();
-  const { regula_id, denumire: denumireRegulaSelectata, continut: continutRegula } = location.state || {};
+  const {
+  regula_id,
+  denumire: denumireRegulaSelectata,
+  continut: continutRegula,
+  orar_id_selectat, // 👈 Adaugă acest rând
+} = location.state || {};
+
 const [nivelSelectat, setNivelSelectat] = useState("Licenta");
+const [orareSalvate, setOrareSalvate] = useState([]);
+const [esteOrarSalvat, setEsteOrarSalvat] = useState(false);
 
   const [anSelectat, setAnSelectat] = useState("");
 const [grupaSelectata, setGrupaSelectata] = useState("");
@@ -22,33 +30,34 @@ const toateGrupele = nivelSelectat && orar?.[nivelSelectat]
   ? Object.keys(orar[nivelSelectat])
   : [];
 
-
 useEffect(() => {
-  const incarcaDate = async () => {
+  const incarcaTot = async () => {
     try {
-      const response = await fetch("http://localhost:5000/date_orar");
-      const data = await response.json();
-
-      console.log("GRUPE RECEPȚIONATE:", data.grupe);
+      // date_orar
+      const resDate = await fetch("http://localhost:5000/date_orar");
+      const data = await resDate.json();
 
       setProfesori(data.profesori || []);
       setSali(data.sali || []);
       setGrupe(data.grupe || []);
-      setReguli(data.reguli?.continut || ""); // dacă e obiect
+      setReguli(data.reguli?.continut || "");
 
-      // Setează automat anul dacă nu e selectat
       if ((data.grupe || []).length > 0 && !anSelectat) {
         const ani = Array.from(new Set(data.grupe.map(g => g.an))).sort();
         setAnSelectat(ani[0]);
       }
+
+      // orare_generate
+      const resOrare = await fetch("http://localhost:5000/orare_generate");
+      const orare = await resOrare.json();
+      setOrareSalvate(orare);
     } catch (err) {
       console.error("Eroare la încărcarea datelor:", err);
     }
   };
 
-  incarcaDate();
+  incarcaTot();
 }, []);
-
 
 
 const [reguli, setReguli] = useState(` 📜 REGULI STRICTE PENTRU GENERAREA ORARULUI:
@@ -197,6 +206,23 @@ try {
     // Validare JSON (opțională)
     JSON.stringify(data);
     setOrar(data);
+    setEsteOrarSalvat(false); // 👈 dezactivează indicatorul
+
+    // Salvează automat în baza de date
+try {
+  await fetch("http://127.0.0.1:5000/salveaza_orar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      nivel: nivelSelectat,
+      an: anSelectat,
+      orar: data
+    })
+  });
+} catch (err) {
+  console.error("Eroare la salvarea orarului:", err);
+}
+
   } catch (err) {
     console.error("Răspunsul nu este JSON valid:", err);
   }
@@ -294,36 +320,12 @@ const grupeAnCurent = grupe
 
 
 const renderOrar = () => {
-  if (!orar || !anSelectat || !nivelSelectat) return null;
-
-  // Grupele pentru anul și nivelul selectat
-  const grupeAnCurent = grupe
-    .filter((g) => g.an === anSelectat && g.nivel === nivelSelectat)
-    .map((g) => g.denumire);
-
-  console.log("Nivel selectat:", nivelSelectat);
-  console.log("Grupe în orar:", Object.keys(orar[nivelSelectat] || {}));
-  console.log("Grupe an curent:", grupeAnCurent);
+  if (!orar) return null;
 
   const zileOrdine = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"];
 
-  const extrageIntervale = (orarNivel) => {
-    const intervaleSet = new Set();
-    for (const zi of zileOrdine) {
-      for (const grupa in orarNivel) {
-        if (!grupeAnCurent.includes(grupa)) continue;
-        const ziGrupa = orarNivel[grupa][zi];
-        if (ziGrupa) {
-          Object.keys(ziGrupa).forEach((interval) =>
-            intervaleSet.add(interval)
-          );
-        }
-      }
-    }
-    return Array.from(intervaleSet).sort();
-  };
-
   const getBadgeClass = (tipActivitate) => {
+    if (!tipActivitate) return "bg-secondary";
     if (tipActivitate.toLowerCase().includes("curs")) return "bg-info";
     if (tipActivitate.toLowerCase().includes("laborator")) return "bg-success";
     if (tipActivitate.toLowerCase().includes("seminar")) return "bg-warning";
@@ -332,21 +334,21 @@ const renderOrar = () => {
 
   return (
     <div className="table-responsive" id="orar-afisat">
-      {Object.entries(orar).map(([nivel, grupeOrar]) => {
-        if (nivel !== nivelSelectat) return null;
+      {Object.entries(orar).map(([nivel, grupeOrar]) => (
+        <div key={nivel}>
+          <h2 className="text-primary fw-bold">{nivel}</h2>
+          {Object.entries(grupeOrar).map(([denumireGrupa, zile]) => {
+            const intervale = new Set();
+            zileOrdine.forEach((zi) => {
+              const ziData = zile[zi];
+              if (ziData) {
+                Object.keys(ziData).forEach((interval) => intervale.add(interval));
+              }
+            });
 
-        const grupeFiltrate = Object.entries(grupeOrar).filter(
-          ([denumireGrupa]) => grupeAnCurent.includes(denumireGrupa)
-        );
+            const intervaleSortate = Array.from(intervale).sort();
 
-        if (grupeFiltrate.length === 0) return null;
-
-        const intervale = extrageIntervale(grupeOrar);
-
-        return (
-          <div key={nivel}>
-            <h2 className="text-primary fw-bold">{nivel}</h2>
-            {grupeFiltrate.map(([denumireGrupa, zile]) => (
+            return (
               <div key={`${nivel}-${denumireGrupa}`} className="mb-4 page-break">
                 <h4>📘 {nivel} – {denumireGrupa}</h4>
                 <table className="table table-bordered text-center align-middle">
@@ -359,35 +361,25 @@ const renderOrar = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {intervale.map((interval) => (
+                    {intervaleSortate.map((interval) => (
                       <tr key={interval}>
                         <td><strong>{interval}</strong></td>
                         {zileOrdine.map((zi) => {
-                          const activitate = zile?.[zi]?.[interval];
+                          const activitate = zile[zi]?.[interval];
                           return (
                             <td key={`${zi}-${interval}`}>
                               {activitate ? (
-                                <div>
-                                  {typeof activitate === "object" ? (
-                                    <>
-                                      <span
-                                        className={`badge ${getBadgeClass(
-                                          activitate.tip
-                                        )} mb-1`}
-                                      >
-                                        {activitate.activitate}
-                                      </span>
-                                      <div>{activitate.profesor}</div>
-                                      <div className="text-muted">
-                                        {activitate.sala}
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <span className="badge bg-secondary">
-                                      {activitate}
+                                typeof activitate === "object" ? (
+                                  <>
+                                    <span className={`badge ${getBadgeClass(activitate.tip)} mb-1`}>
+                                      {activitate.activitate}
                                     </span>
-                                  )}
-                                </div>
+                                    <div>{activitate.profesor}</div>
+                                    <div className="text-muted">{activitate.sala}</div>
+                                  </>
+                                ) : (
+                                  <span className="badge bg-secondary">{activitate}</span>
+                                )
                               ) : (
                                 "-"
                               )}
@@ -399,10 +391,10 @@ const renderOrar = () => {
                   </tbody>
                 </table>
               </div>
-            ))}
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 };
@@ -414,6 +406,102 @@ const renderOrar = () => {
 const aniDisponibili = Array.from(
   new Set(grupe.filter(g => g.nivel === nivelSelectat).map((g) => g.an))
 ).sort();
+
+
+useEffect(() => {
+  if (orar_id_selectat) {
+    incarcaOrarSalvat(orar_id_selectat);
+  }
+}, [orar_id_selectat]);
+
+
+
+const incarcaOrarSalvat = async (id) => {
+  try {
+    const r = await fetch(`http://localhost:5000/orar_generat/${id}`);
+    const json = await r.json();
+    console.log("Orar salvat încărcat:", json);
+    setOrar(json);
+    setEsteOrarSalvat(true);
+
+    const nivel = Object.keys(json)[0];
+    const grupa = Object.keys(json[nivel])[0];
+    const grupaGasita = grupe.find((g) => g.denumire === grupa);
+    if (grupaGasita) {
+      setNivelSelectat(nivel);
+      setAnSelectat(grupaGasita.an);
+    }
+  } catch (err) {
+    console.error("Eroare la încărcare orar:", err);
+  }
+};
+
+
+
+const stergeOrar = async (id) => {
+  if (!window.confirm("Sigur dorești să ștergi acest orar?")) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/sterge_orar/${id}`, {
+      method: "DELETE"
+    });
+
+    const result = await res.json();
+
+    if (result.success) {
+      setOrareSalvate((prev) => prev.filter((o) => o.id !== id));
+      if (orar_id_selectat === id) {
+        setOrar(null);
+        setEsteOrarSalvat(false);
+      }
+    } else {
+      alert("Eroare la ștergere: " + result.error);
+    }
+  } catch (err) {
+    console.error("Eroare la ștergere orar:", err);
+    alert("A apărut o eroare la ștergere.");
+  }
+};
+
+const editeazaDenumire = async (id, numeCurent) => {
+  const { value: nouNume } = await Swal.fire({
+    title: "Editează denumirea orarului",
+    input: "text",
+    inputLabel: "Noua denumire",
+    inputValue: numeCurent || "",
+    showCancelButton: true,
+    confirmButtonText: "Salvează",
+    cancelButtonText: "Renunță",
+  });
+
+  if (nouNume && nouNume.trim()) {
+    try {
+      const r = await fetch(`http://localhost:5000/editeaza_orar/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ nume: nouNume }),
+      });
+      const json = await r.json();
+
+      if (json.success) {
+  Swal.fire("✅ Salvare reușită", "", "success");
+  setOrareSalvate((prev) =>
+    prev.map((o) => (o.id === id ? { ...o, nume: nouNume } : o))
+  );
+}
+ else {
+        Swal.fire("Eroare la salvare", json.error || "", "error");
+      }
+    } catch (err) {
+      Swal.fire("Eroare de rețea", err.message, "error");
+    }
+  }
+};
+
+
+
 
   return (
    <div className="container-fluid pt-4 px-4">
@@ -509,12 +597,90 @@ const aniDisponibili = Array.from(
         </button>
       </div>
 
+{esteOrarSalvat && (
+  <div className="alert alert-warning d-flex align-items-center gap-2">
+    <i className="bi bi-info-circle-fill fs-5"></i>
+    <span>
+      Orarul afișat provine dintr-o <strong>salvare anterioară</strong>.
+    </span>
+    <button
+      className="btn btn-sm btn-outline-secondary ms-auto"
+      onClick={() => {
+        setOrar(null);
+        setEsteOrarSalvat(false);
+      }}
+    >
+      ❌ Golește orarul
+    </button>
+  </div>
+)}
 
 
 
 {renderOrar()}
 
 
+<div className="card shadow-sm border-0 mt-5">
+  <div className="card-header bg-light fw-bold text-primary">
+    📂 Orare salvate anterior
+  </div>
+  <div className="card-body p-0">
+    {orareSalvate.length === 0 ? (
+      <p className="text-muted p-3 mb-0">Nu există orare salvate în sistem.</p>
+    ) : (
+      <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+        <ul className="list-group list-group-flush">
+          {orareSalvate.map((orar) => (
+            <li
+              key={orar.id}
+              className="list-group-item d-flex justify-content-between align-items-start flex-wrap"
+            >
+              <div className="me-auto">
+                <div className="fw-semibold text-dark">
+  📘 {orar.nume ? orar.nume : `${orar.nivel} – ${orar.an}`}
+</div>
+
+                <div className="text-muted" style={{ fontSize: "0.85rem" }}>
+                  {new Date(orar.data_creare).toLocaleString("ro-RO", {
+                    timeZone: "UTC",
+                    hour12: false,
+                    dateStyle: "short",
+                    timeStyle: "short",
+                  })}
+                </div>
+              </div>
+                    <button
+        className="btn btn-sm btn-outline-success"
+        onClick={() => editeazaDenumire(orar.id, orar.nume)}
+      >
+        ✏️ Editează
+      </button>
+
+              <div className="d-flex gap-2 mt-2 mt-sm-0">
+                <button
+                  className="btn btn-sm btn-outline-primary"
+                  onClick={() => incarcaOrarSalvat(orar.id)}
+                >
+                  🔄 Încarcă
+                </button>
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  onClick={() => stergeOrar(orar.id)}
+                >
+                  🗑️ Șterge
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+</div>
+
+
+
+{/*}
 {regula_id && continutRegula && (
   <div
     className="card shadow-sm border-0"
@@ -556,7 +722,7 @@ const aniDisponibili = Array.from(
     </div>
   </div>
 )}
-
+*/}
 
 
   
