@@ -23,7 +23,7 @@ const [esteOrarSalvat, setEsteOrarSalvat] = useState(false);
 
   const [anSelectat, setAnSelectat] = useState("");
 const [grupaSelectata, setGrupaSelectata] = useState("");
-
+const [raportValidare, setRaportValidare] = useState("");
 
 
 const toateGrupele = nivelSelectat && orar?.[nivelSelectat]
@@ -234,6 +234,8 @@ try {
     // Validare JSON (opțională)
     JSON.stringify(data);
     setOrar(data);
+    valideazaOrarGenerat(data);
+
     setEsteOrarSalvat(false); // 👈 dezactivează indicatorul
 
     // Salvează automat în baza de date
@@ -527,6 +529,103 @@ const editeazaDenumire = async (id, numeCurent) => {
 
 
 
+const valideazaOrarGenerat = (orarGenerat) => {
+  const cursuriProblema = [];
+  const lipsuri = [];
+  let totalActivitati = 0;
+  let activitatiCorecte = 0;
+
+  const grupeAnCurent = grupe.filter(
+    (g) => g.nivel === nivelSelectat && g.an === anSelectat
+  );
+  const toateGrupele = grupeAnCurent.map(g => g.denumire);
+
+  const activitatiDeSincronizat = {
+    curs: {},
+    seminar: {},
+    proiect: {},
+  };
+
+  // 🧠 Colectăm cursuri, seminarii și proiecte
+  grupeAnCurent.forEach((g) => {
+    const orarGrupa = orarGenerat[nivelSelectat]?.[g.denumire] || {};
+    Object.entries(orarGrupa).forEach(([zi, intervale]) => {
+      Object.entries(intervale).forEach(([interval, activ]) => {
+        const tip = activ?.tip?.toLowerCase();
+        if (!tip) return;
+
+        totalActivitati++;
+        activitatiCorecte++;
+
+        if (["curs", "seminar", "proiect"].includes(tip)) {
+          const cheie = `${activ.activitate.trim().toLowerCase()}|${activ.profesor.trim().toLowerCase()}`;
+          if (!activitatiDeSincronizat[tip][cheie]) activitatiDeSincronizat[tip][cheie] = [];
+          activitatiDeSincronizat[tip][cheie].push({
+            grupa: g.denumire,
+            zi,
+            interval,
+            sala: activ.sala
+          });
+        }
+      });
+    });
+  });
+
+  // ✅ Verificare sincronizare curs/seminar/proiect
+  Object.entries(activitatiDeSincronizat).forEach(([tipActivitate, activitati]) => {
+    Object.entries(activitati).forEach(([cheie, aparitii]) => {
+      const ref = aparitii[0];
+      const grupeGasite = new Set(aparitii.map(a => a.grupa));
+      const grupeLipsa = toateGrupele.filter(gr => !grupeGasite.has(gr));
+
+      const nesincronizate = aparitii.filter(
+        (a) => a.zi !== ref.zi || a.interval !== ref.interval || a.sala !== ref.sala
+      );
+
+      const [nume, prof] = cheie.split("|").map(s => s[0].toUpperCase() + s.slice(1));
+
+      if (grupeLipsa.length > 0) {
+        cursuriProblema.push(`❌ ${tipActivitate.charAt(0).toUpperCase() + tipActivitate.slice(1)} ${nume} – ${prof} lipsește din grupele: ${grupeLipsa.join(", ")}`);
+      }
+      if (nesincronizate.length > 0) {
+        cursuriProblema.push(`❌ ${tipActivitate.charAt(0).toUpperCase() + tipActivitate.slice(1)} ${nume} – ${prof} NU este sincronizat între grupele: ${nesincronizate.map(n => n.grupa).join(", ")}`);
+      }
+    });
+  });
+
+  // 🔍 Verificare lipsuri per grupă
+  grupeAnCurent.forEach((g) => {
+    const orarGrupa = orarGenerat[nivelSelectat]?.[g.denumire] || {};
+    const tipuriGasite = new Set();
+
+    Object.values(orarGrupa).forEach((intervale) => {
+      Object.values(intervale).forEach((activ) => {
+        if (activ?.tip) {
+          tipuriGasite.add(activ.tip.toLowerCase());
+        }
+      });
+    });
+
+    const necesare = ["curs", "seminar", "proiect", "laborator"];
+    necesare.forEach((t) => {
+      if (!tipuriGasite.has(t)) {
+        lipsuri.push(`❌ Grupa ${g.denumire} nu are activitate de tip ${t}`);
+      }
+    });
+  });
+
+  const procent = Math.round((activitatiCorecte / (totalActivitati || 1)) * 100);
+
+  const mesaj = `
+📊 Acuratețe estimată: ${procent || 0}% (${activitatiCorecte} / ${totalActivitati} activități valide)
+${cursuriProblema.length === 0 ? "✅ Cursuri, seminarii și proiecte sunt sincronizate" : cursuriProblema.join("\n")}
+${lipsuri.length === 0 ? "✅ Toate grupele au cele 4 tipuri de activități" : lipsuri.join("\n")}
+  `.trim();
+
+  setRaportValidare(mesaj);
+};
+
+
 
   return (
    <div className="container-fluid pt-4 px-4">
@@ -643,6 +742,14 @@ const editeazaDenumire = async (id, numeCurent) => {
 
 
 {renderOrar()}
+
+{raportValidare && (
+  <div className="alert alert-info mt-4" style={{ whiteSpace: "pre-wrap" }}>
+    <strong>📋 Raport de validare orar:</strong>
+    <br />
+    {raportValidare}
+  </div>
+)}
 
 
 <div className="card shadow-sm border-0 mt-5">
