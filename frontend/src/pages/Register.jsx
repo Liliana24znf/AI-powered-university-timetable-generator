@@ -159,12 +159,13 @@ const Register = () => {
           </div>
 
           <div className="mb-3">
-            <label className="form-label fw-semibold">Confirmă Parola</label>
+            <label htmlFor="confirmPassword" className="form-label fw-semibold">Confirmă Parola</label>
             <div className="input-group">
               <span className="input-group-text bg-light">
                 <FaLock className="text-muted" />
               </span>
               <input
+                id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 className="form-control"
                 placeholder="Reintroduceți parola"
@@ -190,7 +191,7 @@ const Register = () => {
           >
             {loading ? (
               <span>
-                <span className="spinner-border spinner-border-sm me-2" role="status" />
+                <output className="spinner-border spinner-border-sm me-2" aria-live="polite"></output>
                 Se înregistrează...
               </span>
             ) : (
