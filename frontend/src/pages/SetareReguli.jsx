@@ -509,24 +509,32 @@ const salveazaReguli = async () => {
             });
             const data = await response.json();
             if (data.success) {
-              Swal.fire("Actualizat!", "Regula a fost actualizată.", "success");
-              setIdRegulaEditata(null);
-              setNumeRegula("");
-              const refresh = await fetch("http://localhost:5000/ultimele_reguli");
-              const noi = await refresh.json();
-              setUltimeleReguli(noi);
-              window.scrollTo(0, 0); // Scroll la începutul paginii după actualizare
-            } else {
-              throw new Error(data.error || "Eroare necunoscută");
-            }
-          } catch (e) {
-            Swal.fire("Eroare", e.message, "error");
-          } finally {
-            setLoading(false);
+  Swal.fire("Actualizat!", "Regula a fost actualizată.", "success");
+
+  const refresh = await fetch("http://localhost:5000/ultimele_reguli");
+  const noi = await refresh.json();
+  setUltimeleReguli(noi);
+
+  // Găsește din nou regula actualizată și seteaz-o explicit
+  const regulaActualizata = noi.find(r => r.id === idRegulaEditata);
+  if (regulaActualizata) {
+    setReguli(regulaActualizata.continut);
+    setNumeRegula(regulaActualizata.denumire);
+    setIdRegulaEditata(regulaActualizata.id);
+  }
+
+  window.scrollTo(0, 0);
+} else {
+            throw new Error(data.error || "Eroare necunoscută");
           }
-        }}
-      >
-        💾 Actualizează
+        } catch (e) {
+          Swal.fire("Eroare", e.message, "error");
+        } finally {
+          setLoading(false);
+        }
+      }}
+    >
+      💾 Actualizează
       </button>
 
       {/* Salvează ca nouă */}
