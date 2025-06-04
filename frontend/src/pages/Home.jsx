@@ -3,165 +3,182 @@ import { Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Home = () => {
-  const [orar, setOrar] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // La montare, verificăm dacă utilizatorul este în localStorage
- useEffect(() => {
-  try {
-    const userStored = localStorage.getItem("user");
-    if (userStored) {
-      setUser(JSON.parse(userStored));
+  useEffect(() => {
+    try {
+      const userStored = localStorage.getItem("user");
+      if (userStored) {
+        setUser(JSON.parse(userStored));
+      }
+    } catch (err) {
+      console.error("Failed to parse user from localStorage:", err);
+      localStorage.removeItem("user");
     }
-  } catch (err) {
-    localStorage.removeItem("user");
-  }
-}, []);
+  }, []);
 
-
-  // Funcție de logout
   const handleLogout = () => {
     localStorage.removeItem("user");
     setUser(null);
-    navigate("/"); // Redirecționează la Home
+    navigate("/");
   };
 
-  const genereazaOrar = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("http://127.0.0.1:5000/genereaza_orar");
-      const data = await response.json();
-      setOrar(data);
-    } catch (err) {
-      console.error("Eroare la generare:", err);
-    }
-    setLoading(false);
-  };
 
   return (
-    <div style={{ minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column" }}>
-{/* Navbar */}
-<nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 w-100">
-  <div className="container-fluid d-flex justify-content-between align-items-center">
-    <Link to="/" className="navbar-brand fw-bold fs-5 text-primary">
-  Aplicație pentru planificare inteligentă utilizând tehnici de A.I.
-</Link>
-
-    
-    <div className="ms-auto">
-      {user ? (
-        <div className="d-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-2">
-          <span className="fw-semibold text-primary">
-            👋 Bine ai revenit, {user.nume || user.username}!
-          </span>
-          <Link to="/dashboard" className="btn btn-outline-success">
-            Orarul meu
+    <div style={{ minBlockSize: "100vh", inlineSize: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Navbar */}
+      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 w-100">
+        <div className="container-fluid d-flex justify-content-between align-items-center">
+          <Link to="/" className="navbar-brand fw-bold fs-5 text-primary">
+            Aplicație pentru planificare inteligentă utilizând tehnici de A.I.
           </Link>
-          <button className="btn btn-outline-danger" onClick={handleLogout}>
-            Logout
-          </button>
+          <div className="ms-auto">
+            {user ? (
+              <div className="d-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-2">
+                <span className="fw-semibold text-primary">
+                  👋 Bine ai revenit, {user.nume || user.username}!
+                </span>
+                <Link to="/dashboard" className="btn btn-outline-success">
+                  Orarul meu
+                </Link>
+                <button className="btn btn-outline-danger" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className="btn btn-outline-primary">
+                Autentificare
+              </Link>
+            )}
+          </div>
         </div>
-      ) : (
-        <Link to="/login" className="btn btn-outline-primary">
-          Autentificare
-        </Link>
-      )}
-    </div>
-  </div>
-</nav>
+      </nav>
 
-
-      <section className="hero py-5 ">
+      {/* Hero */}
+      <section className="hero py-5 bg-light">
         <div className="container">
           <div className="row align-items-center">
-
-            <div className="col-lg-6 text-center text-lg-start mb-4 mb-lg-0">
-              <h1 className="fw-bold display-5">
-                Creează orarul perfect<br />în doar câteva minute
+            <div className="col-lg-6 mb-4 mb-lg-0 text-center text-lg-start">
+              <h1 className="fw-bold display-5 text-dark">
+                Generare automată de orare<br />
+                prin <span className="text-primary">inteligență artificială</span>
               </h1>
               <p className="lead text-muted mt-3">
-                Generator Orare folosește inteligență artificială pentru a automatiza complet procesul de creare a orarului.
-                Economisește timp, evită conflictele și oferă flexibilitate totală.
+                Soluție modernă pentru planificarea academică, bazată pe algoritmi avansați
+                și reguli personalizabile, adaptată cerințelor reale.
               </p>
-              <Link to="/login" className="btn btn-primary btn-lg mt-3 rounded-pill px-4">
-                Autentifică-te
-              </Link>
+              {user ? (
+                <Link to="/dashboard" className="btn btn-success btn-lg mt-3 rounded-pill px-5">
+                  Mergi la orar
+                </Link>
+              ) : (
+                <Link to="/login" className="btn btn-primary btn-lg mt-3 rounded-pill px-5">
+                  Autentificare
+                </Link>
+              )}
             </div>
-
             <div className="col-lg-6 text-center">
-              <div
-                className="p-3 bg-white rounded-4 shadow-lg d-inline-block"
-                style={{ maxWidth: "100%", border: "1px solid #e0e0e0" }}
-              >
+              <div className="p-3 bg-white rounded-4 shadow-lg d-inline-block" style={{ maxInlineSize: "100%", border: "1px solid #e0e0e0" }}>
                 <img
                   src="/images/hero-timetable.png"
                   alt="Vizualizare orar generat automat"
                   className="img-fluid rounded-4"
-                  style={{ maxHeight: "360px", objectFit: "contain" }}
+                  style={{ maxBlockSize: "360px", objectFit: "contain" }}
                 />
               </div>
             </div>
-
           </div>
         </div>
       </section>
 
-      <section className="container-fluid py-5" style={{ maxWidth: "100%", padding: "0 5%" }}>
-  <h2 className="text-center fw-bold">Cum funcționează?</h2>
-  <div className="row mt-4 justify-content-center">
-    
-    <div className="col-md-3 text-center">
-      <img src="/images/add-data.png" alt="Adăugați date" className="img-fluid mb-3" style={{ maxWidth: "100%", objectFit: "contain" }} />
-      <h5>1. Adăugați datele</h5>
-      <p className="text-muted">Introduceți rapid informații despre clase, materii, profesori și săli — manual sau prin fișiere Excel.</p>
-    </div>
-
-    <div className="col-md-3 text-center">
-      <img src="/images/set-rules.png" alt="Setați reguli" className="img-fluid mb-3" style={{ maxWidth: "100%", objectFit: "contain" }} />
-      <h5>2. Setați regulile</h5>
-      <p className="text-muted">Definește constrângeri și preferințe: intervale orare, disponibilitate profesori și alte condiții specifice.</p>
-    </div>
-
-    <div className="col-md-3 text-center">
-      <img src="/images/generate-schedule.png" alt="Generați orarul" className="img-fluid mb-3" style={{ maxWidth: "100%", objectFit: "contain" }} />
-      <h5>3. Generați orarul</h5>
-      <p className="text-muted">Platforma generează automat orarul optim folosind algoritmi inteligenți — în doar câteva minute.</p>
-    </div>
-
-    <div className="col-md-3 text-center">
-      <img src="/images/edit-schedule.png" alt="Editați orarul" className="img-fluid mb-3" style={{ maxWidth: "100%", objectFit: "contain" }} />
-      <h5>4. Editați și regenerați</h5>
-      <p className="text-muted">Previzualizați orarul, faceți ajustări personalizate sau regenerați rapid o nouă variantă.</p>
-    </div>
-
-  </div>
-</section>
-
+      {/* Cum funcționează */}
       <section className="container py-5">
-        <h2 className="text-center fw-bold mb-5">Caracteristici</h2>
+        <h2 className="text-center fw-bold mb-5">Cum funcționează platforma?</h2>
+        <div className="row g-4 justify-content-center">
+          {[
+            {
+              img: "/images/add-data.png",
+              title: "1. Introduceți datele",
+              desc: "Completați lista profesorilor, sălilor, disciplinelor și grupelor — manual sau prin formular. Toate informațiile sunt salvate în baza de date."
+            },
+            {
+              img: "/images/set-rules.png",
+              title: "2. Stabiliți regulile",
+              desc: "Configurați intervalele orare, restricțiile și preferințele (ex: zile libere, pauze, tipuri de activități), direct din interfață."
+            },
+            {
+              img: "/images/generate-schedule.png",
+              title: "3. Generează orarul",
+              desc: "Printr-un model AI (GPT-4o) sau algoritm propriu, aplicația generează un orar complet pentru fiecare an, grupă și subgrupă — fără suprapuneri."
+            },
+            {
+              img: "/images/edit-schedule.png",
+              title: "4. Vizualizați și exportați",
+              desc: "Previzualizați orarul generat, exportați-l în PDF/Excel, sau ajustați datele și regenerați. Orarul respectă exact datele introduse."
+            }
+          ].map((item) => (
+            <div key={item.title} className="col-sm-6 col-md-3 text-center">
+              <img src={item.img} alt={item.title} className="img-fluid mb-3" style={{ inlineSize: "100%", objectFit: "contain" }} />
+              <h5 className="fw-semibold">{item.title}</h5>
+              <p className="text-muted small">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Caracteristici */}
+      <section className="container py-1">
+        <h2 className="text-center fw-bold mb-5">Caracteristici principale</h2>
         <div className="row g-4">
-          {[{
-            icon: "📝", title: "Introducere rapidă a datelor", desc: "Datele se pot introduce folosind un fișier Excel foarte ușor de redactat. Puteți apoi modifica aceste date și genera orarul."
-          }, {
-            icon: "⚙️", title: "Personalizare orar", desc: "Înainte să generați orarul, puteți seta regulile de generare așa cum doriți, astfel încât rezultatul final să fie pe placul dumneavoastră."
-          }, {
-            icon: "∞", title: "Număr nelimitat de generări", desc: "Puteți genera oricâte orare doriți, nu există o limită în acest sens."
-          }, {
-            icon: "⚡", title: "Generare rapidă", desc: "În funcție de complexitatea datelor, generarea nu ar trebui să dureze mai mult de 5 minute."
-          }, {
-            icon: "📋", title: "Raport de generare", desc: "Orarul generat vine însoțit de un raport cu toate constrângerile încălcate și sfaturi pentru a le rezolva."
-          }, {
-            icon: "✅", title: "Editare orar", desc: "După generare, puteți muta, șterge sau fixa ore. Vizualizare duală pentru elevi și profesori."
-          }, {
-            icon: "🔄", title: "Regenerare orar", desc: "Ați greșit o încadrare sau au apărut modificări? Regenerați rapid orarul cu noile date."
-          }, {
-            icon: "🖨️", title: "Printare orar", desc: "Puteți printa orarul pentru elevi sau profesori în format A4 sau A0, inclusiv pentru avizier."
-          }, {
-            icon: "📤", title: "Distribuiți orarul", desc: "Distribuiți rezultatul final colegilor sau profesorilor printr-un link extern."
-          }].map((item, idx) => (
-            <div key={idx} className="col-md-4">
+          {[
+            {
+              icon: "👩‍🏫🏫",
+              title: "Gestionare completă a datelor",
+              desc: "Introduceți profesori, discipline, săli și grupe direct din interfață. Datele sunt salvate într-o bază de date relațională."
+            },
+            {
+              icon: "⚙️",
+              title: "Setare flexibilă a regulilor",
+              desc: "Stabiliți constrângeri personalizate pentru orar: ore permise, pauze, săli disponibile, restricții de zi/oră etc."
+            },
+            {
+              icon: "🤖",
+              title: "Generare automată cu AI",
+              desc: "Folosiți GPT sau un algoritm propriu pentru a genera orare complete și coerente, fără conflicte."
+            },
+            {
+              icon: "📊",
+              title: "Raport de validare",
+              desc: "După generare, sistemul oferă un raport cu eventualele conflicte și sincronizări lipsă între grupe."
+            },
+            {
+              icon: "📚",
+              title: "Vizualizare pe grupe și profesori",
+              desc: "Orarul este afișat pe ani, grupe și subgrupe, cu opțiune de vizualizare pentru fiecare profesor."
+            },
+            {
+              icon: "📤",
+              title: "Export PDF și Excel",
+              desc: "Orarul generat poate fi descărcat în format PDF sau Excel, pregătit pentru avizier sau distribuire."
+            },
+            {
+              icon: "🔄",
+              title: "Regenerare instantă",
+              desc: "Modificați datele sau regulile și regenerați imediat o nouă variantă de orar complet."
+            },
+            {
+              icon: "✅",
+              title: "Respectarea datelor introduse",
+              desc: "Orarul este generat exclusiv pe baza datelor reale introduse: fără completări automate sau inventate."
+            },
+            {
+              icon: "🧠",
+              title: "Reguli GPT personalizabile",
+              desc: "Utilizatorul poate defini reguli proprii de generare, transmise direct către AI pentru rezultate precise."
+            }
+          ].map((item) => (
+            <div key={item.title} className="col-md-4">
               <div className="border rounded-4 shadow-sm h-100 p-4">
                 <h5>{item.icon} {item.title}</h5>
                 <p className="text-muted">{item.desc}</p>
@@ -169,31 +186,20 @@ const Home = () => {
             </div>
           ))}
         </div>
-
-        <div className="text-center mt-5">
-          <Link to="/register" className="btn btn-primary rounded-pill px-4 py-2">
-            Creați un cont gratuit
-          </Link>
-        </div>
       </section>
 
-      <section className="container text-center py-5">
-        <h2>Așteptăm mesajul dvs!</h2>
-        <p className="text-muted"> Aveți întrebări despre platformă sau funcționalități? Echipa noastră este gata să vă răspundă. </p>
-        <Link to="/contact" className="btn btn-outline-primary btn-lg rounded-pill px-4 mt-3">
-          Trimiteți un mesaj
-        </Link>
-      </section>
-
+      {/* Buton final */}
       <div className="text-center mt-4">
-      <Link to="/dashboard" className="btn btn-success btn-lg rounded-pill px-5">
-        Generează Orarul
-      </Link>
+        <Link to="/dashboard" className="btn btn-primary btn-lg rounded-pill px-5">
+          🚀 Începe generarea orarului
+        </Link>
+        <p className="text-muted mt-2" style={{ fontSize: "0.95rem" }}>
+          Vei fi redirecționat către platforma unde poți seta reguli, selecta datele și lansa generarea orarului complet.
+        </p>
       </div>
 
-    
-
-      <footer className="text-center py-4 bg-light">
+      {/* Footer */}
+      <footer className="text-center py-4 bg-light mt-5">
         <p className="mb-0">&copy; 2025 Generator Orare. Toate drepturile rezervate.</p>
       </footer>
     </div>
