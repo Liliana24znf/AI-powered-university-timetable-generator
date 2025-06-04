@@ -8,6 +8,7 @@ import os
 from flask import Flask, render_template_string
 from orar_generator import OrarGenerator
 from orar_generator import OrarGenerator, genereaza_html, genereaza_formular_criterii
+import bcrypt
 
 
 
@@ -15,7 +16,9 @@ from orar_generator import OrarGenerator, genereaza_html, genereaza_formular_cri
 client = OpenAI(api_key="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")
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+
+
 
 @app.route('/')
 def home():
@@ -28,6 +31,54 @@ def get_connection():
         password="",
         database="licenta"
     )
+
+
+
+@app.route('/register', methods=['POST'])
+def register():
+    try:
+        data = request.json
+        print("[DEBUG] Date primite:", data)
+        nume = data['nume']
+        email = data['email']
+        parola = data['parola']
+
+        hashed = bcrypt.hashpw(parola.encode('utf-8'), bcrypt.gensalt())
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO utilizatori (nume, email, parola) VALUES (%s, %s, %s)", (nume, email, hashed))
+        conn.commit()
+        return jsonify({'status': 'success'}), 201
+    except Exception as e:
+        print("🔥 Eroare la înregistrare:", str(e))
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    finally:
+        try:
+            cursor.close()
+            conn.close()
+        except:
+            pass
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data['email']
+    parola = data['parola']
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT parola FROM utilizatori WHERE email=%s", (email,))
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if row and bcrypt.checkpw(parola.encode('utf-8'), row[0].encode('utf-8')):
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error', 'message': 'Date de autentificare incorecte'}), 401
+
+
 
 def completeaza_ani_lipsa(orar_json):
     nivele = {

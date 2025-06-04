@@ -7,17 +7,27 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate(); // <--- importat de la react-router-dom
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+const handleLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await fetch("http://localhost:5000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, parola: password }),
+    });
 
-    // Aici poți adăuga logica de autentificare reală
-    if (email && password) {
-      alert(`Autentificat cu succes!`);
-      navigate("/dashboard"); // <--- redirecționare către Home
+    const data = await response.json();
+    if (data.status === "success") {
+      alert("Autentificat cu succes!");
+      navigate("/");
     } else {
-      alert("Te rugăm să completezi toate câmpurile.");
+      alert("Eroare: " + data.message);
     }
-  };
+  } catch (error) {
+    alert("Eroare la conectare cu serverul.");
+  }
+};
+
 
   return (
     <div
