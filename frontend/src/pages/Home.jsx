@@ -189,14 +189,20 @@ const Home = () => {
       </section>
 
       {/* Buton final */}
-      <div className="text-center mt-4">
-        <Link to="/dashboard" className="btn btn-primary btn-lg rounded-pill px-5">
-          🚀 Începe generarea orarului
-        </Link>
-        <p className="text-muted mt-2" style={{ fontSize: "0.95rem" }}>
-          Vei fi redirecționat către platforma unde poți seta reguli, selecta datele și lansa generarea orarului complet.
-        </p>
-      </div>
+   <div className="text-center mt-4">
+  <Link
+    to="/dashboard"
+    onClick={() => window.scrollTo(0, 0)}
+    className="btn btn-primary btn-lg rounded-pill px-5"
+  >
+    🚀 Începe generarea orarului
+  </Link>
+
+  <p className="text-muted mt-2" style={{ fontSize: "0.95rem" }}>
+    Vei fi redirecționat către platforma unde poți seta reguli, selecta datele și lansa generarea orarului complet.
+  </p>
+</div>
+
 
       {/* Footer */}
       <footer className="text-center py-4 bg-light mt-5">
