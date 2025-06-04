@@ -47,6 +47,7 @@ const Login = () => {
       toast.error(data.message || "Eroare la autentificare.");
     }
   } catch (error) {
+    console.error("Login error:", error);
     toast.error("Eroare la conectare cu serverul.");
   } finally {
     setLoading(false);
@@ -67,8 +68,8 @@ const Login = () => {
       <div
         className="card shadow p-4 text-center"
         style={{
-          maxWidth: "400px",
-          width: "100%",
+          maxInlineSize: "400px",
+          inlineSize: "100%",
           borderRadius: "15px",
           background: "rgba(255, 255, 255, 0.85)",
           backdropFilter: "blur(10px)",
@@ -79,12 +80,13 @@ const Login = () => {
 
         <form onSubmit={handleLogin}>
           <div className="mb-3 text-start">
-            <label className="form-label fw-semibold">Email</label>
+            <label htmlFor="email" className="form-label fw-semibold">Email</label>
             <div className="input-group">
               <span className="input-group-text bg-light">
                 <FaEnvelope className="text-muted" />
               </span>
               <input
+                id="email"
                 type="email"
                 className="form-control"
                 placeholder="Introduceți email"
@@ -96,12 +98,13 @@ const Login = () => {
           </div>
 
           <div className="mb-3 text-start">
-            <label className="form-label fw-semibold">Parolă</label>
+            <label htmlFor="password" className="form-label fw-semibold">Parolă</label>
             <div className="input-group">
               <span className="input-group-text bg-light">
                 <FaLock className="text-muted" />
               </span>
               <input
+                id="password"
                 type={showPassword ? "text" : "password"}
                 className="form-control"
                 placeholder="Introduceți parola"
@@ -127,7 +130,7 @@ const Login = () => {
           >
             {loading ? (
               <span>
-                <span className="spinner-border spinner-border-sm me-2" role="status" />
+                <output className="spinner-border spinner-border-sm me-2" aria-live="polite"></output>
                 Se autentifică...
               </span>
             ) : (
