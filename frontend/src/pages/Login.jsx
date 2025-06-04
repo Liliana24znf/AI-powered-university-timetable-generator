@@ -1,33 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate(); // <--- importat de la react-router-dom
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  try {
-    const response = await fetch("http://localhost:5000/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, parola: password }),
-    });
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const data = await response.json();
-    if (data.status === "success") {
-      alert("Autentificat cu succes!");
-      navigate("/");
-    } else {
-      alert("Eroare: " + data.message);
+  // 🔒 Dacă e deja logat, redirect către pagina principală
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      navigate("/home", { replace: true }); // ⛔ prevenim întoarcerea cu Back
     }
-  } catch (error) {
-    alert("Eroare la conectare cu serverul.");
-  }
-};
+  }, [navigate]);
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    if (!email.trim() || !password.trim()) {
+      toast.warning("Toate câmpurile sunt obligatorii!");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      toast.error("Adresa de email este invalidă!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, parola: password }),
+      });
+
+      const data = await response.json();
+      if (data.status === "success") {
+        localStorage.setItem("user", email); // ✅ salvare sesiune
+        toast.success("Autentificat cu succes!");
+        setTimeout(() => navigate("/home"), 2000); // 🔁 redirect
+      } else {
+        toast.error(data.message || "Eroare la autentificare.");
+      }
+    } catch (error) {
+      toast.error("Eroare la conectare cu serverul.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -36,62 +65,81 @@ const handleLogin = async (e) => {
         backgroundImage: "url('/images/login.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
-        width: "100vw",
-        height: "100vh",
       }}
     >
-      {/* Card Login - Form Centrat */}
+      <ToastContainer />
       <div
-        className="card shadow-lg p-4 text-center"
+        className="card shadow p-4 text-center"
         style={{
-          width: "400px",
+          maxWidth: "400px",
+          width: "100%",
           borderRadius: "15px",
-          background: "#fff",
-          border: "none",
+          background: "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(10px)",
         }}
       >
         <h3 className="text-primary fw-bold">Autentificare</h3>
-        <p className="text-muted">Bine ai revenit! Te rugăm să te autentifici.</p>
+        <p className="text-muted mb-4">Bine ai revenit! Te rugăm să te autentifici.</p>
+
         <form onSubmit={handleLogin}>
-          <div className="mb-3">
+          <div className="mb-3 text-start">
             <label className="form-label fw-semibold">Email</label>
-            <input
-              type="email"
-              className="form-control p-2"
-              placeholder="Introduceți email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{ borderRadius: "8px", border: "1px solid #ced4da" }}
-            />
+            <div className="input-group">
+              <span className="input-group-text bg-light">
+                <FaEnvelope className="text-muted" />
+              </span>
+              <input
+                type="email"
+                className="form-control"
+                placeholder="Introduceți email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
+            </div>
           </div>
-          <div className="mb-3">
+
+          <div className="mb-3 text-start">
             <label className="form-label fw-semibold">Parolă</label>
-            <input
-              type="password"
-              className="form-control p-2"
-              placeholder="Introduceți parola"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{ borderRadius: "8px", border: "1px solid #ced4da" }}
-            />
+            <div className="input-group">
+              <span className="input-group-text bg-light">
+                <FaLock className="text-muted" />
+              </span>
+              <input
+                type={showPassword ? "text" : "password"}
+                className="form-control"
+                placeholder="Introduceți parola"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+              />
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
+
           <button
             type="submit"
-            className="btn btn-primary w-100 fw-bold"
-            style={{
-              borderRadius: "8px",
-              background: "#007bff",
-              border: "none",
-              transition: "0.3s",
-            }}
-            onMouseOver={(e) => (e.target.style.background = "#0056b3")}
-            onMouseOut={(e) => (e.target.style.background = "#007bff")}
+            className="btn btn-primary w-100 fw-bold mt-2"
+            disabled={loading}
           >
-            Autentificare
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" />
+                Se autentifică...
+              </>
+            ) : (
+              "Autentificare"
+            )}
           </button>
         </form>
+
         <p className="mt-3">
           Nu ai cont?{" "}
           <Link to="/register" className="text-decoration-none fw-semibold text-primary">
