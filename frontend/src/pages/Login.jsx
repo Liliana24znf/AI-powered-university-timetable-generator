@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -14,49 +14,45 @@ const Login = () => {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+ const handleLogin = async (e) => {
+  e.preventDefault();
 
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      navigate("/", { replace: true }); 
+  if (!email.trim() || !password.trim()) {
+    toast.warning("Toate câmpurile sunt obligatorii!");
+    return;
+  }
+
+  if (!emailRegex.test(email)) {
+    toast.error("Adresa de email este invalidă!");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    const response = await fetch("http://localhost:5000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, parola: password }),
+    });
+
+    const data = await response.json();
+
+    if (data.status === "success") {
+      // 🔥 Salvăm utilizatorul autentificat
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      toast.success("Autentificat cu succes!");
+      setTimeout(() => navigate("/"), 2000);
+    } else {
+      toast.error(data.message || "Eroare la autentificare.");
     }
-  }, [navigate]);
+  } catch (error) {
+    toast.error("Eroare la conectare cu serverul.");
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    if (!email.trim() || !password.trim()) {
-      toast.warning("Toate câmpurile sunt obligatorii!");
-      return;
-    }
-
-    if (!emailRegex.test(email)) {
-      toast.error("Adresa de email este invalidă!");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await fetch("http://localhost:5000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, parola: password }),
-      });
-
-      const data = await response.json();
-      if (data.status === "success") {
-        localStorage.setItem("user", email); // ✅ salvare sesiune
-        toast.success("Autentificat cu succes!");
-        setTimeout(() => navigate("/"), 2000); // 🔁 redirect
-      } else {
-        toast.error(data.message || "Eroare la autentificare.");
-      }
-    } catch (error) {
-      toast.error("Eroare la conectare cu serverul.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div
@@ -130,10 +126,10 @@ const Login = () => {
             disabled={loading}
           >
             {loading ? (
-              <>
+              <span>
                 <span className="spinner-border spinner-border-sm me-2" role="status" />
                 Se autentifică...
-              </>
+              </span>
             ) : (
               "Autentificare"
             )}

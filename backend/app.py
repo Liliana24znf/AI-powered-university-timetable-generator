@@ -67,17 +67,18 @@ def login():
     parola = data['parola']
 
     conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT parola FROM utilizatori WHERE email=%s", (email,))
-    row = cursor.fetchone()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM utilizatori WHERE email=%s", (email,))
+    user = cursor.fetchone()
     cursor.close()
     conn.close()
 
-    if row and bcrypt.checkpw(parola.encode('utf-8'), row[0].encode('utf-8')):
-        return jsonify({'status': 'success'})
+    if user and bcrypt.checkpw(parola.encode('utf-8'), user['parola'].encode('utf-8')):
+        # Eliminăm parola din răspuns pentru siguranță
+        user.pop('parola', None)
+        return jsonify({'status': 'success', 'user': user})
     else:
         return jsonify({'status': 'error', 'message': 'Date de autentificare incorecte'}), 401
-
 
 
 def completeaza_ani_lipsa(orar_json):

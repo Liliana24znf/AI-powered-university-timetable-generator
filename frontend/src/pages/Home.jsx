@@ -1,10 +1,32 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Home = () => {
   const [orar, setOrar] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  // La montare, verificăm dacă utilizatorul este în localStorage
+ useEffect(() => {
+  try {
+    const userStored = localStorage.getItem("user");
+    if (userStored) {
+      setUser(JSON.parse(userStored));
+    }
+  } catch (err) {
+    localStorage.removeItem("user");
+  }
+}, []);
+
+
+  // Funcție de logout
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/"); // Redirecționează la Home
+  };
 
   const genereazaOrar = async () => {
     setLoading(true);
@@ -20,15 +42,36 @@ const Home = () => {
 
   return (
     <div style={{ minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column" }}>
-      {/* Navbar */}
-      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 w-100">
-      <div className="container-fluid d-flex justify-content-between align-items-center">
-          <Link to="/" className="navbar-brand fw-bold fs-4 text-primary">Generator Orare</Link>
-          <div className="ms-auto">
-            <Link to="/login" className="btn btn-outline-primary">Autentificare</Link>
-          </div>
+{/* Navbar */}
+<nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 w-100">
+  <div className="container-fluid d-flex justify-content-between align-items-center">
+    <Link to="/" className="navbar-brand fw-bold fs-5 text-primary">
+  Aplicație pentru planificare inteligentă utilizând tehnici de A.I.
+</Link>
+
+    
+    <div className="ms-auto">
+      {user ? (
+        <div className="d-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-2">
+          <span className="fw-semibold text-primary">
+            👋 Bine ai revenit, {user.nume || user.username}!
+          </span>
+          <Link to="/dashboard" className="btn btn-outline-success">
+            Orarul meu
+          </Link>
+          <button className="btn btn-outline-danger" onClick={handleLogout}>
+            Logout
+          </button>
         </div>
-      </nav>
+      ) : (
+        <Link to="/login" className="btn btn-outline-primary">
+          Autentificare
+        </Link>
+      )}
+    </div>
+  </div>
+</nav>
+
 
       <section className="hero py-5 ">
         <div className="container">
