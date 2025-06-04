@@ -14,11 +14,11 @@ const Login = () => {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // 🔒 Dacă e deja logat, redirect către pagina principală
+
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
-      navigate("/home", { replace: true }); // ⛔ prevenim întoarcerea cu Back
+      navigate("/", { replace: true }); 
     }
   }, [navigate]);
 
@@ -47,7 +47,7 @@ const Login = () => {
       if (data.status === "success") {
         localStorage.setItem("user", email); // ✅ salvare sesiune
         toast.success("Autentificat cu succes!");
-        setTimeout(() => navigate("/home"), 2000); // 🔁 redirect
+        setTimeout(() => navigate("/"), 2000); // 🔁 redirect
       } else {
         toast.error(data.message || "Eroare la autentificare.");
       }
