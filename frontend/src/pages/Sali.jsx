@@ -159,6 +159,20 @@ const fetchSali = async () => {
     fetchSali();
   }, []);
 
+  // Extractăm generarea titlului
+const getTitluSala = (tip) => {
+  switch (tip) {
+    case "Curs": return "📘 Săli de Curs (GC)";
+    case "Laborator": return "🧪 Săli de Laborator (GL)";
+    case "Seminar": return "📝 Săli de Seminar (GS)";
+    case "Proiect": return "💼 Săli de Proiect (GP)";
+    default: return "";
+  }
+};
+
+
+
+
   return (
  <div className="container-fluid pt-4 px-4">
       <ToastContainer />
@@ -274,7 +288,7 @@ const fetchSali = async () => {
 <div className="row mb-4 flex-nowrap overflow-auto">
 
   {/* Curs */}
-<div className="col-md-3" style={{ minWidth: "280px" }}>
+<div className="col-md-3" style={{ inlineSize: "280px" }}>
 
     <div className="card border-start border-3 border-primary shadow-sm h-100">
       <div className="card-body">
@@ -292,7 +306,7 @@ const fetchSali = async () => {
   </div>
 
   {/* Laborator */}
-<div className="col-md-3" style={{ minWidth: "280px" }}>
+<div className="col-md-3" style={{ minInlineSize: "280px" }}>
 
     <div className="card border-start border-3 border-success shadow-sm h-100">
       <div className="card-body">
@@ -310,7 +324,7 @@ const fetchSali = async () => {
   </div>
 
   {/* Seminar */}
-<div className="col-md-3" style={{ minWidth: "280px" }}>
+<div className="col-md-3" style={{ minInlineSize: "280px" }}>
 
     <div className="card border-start border-3 border-warning shadow-sm h-100">
       <div className="card-body">
@@ -328,7 +342,7 @@ const fetchSali = async () => {
   </div>
 
 {/* Proiect */}
-<div className="col-md-3" style={{ minWidth: "280px" }}>
+<div className="col-md-3" style={{ minInlineSize: "280px" }}>
 
   <div className="card border-start border-3 border-info shadow-sm h-100">
     <div className="card-body">
@@ -369,18 +383,14 @@ const fetchSali = async () => {
 <div className="row mb-4 justify-content-start">
 
 {["Curs", "Laborator", "Seminar", "Proiect"].map((tip) => {
-  const culoare =
-    tip === "Curs" ? "primary" :
-    tip === "Laborator" ? "success" :
-    tip === "Seminar" ? "warning" :
-    tip === "Proiect" ? "info" :
-    "info";
-  const prefix =
-    tip === "Curs" ? "GC" :
-    tip === "Laborator" ? "GL" :
-    tip === "Seminar" ? "GS" :
-    tip === "Proiect" ? "GP" :
-    "GP";
+  let culoare = "info";
+  if (tip === "Curs") {
+    culoare = "primary";
+  } else if (tip === "Laborator") {
+    culoare = "success";
+  } else if (tip === "Seminar") {
+    culoare = "warning";
+  }
 
   const saliFiltrate = saliGenerat
     .filter((s) => s.tip === tip)
@@ -394,12 +404,9 @@ const fetchSali = async () => {
       <div key={`${tip}-${resetKey}`} className="col-lg-3 col-md-4 col-sm-6 mb-3">
         <div className={`card shadow-sm h-100 border-start border-4 border-${culoare}`}>
           <div className="card-body">
-            <h5 className={`fw-bold text-${culoare} mb-3`}>
-              {tip === "Curs" ? "📘 Săli de Curs (GC)" :
-               tip === "Laborator" ? "🧪 Săli de Laborator (GL)" :
-               tip === "Seminar" ? "📝 Săli de Seminar (GS)" :
-               "💼 Săli de Proiect (GP)"}
-            </h5>
+          <h5 className={`fw-bold text-${culoare} mb-3`}>
+  {getTitluSala(tip)}
+</h5>
 
             {saliFiltrate.length === 0 ? (
               <div className="text-muted fst-italic">
@@ -426,9 +433,9 @@ const fetchSali = async () => {
                 <p className="text-muted small mt-2">Total: {saliFiltrate.length} săli</p>
 
                 <ul className="list-group">
-                  {saliFiltrate.map((s, i) => (
+                  {saliFiltrate.map((s) => (
                     <li
-                      key={i}
+                      key={s.cod}
                       className="list-group-item d-flex align-items-center"
                     >
                       <input
