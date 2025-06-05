@@ -6,8 +6,8 @@ from flask_cors import CORS
 import mysql.connector
 import os
 from flask import Flask, render_template_string
-from orar_generator import OrarGenerator
 from orar_generator import OrarGenerator, genereaza_html, genereaza_formular_criterii
+
 import bcrypt
 
 
@@ -660,18 +660,43 @@ def date_orar():
 
 @app.route("/genereaza_orar_propriu", methods=["GET", "POST"])
 def genereaza_orar_propriu():
-    generator = OrarGenerator()
+    print("🔁 S-a apelat ruta /genereaza_orar_propriu cu metoda:", request.method)
 
+    # Inițializăm generatorul și setăm valorile implicite
+    generator = OrarGenerator()
+    nivel_selectat = "Licenta"
+    an_selectat = "I"
+
+    # Dacă formularul a fost trimis, actualizăm valorile
     if request.method == "POST":
+        nivel_selectat = request.form.get("nivel", "Licenta")
+        an_selectat = request.form.get("an", "I")
         generator.actualizeaza_criterii(request.form)
 
-    orar = generator.genereaza_orar()
-    formular = genereaza_formular_criterii(generator.criterii)
-    html = genereaza_html(orar, generator.criterii, formular)
+    # Generăm orarul complet pentru toate grupele
+    orar_complet = generator.genereaza_orar()
 
+    # Filtrăm doar grupele care corespund nivelului + anului selectat
+    orar_filtrat = {}
+    print(f"📌 Compar: nivel = {nivel_selectat}, an = {an_selectat}")
+    for grupa, continut in orar_complet.items():
+        nivel, an = generator.extrage_an_si_nivel(grupa)
+        print(f"🔎 {grupa} => nivel: {nivel}, an: {an}")
+        if nivel == nivel_selectat and an == an_selectat:
+            orar_filtrat[grupa] = continut
+
+    # Debug final în consolă
+    print("✅ Orar filtrat pentru:", nivel_selectat, an_selectat)
+    print(json.dumps(orar_filtrat, indent=2, ensure_ascii=False))
+
+    # Generează HTML-ul pentru afișare
+    formular = genereaza_formular_criterii(generator.criterii, nivel_selectat, an_selectat)
+    html = genereaza_html(orar_filtrat, generator.criterii, formular)
+
+    # Închidem conexiunea la DB
     generator.inchide_conexiunea()
-    return render_template_string(html)
 
+    return render_template_string(html)
 
 @app.route("/salveaza_orar", methods=["POST"])
 def salveaza_orar():
