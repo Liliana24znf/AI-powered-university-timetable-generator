@@ -6,7 +6,7 @@ from flask_cors import CORS
 import mysql.connector
 import os
 from flask import Flask, render_template_string
-from orar_generator import OrarGenerator, genereaza_html, genereaza_formular_criterii
+from orar_generator import OrarGenerator, genereaza_html, genereaza_formular_criterii, valideaza_orar
 
 import bcrypt
 
@@ -681,9 +681,11 @@ def genereaza_orar_propriu():
     print(f"📌 Compar: nivel = {nivel_selectat}, an = {an_selectat}")
     for grupa, continut in orar_complet.items():
         nivel, an = generator.extrage_an_si_nivel(grupa)
-        print(f"🔎 {grupa} => nivel: {nivel}, an: {an}")
         if nivel == nivel_selectat and an == an_selectat:
             orar_filtrat[grupa] = continut
+
+
+    raport_validare = valideaza_orar(orar_filtrat)
 
     # Debug final în consolă
     print("✅ Orar filtrat pentru:", nivel_selectat, an_selectat)
@@ -691,7 +693,7 @@ def genereaza_orar_propriu():
 
     # Generează HTML-ul pentru afișare
     formular = genereaza_formular_criterii(generator.criterii, nivel_selectat, an_selectat)
-    html = genereaza_html(orar_filtrat, generator.criterii, formular)
+    html = genereaza_html(orar_filtrat, generator.criterii, formular) + raport_validare
 
     # Închidem conexiunea la DB
     generator.inchide_conexiunea()

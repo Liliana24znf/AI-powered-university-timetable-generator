@@ -3,6 +3,8 @@ import random
 import json
 import re
 from collections import defaultdict
+import copy
+
 
 class OrarGenerator:
     def __init__(self):
@@ -79,62 +81,124 @@ class OrarGenerator:
 
         cursor.execute("SELECT * FROM grupe")
         self.grupe = cursor.fetchall()
-        self.mapare_grupe = {g["denumire"]: (g["nivel"], g["an"]) for g in self.grupe}
+        self.mapare_grupe = {
+            g["denumire"]: (g["nivel"], {1: "I", 2: "II", 3: "III", 4: "IV"}.get(g["an"], str(g["an"])))
+            for g in self.grupe
+        }
+        self.grupa_si_subgrupa = {
+            g["denumire"]: {
+                "grupa_baza": f"{g['nivel'][0]}{g['an']}{g['grupa']}",  # ex: LIII1
+                "subgrupa": g["subgrupa"]
+            }
+            for g in self.grupe
+        }
+
+
 
     def extrage_an_si_nivel(self, grupa):
         return self.mapare_grupe.get(grupa, ("Necunoscut", "?"))
 
+
     def genereaza_orar(self):
         self.incarca_date()
         orar = {}
-        grupe_pe_an = defaultdict(list)
+        grupe_pe_an = defaultdict(set)  # Nivel+An → set de grupe/subgrupe
+        subgrupe_map = defaultdict(set)  # Grupa de bază → set subgrupe
 
-        for grupa in self.grupe:
-            nume = grupa["denumire"]
-            nivel, an = self.extrage_an_si_nivel(nume)
-            print(f"🔎 {nume} => nivel: {nivel}, an: {an}")
-            if nivel != "Necunoscut":
-                grupe_pe_an[f"{nivel}-{an}"].append(nume)
+        for g in self.grupe:
+            den = g["denumire"]
+            nivel, an = self.mapare_grupe[den]
+            grupa_baza = self.grupa_si_subgrupa.get(den, {}).get("grupa_baza", "")
+
+            grupe_pe_an[f"{nivel}-{an}"].add(den)
+            if g["subgrupa"]:  # Este subgrupă
+                subgrupe_map[grupa_baza].add(den)
+                print(f"📌 Subgrupă: {den} (aparține de {grupa_baza})")
+            else:
+                print(f"📌 Grupa de bază: {den}")
+
+        # Debug – Afișare structură completă
+        print("\n📊 Grupe pe an:")
+        for k, v in grupe_pe_an.items():
+            print(f"  - {k}: {sorted(v)}")
+
+        print("\n📊 Subgrupe:")
+        for k, v in subgrupe_map.items():
+            print(f"  - {k}: {sorted(v)}")
 
         for cheie_an, grupe_din_an in grupe_pe_an.items():
-            orar_temp = {}
+            grupe_din_an = list(grupe_din_an)
+            orar_an = {}
+
             for zi in self.zile:
-                orar_temp[zi] = {}
+                orar_an[zi] = {}
                 pauza_adaugata = False
                 ore_adaugate = 0
 
                 for interval in self.intervale:
                     if "Master" in cheie_an and interval not in self.criterii["ore_master"]:
-                        orar_temp[zi][interval] = ""
+                        orar_an[zi][interval] = ""
                         continue
                     if zi == "Miercuri" and interval == self.criterii["pauza_miercuri"]:
-                        orar_temp[zi][interval] = "Pauză forțată"
+                        orar_an[zi][interval] = "Pauză forțată"
                         continue
                     if ore_adaugate >= 6 and not pauza_adaugata and self.criterii["pauza_dupa_6"]:
-                        orar_temp[zi][interval] = "Pauză"
+                        orar_an[zi][interval] = "Pauză"
                         pauza_adaugata = True
+                        ore_adaugate += 2
                         continue
                     if ore_adaugate >= self.criterii["max_ore_zi"]:
-                        orar_temp[zi][interval] = ""
+                        orar_an[zi][interval] = ""
                         continue
 
-                    activitate = self.genereaza_activitate("master" if "Master" in cheie_an else "licenta", zi, interval)
-                    orar_temp[zi][interval] = activitate
+                    activitate = self.genereaza_activitate(
+                        "master" if "Master" in cheie_an else "licenta", zi, interval
+                    )
+                    orar_an[zi][interval] = activitate
                     ore_adaugate += 2
 
-            for grupa in grupe_din_an:
-                orar_grupa = {}
-                for zi in self.zile:
-                    orar_grupa[zi] = {}
+                # completăm până la minimum 4h dacă e cazul
+                if ore_adaugate < 4:
+                    completate = 0
                     for interval in self.intervale:
-                        activitate = orar_temp[zi][interval]
-                        if "(Lab)" in activitate or "(Sem)" in activitate:
-                            orar_grupa[zi][interval] = self.genereaza_activitate("master" if "Master" in cheie_an else "licenta", zi, interval)
-                        else:
-                            orar_grupa[zi][interval] = activitate
-                orar[grupa] = orar_grupa
+                        if orar_an[zi][interval] == "":
+                            orar_an[zi][interval] = "Activitate lipsă"
+                            completate += 2
+                            if ore_adaugate + completate >= 4:
+                                break
+
+            # 🧠 CURSURI – copiem la toate grupele și subgrupele
+            for grupa in grupe_din_an:
+                orar[grupa] = copy.deepcopy(orar_an)
+                for subgrupa in subgrupe_map.get(grupa, []):
+                    orar[subgrupa] = copy.deepcopy(orar_an)
+
+            # 📚 SEMINARE / PROIECTE – identic în subgrupe
+            for grupa in grupe_din_an:
+                for zi in self.zile:
+                    for interval in self.intervale:
+                        activitate = orar[grupa][zi][interval]
+                        if "(Sem)" in activitate or "(P)" in activitate or "(Proj)" in activitate:
+                            noua = self.genereaza_activitate(
+                                "master" if "Master" in cheie_an else "licenta", zi, interval
+                            )
+                            orar[grupa][zi][interval] = noua
+                            for subgrupa in subgrupe_map.get(grupa, []):
+                                orar[subgrupa][zi][interval] = noua
+
+            # 🔬 LABORATOARE – generate separat pe fiecare subgrupă
+            for grupa in grupe_din_an:
+                for subgrupa in subgrupe_map.get(grupa, []):
+                    for zi in self.zile:
+                        for interval in self.intervale:
+                            activitate = orar[subgrupa][zi][interval]
+                            if "(Lab)" in activitate:
+                                orar[subgrupa][zi][interval] = self.genereaza_activitate(
+                                    "master" if "Master" in cheie_an else "licenta", zi, interval
+                                )
 
         return orar
+
 
     def genereaza_activitate(self, tip_grupa, zi=None, interval=None):
         profesori_potriviti = []
@@ -166,11 +230,11 @@ class OrarGenerator:
         if tip_activitate == "Curs":
             sali_potrivite = [s for s in self.sali if s["tip"] == "Curs"]
         elif tip_activitate == "Seminar":
-            sali_potrivite = [s for s in self.sali if s["tip"] in ["Seminar", "Laborator", "Laborator/Seminar"]]
+            sali_potrivite = [s for s in self.sali if s["tip"] in ["Seminar"]]
         elif tip_activitate == "Laborator":
-            sali_potrivite = [s for s in self.sali if s["tip"] in ["Laborator", "Seminar", "Laborator/Seminar"]]
+            sali_potrivite = [s for s in self.sali if s["tip"] in ["Laborator"]]
         elif tip_activitate == "Proiect":
-            sali_potrivite = [s for s in self.sali if s["tip"] in ["Proiect", "Laborator", "Seminar", "Laborator/Seminar"]]
+            sali_potrivite = [s for s in self.sali if s["tip"] in ["Proiect"]]
         else:
             sali_potrivite = []
 
@@ -186,12 +250,63 @@ class OrarGenerator:
             return f"{disciplina} ({acronim}) - {nume_prof} - sala {sala}"
         elif tip_activitate == "Seminar":
             return f"{acronim} (Sem) - {nume_prof} - sala {sala}"
+        elif tip_activitate == "Proiect":
+            return f"{acronim} (P) - {nume_prof} - sala {sala}"
         else:
             return f"{acronim} (Lab) - {nume_prof} - {sala}"
+        
 
 
     def inchide_conexiunea(self):
         self.conn.close()
+
+# 🔽 Adaugă asta la finalul fișierului orar_generator.py
+
+def valideaza_orar(orar):
+    raport_text = "\n📋 Raport de validare orar:\n"
+    raport_html = "<div class='card mt-4'><div class='card-header bg-warning text-dark fw-bold'>📋 Raport de validare orar</div><div class='card-body'><ul class='list-group'>"
+
+    for grupa, zile in orar.items():
+        raport_text += f"🔎 Grupa: {grupa}\n"
+        raport_html += f"<li class='list-group-item'><strong>🔎 Grupa: {grupa}</strong><ul>"
+
+        pentru_grupa_valida = True
+
+        for zi, intervale in zile.items():
+            activitati = [val for val in intervale.values() if val and "Pauză" not in val]
+            total_ore = len(activitati) * 2
+
+            if not activitati:
+                raport_text += f"   ❌ {zi} este complet goală!\n"
+                raport_html += f"<li>❌ <strong>{zi}</strong> este complet goală!</li>"
+                pentru_grupa_valida = False
+                continue
+
+            if total_ore < 4:
+                raport_text += f"   ⚠️ {zi} are doar {total_ore} ore (minim 4h necesare)\n"
+                raport_html += f"<li>⚠️ {zi} are doar {total_ore} ore (minim 4h)</li>"
+
+            for interval, activitate in intervale.items():
+                if "Niciun profesor disponibil" in activitate:
+                    raport_text += f"   ❌ {zi} {interval}: Niciun profesor disponibil\n"
+                    raport_html += f"<li>❌ {zi} {interval}: Niciun profesor disponibil</li>"
+                    pentru_grupa_valida = False
+                if "Fără sală" in activitate:
+                    raport_text += f"   ❌ {zi} {interval}: Fără sală disponibilă\n"
+                    raport_html += f"<li>❌ {zi} {interval}: Fără sală disponibilă</li>"
+                    pentru_grupa_valida = False
+
+        if pentru_grupa_valida:
+            raport_text += "   ✅ Orar valid ✅\n"
+            raport_html += "<li>✅ Orar valid</li>"
+        else:
+            raport_html += "<li>⚠️ Probleme detectate!</li>"
+
+        raport_html += "</ul></li>"
+
+    raport_html += "</ul></div></div>"
+    print(raport_text)
+    return raport_html
 
 
 def genereaza_formular_criterii(criterii, nivel_selectat="Licenta", an_selectat="I"):
