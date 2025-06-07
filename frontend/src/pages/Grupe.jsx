@@ -231,7 +231,8 @@ const genereazaGrupe = async () => {
     });
   }}
 >
-  Generator Orare
+<span className="fs-6 fw-bold">Aplicație pentru planificare inteligentă</span>
+  <span className="fs-6 m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none">utilizând tehnici de A.I.</span>
 </button>
 
           <span className="text-primary fw-bold fs-4">👥 Gestionare Grupe</span>
