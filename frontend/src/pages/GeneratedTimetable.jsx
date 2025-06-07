@@ -813,9 +813,20 @@ const eroriActivitati = {
 
 
   // 📊 Rezultat final
-  const totalActivitatiFinal = totalActivitati + laboratoareTotale;
-  const activitatiCorecteFinal = activitatiCorecte + laboratoareValide;
-  const procent = Math.round((activitatiCorecteFinal / (totalActivitatiFinal || 1)) * 100);
+// ⚠️ Considerăm activități invalide dacă există orice erori
+const areErori = cursuriProblema.length > 0 || eroriLaboratoare.length > 0 || lipsuri.length > 0;
+
+const totalActivitatiFinal = totalActivitati + laboratoareTotale;
+let activitatiCorecteFinal = activitatiCorecte + laboratoareValide;
+
+// Dacă există erori semnificative, nu putem spune că sunt toate valide
+if (areErori) {
+  activitatiCorecteFinal -= (cursuriProblema.length + eroriLaboratoare.length + lipsuri.length);
+
+}
+
+const procent = Math.round((activitatiCorecteFinal / (totalActivitatiFinal || 1)) * 100);
+
 
   let mesaj = `📊 Acuratețe estimată: ${procent}% (${activitatiCorecteFinal} / ${totalActivitatiFinal} activități valide)\n\n`;
 
