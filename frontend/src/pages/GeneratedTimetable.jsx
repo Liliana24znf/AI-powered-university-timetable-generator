@@ -3,6 +3,10 @@ import * as XLSX from "xlsx";
 import html2pdf from "html2pdf.js";
 import { useLocation } from "react-router-dom";
 import Swal from "sweetalert2"; // pentru prompt elegant
+import { Link } from "react-router-dom";
+
+
+
 const GeneratedTimetable = () => {
   const [orar, setOrar] = useState(null);
   const [loadingGPT, setLoadingGPT] = useState(false);
@@ -33,6 +37,19 @@ const toateGrupele = nivelSelectat && orar?.[nivelSelectat]
   ? Object.keys(orar[nivelSelectat])
   : [];
 
+  const handleLogout = () => {
+    localStorage.removeItem("user"); // sau orice cheie folosești
+    navigate("/"); // redirecționează către homepage
+  };
+
+const [user, setUser] = useState(null);
+
+useEffect(() => {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    setUser(JSON.parse(storedUser));
+  }
+}, []);
 useEffect(() => {
   const incarcaTot = async () => {
     try {
@@ -888,31 +905,54 @@ const orareFiltrate = orareSalvate.filter((orar) =>
 
   return (
    <div className="container-fluid pt-4 px-4">
-{/* NAVBAR */}
-      <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
-        <div className="container-fluid position-relative d-flex justify-content-center align-items-center">
-    
-    {/* Stânga: Logo */}
-    <span className="position-absolute start-0 navbar-brand fw-bold text-primary fs-4">
-      Generator Orare
-    </span>
+<nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
+  <div className="container-fluid position-relative d-flex align-items-center justify-content-between">
+<Link to="/" className="navbar-brand text-primary fw-bold fs-6 m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none">
+  <span>Aplicație pentru planificare inteligentă</span>
+  <span className="small">utilizând tehnici de A.I.</span>
+</Link>
 
-    {/* Centru: Titlu */}
-   <span className="text-primary fw-bold fs-4">
-      📅 Orar Generat
-    </span>
 
-    {/* Dreapta: Butoane */}
-    <div className="position-absolute end-0 d-flex">
-      <button className="btn btn-outline-primary me-2" onClick={exportExcel}>
-        ⬇ Export Excel
-      </button>
-      <button className="btn btn-outline-primary me-2" onClick={exportPDF}>
-        🖨️ Export PDF
-      </button>
+
+
+    {/* Centru: Titlu orar, poziționat absolut pentru centrare perfectă */}
+    <div className="position-absolute top-50 start-50 translate-middle">
+      <span className="text-primary fw-bold fs-4">📅 Orar Generat</span>
     </div>
+
+    {/* Dropdown meniu utilizator */}
+    <div className="dropdown">
+      <button
+        className="btn btn-outline-dark dropdown-toggle"
+        type="button"
+        id="dropdownMenuButton"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <i className="bi bi-person-circle me-1"></i>
+        {user?.nume || "Utilizator"}
+      </button>
+      <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+        <li>
+          <span className="dropdown-item-text text-muted small">
+            👋 Salut, <strong>{user?.nume || "Utilizator"}</strong>
+          </span>
+        </li>
+        <li><hr className="dropdown-divider" /></li>
+        <li>
+          <Link className="dropdown-item" to="/dashboard">🏠 Acasă</Link>
+        </li>
+        <li>
+          <button className="dropdown-item text-danger" onClick={handleLogout}>
+            🚪 Deconectare
+          </button>
+        </li>
+      </ul>
+    </div>
+    
   </div>
 </nav>
+
 
 
 
