@@ -5,7 +5,10 @@ import { useLocation } from "react-router-dom";
 import Swal from "sweetalert2"; // pentru prompt elegant
 const GeneratedTimetable = () => {
   const [orar, setOrar] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loadingGPT, setLoadingGPT] = useState(false);
+  const [loadingClasic, setLoadingClasic] = useState(false);
+  const [cautareOrar, setCautareOrar] = useState("");
+
   const [profesori, setProfesori] = useState([]);
   const [sali, setSali] = useState([]);
   const [grupe, setGrupe] = useState([]);
@@ -81,7 +84,7 @@ useEffect(() => {
 
 
   const genereazaOrar = async () => {
-    setLoading(true);
+    setLoadingGPT(true);
 
 const instructiuniProfesori = profesori.map((p) => {
   const discipline = Array.isArray(p.discipline) && p.discipline.length > 0
@@ -282,33 +285,80 @@ try {
   console.error("Eroare la generare orar:", error);
 }
 
-    setLoading(false);
+    setLoadingGPT(false);
   };
 
+const genereazaOrarClasic = async () => {
+  setLoadingClasic(true);
+  try {
+    const response = await fetch("http://127.0.0.1:5000/genereaza_algoritm_propriu", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nivel_selectat: nivelSelectat,
+        an_selectat: anSelectat,
+        grupe_selectate: grupe
+          .filter((g) => g.nivel === nivelSelectat && g.an === anSelectat)
+          .map((g) => g.denumire),
+      }),
+    });
 
-  const zileOrdine = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"];
+    const data = await response.json();
+
+    try {
+      JSON.stringify(data);
+      setOrar(data);
+      valideazaOrarGenerat(data);
+      setEsteOrarSalvat(false);
+
+      await fetch("http://127.0.0.1:5000/salveaza_orar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nivel: nivelSelectat,
+          an: anSelectat,
+          orar: data,
+        }),
+      });
+    } catch (err) {
+      console.error("Răspunsul nu este JSON valid:", err);
+    }
+  } catch (error) {
+    console.error("Eroare la generare clasică:", error);
+  }
+
+  setLoadingClasic(false);
+};
+
 
 const exportExcel = () => {
   if (!orar) return;
+
   const wb = XLSX.utils.book_new();
+  const zileOrdine = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"];
 
   for (const nivel in orar) {
-    for (const an in orar[nivel]) {
+    for (const grupa in orar[nivel]) {
       const data = [];
 
-      for (const zi in orar[nivel][an]) {
-        const activitati = orar[nivel][an][zi];
+      for (const zi of zileOrdine) {
+        const activitati = orar[nivel][grupa][zi];
+        if (!activitati) continue;
 
-        for (const interval in activitati) {
+        const intervaleSortate = Object.keys(activitati).sort();
+
+        for (const interval of intervaleSortate) {
           const item = activitati[interval];
 
           data.push({
             Nivel: nivel,
-            An: an,
+            Grupa: grupa,
             Zi: zi,
             Interval: interval,
-            Disciplina: item?.activitate || "", // dacă este string simplu
-            Tip: item?.tip || "",                // dacă ai separat tipul
+            Disciplina: item?.activitate || "",
+            Tip: item?.tip || "",
             Profesor: item?.profesor || "",
             Sala: item?.sala || ""
           });
@@ -316,29 +366,45 @@ const exportExcel = () => {
       }
 
       const ws = XLSX.utils.json_to_sheet(data);
-      XLSX.utils.book_append_sheet(wb, ws, `${nivel}-${an}`);
+
+      // ✅ Setează lățimi pentru coloane
+      ws['!cols'] = [
+        { wch: 10 },  // Nivel
+        { wch: 12 },  // Grupa
+        { wch: 10 },  // Zi
+        { wch: 15 },  // Interval
+        { wch: 30 },  // Disciplina
+        { wch: 15 },  // Tip
+        { wch: 25 },  // Profesor
+        { wch: 10 }   // Sala
+      ];
+
+      // ✅ Adaugă sheet în workbook
+      XLSX.utils.book_append_sheet(wb, ws, `${nivel}-${grupa}`);
     }
   }
 
+  // ✅ Salvează fișierul Excel
   XLSX.writeFile(wb, "orar.xlsx");
 };
+
 
 const exportPDF = () => {
   if (!orar) return;
   const element = document.getElementById("orar-afisat");
 
   const optiuni = {
-    margin: [0.3, 0.3, 0.3, 0.3],
+    margin: [8.5, 8.5, 8.5, 8.5],
     filename: "orar.pdf",
     image: { type: "jpeg", quality: 1 },
     html2canvas: {
-      scale: 2.5,
+      scale: 8.5,
       useCORS: true,
       scrollY: 0
     },
     jsPDF: {
       unit: "mm",
-      format: "a3", // A3 pentru lățime mai mare
+      format: "a4", // A3 pentru lățime mai mare
       orientation: "landscape"
     },
     pagebreak: {
@@ -472,6 +538,7 @@ const incarcaOrarSalvat = async (id) => {
     const json = await r.json();
     console.log("Orar salvat încărcat:", json);
     setOrar(json);
+    valideazaOrarGenerat(json);
     setEsteOrarSalvat(true);
 
     const nivel = Object.keys(json)[0];
@@ -560,12 +627,10 @@ const valideazaOrarGenerat = (orarGenerat) => {
   let laboratoareValide = 0;
   let laboratoareTotale = 0;
 
-
-
   const grupeAnCurent = grupe.filter(
     (g) => g.nivel === nivelSelectat && g.an === anSelectat
   );
-  const toateGrupele = grupeAnCurent.map(g => g.denumire);
+  const toateGrupele = grupeAnCurent.map((g) => g.denumire);
 
   const activitatiDeSincronizat = {
     curs: {},
@@ -573,8 +638,14 @@ const valideazaOrarGenerat = (orarGenerat) => {
     proiect: {},
   };
 
+  const capitalize = (str) =>
+    str.split(" ").map(s => s[0]?.toUpperCase() + s.slice(1)).join(" ");
+
   // 🧠 Colectăm cursuri, seminarii și proiecte
   grupeAnCurent.forEach((g) => {
+    if (!g.grupa) {
+      g.grupa = g.denumire.slice(0, -1); // deducem grupa (ex: LI1a → LI1)
+    }
     const orarGrupa = orarGenerat[nivelSelectat]?.[g.denumire] || {};
     Object.entries(orarGrupa).forEach(([zi, intervale]) => {
       Object.entries(intervale).forEach(([interval, activ]) => {
@@ -589,6 +660,11 @@ const valideazaOrarGenerat = (orarGenerat) => {
           if (!activitatiDeSincronizat[tip][cheie]) activitatiDeSincronizat[tip][cheie] = [];
           activitatiDeSincronizat[tip][cheie].push({
             grupa: g.denumire,
+            grupa_logica: {
+              curs: g.an,
+              seminar: g.grupa,
+              proiect: g.grupa
+            }[tip],
             zi,
             interval,
             sala: activ.sala
@@ -598,25 +674,50 @@ const valideazaOrarGenerat = (orarGenerat) => {
     });
   });
 
-  // ✅ Verificare sincronizare curs/seminar/proiect
+  // ✅ Verificare sincronizare pe an / grupă
   Object.entries(activitatiDeSincronizat).forEach(([tipActivitate, activitati]) => {
     Object.entries(activitati).forEach(([cheie, aparitii]) => {
-      const ref = aparitii[0];
-      const grupeGasite = new Set(aparitii.map(a => a.grupa));
-      const grupeLipsa = toateGrupele.filter(gr => !grupeGasite.has(gr));
+      const [nume, prof] = cheie.split("|").map(capitalize);
 
-      const nesincronizate = aparitii.filter(
-        (a) => a.zi !== ref.zi || a.interval !== ref.interval || a.sala !== ref.sala
-      );
+      const grupate = {};
 
-      const [nume, prof] = cheie.split("|").map(s => s[0].toUpperCase() + s.slice(1));
+      aparitii.forEach((a) => {
+        const grup = a.grupa_logica;
+        if (!grupate[grup]) grupate[grup] = [];
+        grupate[grup].push(a);
+      });
 
-      if (grupeLipsa.length > 0) {
-        cursuriProblema.push(`❌ ${tipActivitate.charAt(0).toUpperCase() + tipActivitate.slice(1)} ${nume} – ${prof} lipsește din grupele: ${grupeLipsa.join(", ")}`);
-      }
-      if (nesincronizate.length > 0) {
-        cursuriProblema.push(`❌ ${tipActivitate.charAt(0).toUpperCase() + tipActivitate.slice(1)} ${nume} – ${prof} NU este sincronizat între grupele: ${nesincronizate.map(n => n.grupa).join(", ")}`);
-      }
+      Object.entries(grupate).forEach(([grup, lista]) => {
+        const ref = lista[0];
+        const nesincronizate = lista.filter(
+          (a) =>
+            a.zi !== ref.zi ||
+            a.interval !== ref.interval ||
+            a.sala !== ref.sala
+        );
+
+        const grupeGasite = new Set(lista.map(a => a.grupa));
+        const grupeCorecte = grupeAnCurent
+          .filter((g) => {
+            const refVal = {
+              curs: g.an,
+              seminar: g.grupa,
+              proiect: g.grupa
+            }[tipActivitate];
+            return refVal === grup;
+          })
+          .map((g) => g.denumire);
+
+        const grupeLipsa = grupeCorecte.filter(gr => !grupeGasite.has(gr));
+
+        if (grupeLipsa.length > 0) {
+          cursuriProblema.push(`❌ ${tipActivitate} ${nume} – ${prof} lipsește din: ${grupeLipsa.join(", ")}`);
+        }
+
+        if (nesincronizate.length > 0) {
+          cursuriProblema.push(`❌ ${tipActivitate} ${nume} – ${prof} NU este sincronizat în: ${nesincronizate.map(n => n.grupa).join(", ")}`);
+        }
+      });
     });
   });
 
@@ -641,65 +742,130 @@ const valideazaOrarGenerat = (orarGenerat) => {
     });
   });
 
-      // ✅ Verificare suprapuneri laboratoare
-    const eroriLaboratoare = [];
-    const subgrupeLaborator = grupeAnCurent.filter(g => g.subgrupa); // doar subgrupe
+  // ✅ Verificare suprapuneri laboratoare
+  const eroriLaboratoare = [];
+  const subgrupeLaborator = grupeAnCurent.filter(g => g.subgrupa);
+  const sloturiLaborator = {};
 
-    const sloturiLaborator = {};
-
-    subgrupeLaborator.forEach((g) => {
-      const orarGrupa = orarGenerat[nivelSelectat]?.[g.denumire] || {};
-      Object.entries(orarGrupa).forEach(([zi, intervale]) => {
-        Object.entries(intervale).forEach(([interval, activ]) => {
-          if (activ?.tip?.toLowerCase() === "laborator") {
-            const cheie = `${activ.activitate}|${activ.profesor}`.toLowerCase();
-
-            if (!sloturiLaborator[cheie]) sloturiLaborator[cheie] = [];
-
-            sloturiLaborator[cheie].push({
-              grupa: g.denumire,
-              zi,
-              interval,
-              sala: activ.sala
-            });
-          }
-        });
+  subgrupeLaborator.forEach((g) => {
+    const orarGrupa = orarGenerat[nivelSelectat]?.[g.denumire] || {};
+    Object.entries(orarGrupa).forEach(([zi, intervale]) => {
+      Object.entries(intervale).forEach(([interval, activ]) => {
+        if (activ?.tip?.toLowerCase() === "laborator") {
+          const cheie = `${activ.activitate}|${activ.profesor}`.toLowerCase();
+          if (!sloturiLaborator[cheie]) sloturiLaborator[cheie] = [];
+          sloturiLaborator[cheie].push({
+            grupa: g.denumire,
+            zi,
+            interval,
+            sala: activ.sala
+          });
+        }
       });
     });
+  });
 
-Object.entries(sloturiLaborator).forEach(([cheie, aparitii]) => {
-  laboratoareTotale += aparitii.length;
+  Object.entries(sloturiLaborator).forEach(([cheie, aparitii]) => {
+    laboratoareTotale += aparitii.length;
+    const combinatiiUnice = new Set(aparitii.map(a => `${a.zi}-${a.interval}`));
 
-  const combinatiiUnice = new Set(
-    aparitii.map((a) => `${a.zi}-${a.interval}`)
-  );
+    if (combinatiiUnice.size === aparitii.length) {
+      laboratoareValide += aparitii.length;
+    } else {
+      const grupeConflict = aparitii.map(a => a.grupa).join(", ");
+      const [disciplina, prof] = cheie.split("|").map(capitalize);
+      eroriLaboratoare.push(`❌ Laboratorul ${disciplina} – ${prof} este programat simultan pentru: ${grupeConflict}`);
+    }
+  });
 
-  if (combinatiiUnice.size === aparitii.length) {
-    laboratoareValide += aparitii.length;
-  } else {
-    const grupeConflict = aparitii.map(a => a.grupa).join(", ");
-    const [disciplina, prof] = cheie.split("|");
-    eroriLaboratoare.push(`❌ Laboratorul ${disciplina} – ${prof} este programat simultan pentru: ${grupeConflict}`);
-  }
+
+  // ✅ Verificare suprapuneri și duplicări pentru curs/seminar/proiect
+const eroriActivitati = {
+  seminar: [],
+  proiect: []
+};
+
+[ "seminar", "proiect"].forEach((tipActivitate) => {
+  const sloturi = {};
+
+  Object.entries(activitatiDeSincronizat[tipActivitate] || {}).forEach(([cheie, aparitii]) => {
+    aparitii.forEach((a) => {
+      const grupCheie = {
+        seminar: grupe.find(g => g.denumire === a.grupa).grupa,
+        proiect: grupe.find(g => g.denumire === a.grupa).grupa
+      }[tipActivitate];
+
+      const slot = `${grupCheie}|${a.zi}|${a.interval}`;
+      const fullCheie = `${cheie}|${slot}`;
+
+      if (!sloturi[fullCheie]) sloturi[fullCheie] = [];
+      sloturi[fullCheie].push(a.grupa);
+    });
+  });
+
+  Object.entries(sloturi).forEach(([fullCheie, grupeGasite]) => {
+    if (grupeGasite.length > 1) {
+      const [activitate, profesor, grup, zi, interval] = fullCheie.split("|").map(capitalize);
+      eroriActivitati[tipActivitate].push(`❌ ${tipActivitate} ${activitate} – ${profesor} apare simultan la mai multe grupe (${grupeGasite.join(", ")}) în ${zi}, ${interval}`);
+    }
+  });
 });
 
 
+  // 📊 Rezultat final
   const totalActivitatiFinal = totalActivitati + laboratoareTotale;
-const activitatiCorecteFinal = activitatiCorecte + laboratoareValide;
-const procent = Math.round((activitatiCorecteFinal / (totalActivitatiFinal || 1)) * 100);
+  const activitatiCorecteFinal = activitatiCorecte + laboratoareValide;
+  const procent = Math.round((activitatiCorecteFinal / (totalActivitatiFinal || 1)) * 100);
+
+  let mesaj = `📊 Acuratețe estimată: ${procent}% (${activitatiCorecteFinal} / ${totalActivitatiFinal} activități valide)\n\n`;
+
+  mesaj += `📘 Verificare sincronizare:\n${
+    cursuriProblema.length === 0
+      ? "✅ Cursuri, seminare și proiecte sunt sincronizate"
+      : cursuriProblema.join("\n")
+  }\n\n`;
+
+mesaj += `📚 Verificare seminarii/laboratoare:\n`;
+
+[ "seminar", "proiect"].forEach((tip) => {
+  mesaj += eroriActivitati[tip].length === 0
+    ? `✅ Nicio problemă la ${tip}e\n\n`
+    : eroriActivitati[tip].join("\n") 
+});
 
 
-const mesaj = `
-📊 Acuratețe estimată: ${procent || 0}% (${activitatiCorecteFinal} / ${totalActivitatiFinal} activități valide)
-${cursuriProblema.length === 0 ? "✅ Cursuri, seminare și proiecte sunt sincronizate" : cursuriProblema.join("\n")}
-${eroriLaboratoare.length === 0 ? "✅ Laboratoarele sunt distribuite corect între subgrupe" : eroriLaboratoare.join("\n")}
-${lipsuri.length === 0 ? "✅ Toate grupele au cele 4 tipuri de activități" : lipsuri.join("\n")}
-`.trim();
+  mesaj += `🧪 Verificare laboratoare:\n${
+    eroriLaboratoare.length === 0
+      ? "✅ Laboratoarele sunt distribuite corect între subgrupe"
+      : eroriLaboratoare.join("\n")
+  }\n\n`;
 
+  mesaj += `📋 Verificare completitudine:\n${
+    lipsuri.length === 0
+      ? "✅ Toate grupele au cele 4 tipuri de activități"
+      : lipsuri.join("\n")
+  }`;
 
-  setRaportValidare(mesaj);
+  setRaportValidare(mesaj.trim());
+
+  return {
+    procent,
+    mesaj: mesaj.trim(),
+    erori: {
+      cursuriProblema,
+      eroriLaboratoare,
+      lipsuri
+    }
+  };
 };
 
+
+
+const orareFiltrate = orareSalvate.filter((orar) =>
+  (orar.nume || `${orar.nivel} – ${orar.an}`)
+    .toLowerCase()
+    .includes(cautareOrar.toLowerCase())
+);
 
 
   return (
@@ -746,7 +912,23 @@ ${lipsuri.length === 0 ? "✅ Toate grupele au cele 4 tipuri de activități" : 
 </div>
 
 
+
 <div className="d-flex align-items-center mb-4 gap-3">
+  {/* Afișare regulă selectată (dacă există) */}
+  {regula_id && continutRegula && (
+    <div className="card shadow-sm border-0 p-0 w-auto" style={{ fontSize: "0.75rem", maxWidth: "360px" }}>
+      {denumireRegulaSelectata && (
+        <div className="alert alert-info d-flex justify-content-between align-items-center m-0 py-1 px-2">
+          <div>
+            <i className="bi bi-check-circle-fill me-1 text-primary"></i>
+            <strong>Regulă:</strong> <em>{denumireRegulaSelectata}</em>
+          </div>
+        </div>
+      )}
+    </div>
+  )}
+
+
 <label className="me-2 fw-semibold text-primary">🎯 Selectează anul:</label>
 <select
   className="form-select w-auto me-3"
@@ -771,29 +953,37 @@ ${lipsuri.length === 0 ? "✅ Toate grupele au cele 4 tipuri de activități" : 
   <option value="Master">Master</option>
 </select>
 
+<button
+  className="btn btn-success"
+  onClick={genereazaOrar}
+  disabled={loadingGPT || loadingClasic}
+>
+  {loadingGPT ? (
+    <>
+      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      Se generează...
+    </>
+  ) : (
+    "🚀 Generează orar"
+  )}
+</button>
+
+<button
+  className="btn btn-outline-secondary"
+  onClick={genereazaOrarClasic}
+  disabled={loadingGPT || loadingClasic}
+>
+  {loadingClasic ? (
+    <>
+      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      Se generează clasic...
+    </>
+  ) : (
+    "🧠 Generează clasic"
+  )}
+</button>
 
 
-
-
-
-        <button
-          className="btn btn-success"
-          onClick={genereazaOrar}
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <span
-                className="spinner-border spinner-border-sm me-2"
-                role="status"
-                aria-hidden="true"
-              ></span>
-              Se generează...
-            </>
-          ) : (
-            "🚀 Generează orar"
-          )}
-        </button>
       </div>
 
 {esteOrarSalvat && (
@@ -832,12 +1022,22 @@ ${lipsuri.length === 0 ? "✅ Toate grupele au cele 4 tipuri de activități" : 
     📂 Orare salvate anterior
   </div>
   <div className="card-body p-0">
-    {orareSalvate.length === 0 ? (
-      <p className="text-muted p-3 mb-0">Nu există orare salvate în sistem.</p>
+    <div className="p-3">
+      <input
+        type="text"
+        className="form-control"
+        placeholder="🔍 Caută orar după nume..."
+        value={cautareOrar}
+        onChange={(e) => setCautareOrar(e.target.value)}
+      />
+    </div>
+
+    {orareFiltrate.length === 0 ? (
+      <p className="text-muted px-3 pb-3 mb-0">Niciun orar găsit.</p>
     ) : (
       <div style={{ maxHeight: "300px", overflowY: "auto" }}>
         <ul className="list-group list-group-flush">
-          {orareSalvate.map((orar) => (
+          {orareFiltrate.map((orar) => (
             <li
               key={orar.id}
               className="list-group-item d-flex justify-content-between align-items-start flex-wrap"
@@ -856,6 +1056,7 @@ ${lipsuri.length === 0 ? "✅ Toate grupele au cele 4 tipuri de activități" : 
                   })}
                 </div>
               </div>
+              <div className="d-flex gap-2 mt-2 mt-sm-0">
                     <button
         className="btn btn-sm btn-outline-success"
         onClick={() => editeazaDenumire(orar.id, orar.nume)}
@@ -863,7 +1064,7 @@ ${lipsuri.length === 0 ? "✅ Toate grupele au cele 4 tipuri de activități" : 
         ✏️ Editează
       </button>
 
-              <div className="d-flex gap-2 mt-2 mt-sm-0">
+              
                 <button
                   className="btn btn-sm btn-outline-primary"
                   onClick={() => incarcaOrarSalvat(orar.id)}
@@ -884,53 +1085,6 @@ ${lipsuri.length === 0 ? "✅ Toate grupele au cele 4 tipuri de activități" : 
     )}
   </div>
 </div>
-
-
-
-{/*}
-{regula_id && continutRegula && (
-  <div
-    className="card shadow-sm border-0"
-    style={{
-      fontSize: "0.85rem",
-      marginTop: "0.5rem",
-      maxWidth: "500px", // opțional, pentru a-l face mai îngust
-    }}
-  >
-
-      {regula_id && denumireRegulaSelectata && (
-  <div className="alert alert-info d-flex justify-content-between align-items-center mt-3">
-    <div>
-      <i className="bi bi-check-circle-fill me-2 text-primary"></i>
-      <strong>Regulă selectată:</strong> <em>{denumireRegulaSelectata}</em>
-    </div>
-    <span className="badge bg-primary text-white">ID: {regula_id}</span>
-  </div>
-)}
-
-
-    <div
-      className="card-header bg-light fw-bold text-primary py-1 px-2"
-      style={{ fontSize: "0.9rem" }}
-    >
-      📜 Conținutul regulii selectate
-    </div>
-    <div
-      className="card-body py-2 px-2"
-      style={{
-        whiteSpace: "pre-wrap",
-        fontFamily: "monospace",
-        backgroundColor: "#f8f9fa",
-        fontSize: "0.8rem",
-        lineHeight: "1.3",
-      }}
-    >
-      {continutRegula}
-    </div>
-  </div>
-)}
-*/}
-
 
   
       {/* FOOTER */}

@@ -603,7 +603,7 @@ def date_orar():
         "sali": sali,
         "grupe": grupe,
         "reguli": regula,
-        "discipline": discipline  # 🔥 asta lipsea în JSON
+        "discipline": discipline  
     })
 
 
@@ -734,6 +734,21 @@ def editeaza_orar(id):
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/genereaza_algoritm_propriu", methods=["POST"])
+def genereaza_algoritm_propriu():
+    from algoritm_clasic import AlgoritmClasic
+
+    data = request.get_json()
+    nivel = data.get("nivel_selectat")
+    an = data.get("an_selectat")
+    grupe_selectate = data.get("grupe_selectate", [])
+
+    generator = AlgoritmClasic(nivel, an, grupe_selectate)
+    orar = generator.genereaza()
+
+    return jsonify(orar)
 
 
 if __name__ == '__main__':
