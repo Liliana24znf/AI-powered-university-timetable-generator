@@ -823,9 +823,16 @@ let activitatiCorecteFinal = activitatiCorecte + laboratoareValide;
 if (areErori) {
   activitatiCorecteFinal -= (cursuriProblema.length + eroriLaboratoare.length + lipsuri.length);
 
+  // Prevenim rezultat negativ
+  if (activitatiCorecteFinal < 0) {
+    activitatiCorecteFinal = 0;
+  }
 }
 
-const procent = Math.round((activitatiCorecteFinal / (totalActivitatiFinal || 1)) * 100);
+
+const procent = totalActivitatiFinal > 0
+  ? Math.round((activitatiCorecteFinal / totalActivitatiFinal) * 100)
+  : 0;
 
 
   let mesaj = `📊 Acuratețe estimată: ${procent}% (${activitatiCorecteFinal} / ${totalActivitatiFinal} activități valide)\n\n`;
@@ -997,35 +1004,41 @@ const orareFiltrate = orareSalvate.filter((orar) =>
 
       </div>
 
-{esteOrarSalvat && (
-  <div className="alert alert-warning d-flex align-items-center gap-2">
-    <i className="bi bi-info-circle-fill fs-5"></i>
-    <span>
-      Orarul afișat provine dintr-o <strong>salvare anterioară</strong>.
-    </span>
-    <button
-      className="btn btn-sm btn-outline-secondary ms-auto"
-      onClick={() => {
-        setOrar(null);
-        setEsteOrarSalvat(false);
-      }}
-    >
-      ❌ Golește orarul
-    </button>
-  </div>
-)}
-
 
 
 {renderOrar()}
-
 {raportValidare && (
-  <div className="alert alert-info mt-4" style={{ whiteSpace: "pre-wrap" }}>
-    <strong>📋 Raport de validare orar:</strong>
-    <br />
-    {raportValidare}
-  </div>
+  <>
+    <div className="alert alert-info mt-4" style={{ whiteSpace: "pre-wrap" }}>
+      <strong>📋 Raport de validare orar:</strong>
+      <br />
+      {raportValidare}
+    </div>
+
+    <div className="mt-5 text-center">
+      <h5 className="mb-3">
+        📥 Exportă orarul sau creează o altă generare.
+      </h5>
+      <button className="btn btn-success mx-2" onClick={exportPDF}>
+        🖨️ Export PDF
+      </button>
+      <button className="btn btn-success mx-2" onClick={exportExcel}>
+        ⬇ Export Excel
+      </button>
+      <button
+      className="btn btn-outline-primary mx-2"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    >
+      ➕ Orar nou
+    </button>
+
+    </div>
+  </>
 )}
+
+
+
+
 
 
 <div className="card shadow-sm border-0 mt-5">
@@ -1076,12 +1089,16 @@ const orareFiltrate = orareSalvate.filter((orar) =>
       </button>
 
               
-                <button
-                  className="btn btn-sm btn-outline-primary"
-                  onClick={() => incarcaOrarSalvat(orar.id)}
-                >
-                  🔄 Încarcă
-                </button>
+               <button
+  className="btn btn-sm btn-outline-primary"
+  onClick={() => {
+    incarcaOrarSalvat(orar.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }}
+>
+  🔄 Încarcă
+</button>
+
                 <button
                   className="btn btn-sm btn-outline-danger"
                   onClick={() => stergeOrar(orar.id)}
