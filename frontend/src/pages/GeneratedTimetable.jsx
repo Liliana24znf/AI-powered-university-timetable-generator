@@ -92,9 +92,19 @@ const instructiuniProfesori = profesori.map((p) => {
 }).join("\n");
 
 
-    const instructiuniSali = `Folosește DOAR următoarele coduri de săli, exact așa cum sunt scrise mai jos:\n` +
-  sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n") +
-  `\nNu inventa denumiri de săli. Afișează DOAR codul (ex: GC101).`;
+const instructiuniSali = `
+🏫 Săli disponibile:
+
+Folosește EXCLUSIV codurile de săli de mai jos. NU inventa denumiri, NU modifica formatul!
+
+${sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n")}
+
+‼️ IMPORTANT:
+- NU este permis să folosești alt cod de sală decât cele din listă.
+- NU folosi coduri generice (ex: A1, Sala 1, etc.) – sunt interzise!
+- În orar trebuie să apară DOAR codurile exacte (ex: GC1, GS2, GL3).
+`.trim();
+
 
 const instructiuniGrupe = grupe
   .filter(
@@ -109,40 +119,14 @@ const instructiuniGrupe = grupe
   .join("\n");
 
 
-const instructiuniGPT = `NU include chei precum "luni", "marti", etc. la nivel global. Toate activitățile trebuie să fie plasate exclusiv în interiorul structurii de grupe/subgrupe, sub Licenta și Master.
-🔒 REGULI GPT – REPARTIZARE SĂLI ȘI SINCRONIZARE ACTIVITĂȚI:
+const instructiuniGPT = `
+🔒 REGULI GPT PENTRU GENERAREA ORARULUI:
 
-1. 🧠 **Cursurile**:
-   - Cursurile sunt comune pentru întregul **an** (ex: toate grupele MI1a, MI1b).
-   - Fiecare curs trebuie să apară **exact în același interval orar**, în **aceeași zi**, cu **același profesor** și în **aceeași sală**, pentru toate grupele acelui an.
-   - NU este permis ca același curs să fie în momente diferite pentru grupe diferite.
-   - Se folosesc exclusiv săli cu prefix **GC**.
+📌 Structura generală:
+- NU include chei globale precum "luni", "marti" etc.
+- Toate activitățile trebuie plasate DOAR în interiorul grupelor/subgrupelor, sub cheile "Licenta" și "Master".
+- Formatul JSON trebuie să respecte modelul de mai jos (NU folosi array-uri, fiecare interval este un obiect):
 
-2. **Seminarele și proiectele**:
-   - Se desfășoară cu **fiecare grupă** în parte.
-   - Fiecare grupă are seminarul sau proiectul propriu, programat într-un **singur interval orar**, într-o **singură sală**.
-   - NU se suprapun seminarele/proiectele între grupe dacă au același profesor.
-   - Seminarele se țin doar în săli cu prefix **GS**.
-   - Proiectele se țin doar în săli cu prefix **GP**.
-
-3. **Laboratoarele**:
-   - Se desfășoară cu **fiecare subgrupă**.
-   - Trebuie programate în **intervale orare diferite** și, preferabil, în **săli diferite**, pentru a evita conflictele.
-   - Se țin exclusiv în săli cu prefix **GL**.
-   - NU se suprapun laboratoarele între subgrupe dacă au același profesor sau sală.
-
-4. **Condiții suplimentare pentru săli**:
-   - O sală **NU poate fi folosită simultan** în același interval orar de mai multe activități, indiferent de nivel, grupă sau tip.
-   - O sală **NU poate fi alocată** în același timp la **licență și master**.
-
-‼️ IMPORTANT:
-- Respectă strict corespondența între tipul activității și prefixul sălii:  
-  - Curs → GC  
-  - Seminar → GS  
-  - Proiect → GP  
-  - Laborator → GL
-
-NU folosi array-uri pentru activități. Fiecare interval este un obiect.
 {
   "Licenta": {
     "LI1a": {
@@ -153,46 +137,83 @@ NU folosi array-uri pentru activități. Fiecare interval este un obiect.
           "profesor": "Maria Ionescu",
           "sala": "GC1"
         }
-      },
-      ...
+      }
     }
-  },
-  
+  }
 }
-6. Cursurile se țin cu întregul an și trebuie să apară **simultan** (aceeași zi, oră, sală, profesor) pentru toate grupele din acel an.
 
-7. Seminarele și proiectele se țin cu GRUPA. Ele pot apărea în **zile și intervale orare diferite între grupe**, dar NU pot fi susținute simultan de același profesor la grupe diferite.
+---
 
-8. Laboratoarele se țin cu SUBGRUPA. Ele pot apărea **independent** (altă zi, altă oră) și nu trebuie să fie identice între grupe.
+📚 1. **CURSURI (pe AN)**
+- Cursurile se organizează O SINGURĂ DATĂ pentru întregul AN (ex: LI2a, LI2b, LI2c).
+- Toate grupele din același an trebuie să aibă cursul în ACELAȘI MOMENT.
+- Trebuie să apară:
+  ✅ în ACEEAȘI ZI,  
+  ✅ în ACELAȘI INTERVAL ORAR,  
+  ✅ în ACEEAȘI SALĂ,  
+  ✅ cu ACELAȘI PROFESOR  
+  în toate grupele acelui an.
+- NU genera cursuri individuale per grupă!
+- Se folosesc exclusiv săli cu prefix **GC**.
+- NU omite nicio grupă din an: toate trebuie să aibă TOATE cursurile comune.
 
-9. Grupele nu trebuie să aibă activități în aceleași intervale orare. Este permis ca o grupă să aibă 4 activități luni, iar alta doar 2. Regula de 4–8 ore/zi/grupă se aplică individual.
+🧩 2. **SEMINARE & PROIECTE (pe GRUPĂ)**
+- Se organizează individual pentru fiecare grupă (ex: LI1a, LI1b).
+- NU este permisă suprapunerea în același interval pentru activități cu același profesor.
+- Fiecare activitate are:
+  ✅ o zi,  
+  ✅ un interval orar,  
+  ✅ o sală.
+- Seminare → prefix **GS**
+- Proiecte → prefix **GP**
 
-10. Fiecare orar generat trebuie să includă toate cele 4 tipuri de activități:
-   - cel puțin 1 Curs (cu anul)
-   - cel puțin 1 Seminar (cu grupa)
-   - cel puțin 1 Proiect (cu grupa)
-   - cel puțin 1 Laborator (cu subgrupa)
-   Distribuie-le pe parcursul săptămânii pentru fiecare grupă/subgrupă.
+🧪 3. **LABORATOARE (pe SUBGRUPĂ)**
+- Fiecare subgrupă are laboratorul propriu.
+- Laboratoarele NU trebuie să fie în același interval orar pentru subgrupe diferite.
+- Se recomandă folosirea de săli diferite.
+- Prefix sală: **GL**
+- NU este permisă suprapunerea dacă au același profesor sau sală.
 
+🏛️ 4. **REGULI PENTRU SĂLI**
+- O sală NU poate fi folosită simultan de mai multe activități (nici măcar la niveluri diferite).
+- Sălile NU se împart între licență și master în același interval.
+- Prefixe:
+  - GC → Curs
+  - GS → Seminar
+  - GP → Proiect
+  - GL → Laborator
 
+⚠️ 5. **OBLIGAȚII FINALE**
+- Fiecare grupă/subgrupă trebuie să aibă:
+  ✅ cel puțin 1 Curs (cu anul)  
+  ✅ cel puțin 1 Seminar (cu grupa)  
+  ✅ cel puțin 1 Proiect (cu grupa)  
+  ✅ cel puțin 1 Laborator (cu subgrupa)
+- Distribuie activitățile uniform pe parcursul săptămânii (Luni–Vineri).
+- Respectă regula de 4–8 ore/zi pentru fiecare grupă.
+- Grupele pot avea un număr diferit de activități zilnic, dar NU se suprapun.
 
-`; 
-
+`.trim();
 
 const promptFinal = `
-🔒 GENEREAZĂ EXCLUSIV pentru nivelul: ${nivelSelectat}, anul: ${anSelectat}.
-NU include alte niveluri. NU omite seminare sau laboratoare.
-
 
 
 🔒 GENEREAZĂ DOAR PENTRU NIVELUL: **${nivelSelectat}**, anul: **${anSelectat}**.
 ‼️ NU include date din alt nivel. Dacă este Master, NU include Licență.
+
+‼️ IMPORTANT:
+- Cursurile trebuie să fie IDENTICE (zi, oră, sală, profesor) pentru TOATE grupele din același an.  
+- Seminarele și proiectele trebuie să fie planificate SEPARAT pentru fiecare GRUPĂ.  
+- Laboratoarele trebuie să fie planificate SEPARAT pentru fiecare SUBGRUPĂ, în intervale diferite.  
+
 
 ✅ LISTA COMPLETĂ de profesori și discipline (nu inventa altele):
 ${instructiuniProfesori}
 
 🏫 Săli disponibile:
 ${instructiuniSali}
+🚫 NU este permis să generezi săli fictive (ex: M101, A2, B5).
+✅ Folosește DOAR codurile de săli din lista transmisă. Fără excepții.
 
 👥 Grupe selectate (${nivelSelectat}, anul ${anSelectat}):
 ${instructiuniGrupe}
@@ -361,7 +382,9 @@ const renderOrar = () => {
 
   return (
     <div className="table-responsive" id="orar-afisat">
-      {Object.entries(orar).map(([nivel, grupeOrar]) => (
+      {Object.entries(orar)
+      .filter(([nivel]) => nivel === nivelSelectat)
+      .map(([nivel, grupeOrar]) => (
         <div key={nivel}>
           <h2 className="text-primary fw-bold">{nivel}</h2>
           {Object.entries(grupeOrar).map(([denumireGrupa, zile]) => {
@@ -534,6 +557,10 @@ const valideazaOrarGenerat = (orarGenerat) => {
   const lipsuri = [];
   let totalActivitati = 0;
   let activitatiCorecte = 0;
+  let laboratoareValide = 0;
+  let laboratoareTotale = 0;
+
+
 
   const grupeAnCurent = grupe.filter(
     (g) => g.nivel === nivelSelectat && g.an === anSelectat
@@ -614,13 +641,61 @@ const valideazaOrarGenerat = (orarGenerat) => {
     });
   });
 
-  const procent = Math.round((activitatiCorecte / (totalActivitati || 1)) * 100);
+      // ✅ Verificare suprapuneri laboratoare
+    const eroriLaboratoare = [];
+    const subgrupeLaborator = grupeAnCurent.filter(g => g.subgrupa); // doar subgrupe
 
-  const mesaj = `
-📊 Acuratețe estimată: ${procent || 0}% (${activitatiCorecte} / ${totalActivitati} activități valide)
-${cursuriProblema.length === 0 ? "✅ Cursuri, seminarii și proiecte sunt sincronizate" : cursuriProblema.join("\n")}
+    const sloturiLaborator = {};
+
+    subgrupeLaborator.forEach((g) => {
+      const orarGrupa = orarGenerat[nivelSelectat]?.[g.denumire] || {};
+      Object.entries(orarGrupa).forEach(([zi, intervale]) => {
+        Object.entries(intervale).forEach(([interval, activ]) => {
+          if (activ?.tip?.toLowerCase() === "laborator") {
+            const cheie = `${activ.activitate}|${activ.profesor}`.toLowerCase();
+
+            if (!sloturiLaborator[cheie]) sloturiLaborator[cheie] = [];
+
+            sloturiLaborator[cheie].push({
+              grupa: g.denumire,
+              zi,
+              interval,
+              sala: activ.sala
+            });
+          }
+        });
+      });
+    });
+
+Object.entries(sloturiLaborator).forEach(([cheie, aparitii]) => {
+  laboratoareTotale += aparitii.length;
+
+  const combinatiiUnice = new Set(
+    aparitii.map((a) => `${a.zi}-${a.interval}`)
+  );
+
+  if (combinatiiUnice.size === aparitii.length) {
+    laboratoareValide += aparitii.length;
+  } else {
+    const grupeConflict = aparitii.map(a => a.grupa).join(", ");
+    const [disciplina, prof] = cheie.split("|");
+    eroriLaboratoare.push(`❌ Laboratorul ${disciplina} – ${prof} este programat simultan pentru: ${grupeConflict}`);
+  }
+});
+
+
+  const totalActivitatiFinal = totalActivitati + laboratoareTotale;
+const activitatiCorecteFinal = activitatiCorecte + laboratoareValide;
+const procent = Math.round((activitatiCorecteFinal / (totalActivitatiFinal || 1)) * 100);
+
+
+const mesaj = `
+📊 Acuratețe estimată: ${procent || 0}% (${activitatiCorecteFinal} / ${totalActivitatiFinal} activități valide)
+${cursuriProblema.length === 0 ? "✅ Cursuri, seminare și proiecte sunt sincronizate" : cursuriProblema.join("\n")}
+${eroriLaboratoare.length === 0 ? "✅ Laboratoarele sunt distribuite corect între subgrupe" : eroriLaboratoare.join("\n")}
 ${lipsuri.length === 0 ? "✅ Toate grupele au cele 4 tipuri de activități" : lipsuri.join("\n")}
-  `.trim();
+`.trim();
+
 
   setRaportValidare(mesaj);
 };

@@ -128,8 +128,8 @@ def completeaza_grupe_lipsa(orar_json, grupe_licenta=None, grupe_master=None):
 @app.route('/genereaza_orar', methods=['POST'])
 def genereaza_orar():
     data = request.get_json()
+    prompt_frontend = data.get("prompt")  # 👈 Preia promptul exact din frontend
     regula_id = data.get("regula_id")
-    an_selectat = data.get("an_selectat")
     nivel_selectat = data.get("nivel_selectat")
     grupe_selectate = data.get("grupe_selectate", [])
 
@@ -137,97 +137,47 @@ def genereaza_orar():
         return jsonify({"error": "ID-ul regulii nu a fost transmis."}), 400
     if not grupe_selectate:
         return jsonify({"error": "Nu au fost selectate grupele."}), 400
+    if not prompt_frontend:
+        return jsonify({"error": "Promptul final nu a fost transmis din frontend."}), 400
 
     try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # 🔍 Ia regula
-        cursor.execute("SELECT continut FROM reguli WHERE id = %s", (regula_id,))
-        regula_row = cursor.fetchone()
-
-        if not regula_row:
-            cursor.close()
-            conn.close()
-            return jsonify({"error": "Regula nu a fost găsită în baza de date."}), 404
-
-        reguli = regula_row["continut"]
-
-        # 🔄 Grupele selectate
-        prompt_grupe = (
-            f"Grupele selectate pentru nivelul {nivel_selectat}, anul {an_selectat}:\n"
-            f"{', '.join(grupe_selectate)}\n\n"
-        )
-
-        # 🔗 Relații profesori-discipline-tip-nivel
-        cursor.execute("""
-            SELECT p.nume AS profesor,
-                   dp.denumire AS disciplina,
-                   dp.tip,
-                   dp.nivel
-            FROM discipline_profesori dp
-            JOIN profesori p ON dp.profesor_id = p.id
-        """)
-        rows = cursor.fetchall()
-
-        relatii_profesori = {}
-        for row in rows:
-            nume = row["profesor"]
-            if nume not in relatii_profesori:
-                relatii_profesori[nume] = []
-            relatii_profesori[nume].append({
-                "denumire": row["disciplina"],
-                "tip": row["tip"].split(",") if "," in row["tip"] else [row["tip"]],
-                "nivel": row["nivel"]
-            })
-
-        lista_finala = [
-            {"profesor": nume, "discipline": discipline}
-            for nume, discipline in relatii_profesori.items()
-        ]
-
-        cursor.close()
-        conn.close()
-
-        prompt_profesori = "📚 Relații profesori-discipline:\n" + json.dumps(lista_finala, indent=2, ensure_ascii=False) + "\n\n"
-        instructiuni = prompt_grupe + prompt_profesori + reguli
-
-        # 🧠 Trimite la GPT
+        # Trimite direct promptul complet la GPT
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Răspunde DOAR cu JSON VALID, fără explicații. STRUCTURA OBLIGATORIE: { Licenta: { grupa: { zi: { interval: { activitate, tip, profesor, sala }}}}, Master: { ... } }. NU adăuga chei globale precum 'Luni', 'Marti' etc. Orarul trebuie să fie împărțit exclusiv pe grupe."},
-                {"role": "user", "content": instructiuni}
+                {
+                    "role": "system",
+                    "content": "Răspunde DOAR cu JSON VALID, fără explicații. STRUCTURA OBLIGATORIE: { Licenta: { grupa: { zi: { interval: { activitate, tip, profesor, sala }}}}, Master: { ... } }. NU adăuga chei globale precum 'Luni', 'Marti' etc. Orarul trebuie să fie împărțit exclusiv pe grupe."
+                },
+                {
+                    "role": "user",
+                    "content": prompt_frontend  # 👈 promptFinal de la frontend
+                }
             ]
         )
 
         orar_raw = response.choices[0].message.content.strip()
 
-        # ✅ Curățare și parsare JSON
+        # ✅ Parsare JSON
         start = orar_raw.find('{')
         end = orar_raw.rfind('}') + 1
         json_str = orar_raw[start:end]
 
         json_str = json_str.replace("“", "\"").replace("”", "\"").replace("‘", "'").replace("’", "'")
         lines = json_str.splitlines()
-        clean_lines = []
-        for line in lines:
-            line = re.sub(r'//.*', '', line)
-            if "..." not in line and line.strip():
-                clean_lines.append(line)
-        json_str_cleaned = "\n".join(clean_lines)
-        json_str_cleaned = re.sub(r",\s*([\]})])", r"\1", json_str_cleaned)
+        clean_lines = [re.sub(r'//.*', '', line) for line in lines if "..." not in line and line.strip()]
+        json_str_cleaned = re.sub(r",\s*([\]})])", r"\1", "\n".join(clean_lines))
 
         orar_json = json.loads(json_str_cleaned)
 
-        # 🔁 Completează doar grupele selectate
+        # 🔁 Completează grupele lipsă
         orar_json = completeaza_grupe_lipsa(
             orar_json,
             grupe_licenta=grupe_selectate if nivel_selectat == "Licenta" else [],
             grupe_master=grupe_selectate if nivel_selectat == "Master" else []
         )
 
-        print(">>> Orar generat (parsare reușită) <<<")
+        print(">>> Orar generat <<<")
         print(json.dumps(orar_json, indent=2, ensure_ascii=False))
         return jsonify(orar_json)
 
@@ -236,7 +186,6 @@ def genereaza_orar():
         print(">>> Răspuns complet GPT <<<")
         print(orar_raw)
         return jsonify({"error": "Orarul generat nu este într-un format JSON valid."}), 500
-
 
 
 @app.route("/adauga_profesor", methods=["POST"])
