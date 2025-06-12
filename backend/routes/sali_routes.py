@@ -77,20 +77,20 @@ def toate_sali():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@sali_bp.route("/sali_dupa_tip", methods=["GET"])
-def sali_dupa_tip():
-    tip = request.args.get("tip")
-    if tip not in ['Curs', 'Laborator', 'Seminar','Proiect']:
-        return jsonify({"success": False, "error": "Tip invalid"}), 400
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM sali WHERE tip = %s", (tip,))
-        sali = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(sali)
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+# @sali_bp.route("/sali_dupa_tip", methods=["GET"])
+# def sali_dupa_tip():
+#     tip = request.args.get("tip")
+#     if tip not in ['Curs', 'Laborator', 'Seminar','Proiect']:
+#         return jsonify({"success": False, "error": "Tip invalid"}), 400
+#
+#     try:
+#         conn = get_connection()
+#         cursor = conn.cursor(dictionary=True)
+#         cursor.execute("SELECT * FROM sali WHERE tip = %s", (tip,))
+#         sali = cursor.fetchall()
+#         cursor.close()
+#         conn.close()
+#         return jsonify(sali)
+#     except Exception as e:
+#         return jsonify({"success": False, "error": str(e)}), 500
 
