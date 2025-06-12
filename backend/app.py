@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from routes.grupe_routes import grupe_bp
+from routes.sali_routes import sali_bp
 
 
 import re
@@ -24,6 +25,7 @@ client = OpenAI(api_key="sk-proj-IK-_U8AOiNI6SfB69g-u5FaadS0oVg3VcH8XGBLUsBnZHdh
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 app.register_blueprint(grupe_bp)
+app.register_blueprint(sali_bp)
 
 
 
@@ -335,96 +337,6 @@ def actualizeaza_profesor(id):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
-@app.route("/adauga_sali", methods=["POST"])
-def adauga_sali():
-    sali = request.get_json()
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        for sala in sali:
-            cursor.execute(
-                "INSERT INTO sali (cod, tip) VALUES (%s, %s)",
-                (sala["cod"], sala["tip"])
-            )
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({"success": True, "message": "Săli adăugate cu succes."})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route("/sterge_sali", methods=["POST"])
-def sterge_sali():
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM sali")
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({"success": True, "message": "Toate sălile au fost șterse."})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route('/sterge_sali_selectate', methods=['POST'])
-def sterge_sali_selectate():
-    data = request.get_json()
-    coduri = data.get("coduri", [])
-
-    if not coduri:
-        return jsonify({"success": False, "error": "Lista de coduri este goală."}), 400
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        format_strings = ','.join(['%s'] * len(coduri))  # ex: %s, %s, %s
-        query = f"DELETE FROM sali WHERE cod IN ({format_strings})"
-        cursor.execute(query, coduri)
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return jsonify({"success": True, "message": "Sălile selectate au fost șterse."})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route("/toate_sali", methods=["GET"])
-def toate_sali():
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT * FROM sali
-            ORDER BY 
-                tip,
-                CAST(SUBSTRING(cod, 3) AS UNSIGNED)
-        """)
-        sali = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(sali)
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route("/sali_dupa_tip", methods=["GET"])
-def sali_dupa_tip():
-    tip = request.args.get("tip")
-    if tip not in ['Curs', 'Laborator', 'Seminar','Proiect']:
-        return jsonify({"success": False, "error": "Tip invalid"}), 400
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM sali WHERE tip = %s", (tip,))
-        sali = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(sali)
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
 
 
 
