@@ -28,3 +28,12 @@ class Database:
         self.connection.close()
 
 
+# Funcție simplă compatibilă cu rutele existente
+def get_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="licenta",
+        port=3306
+    )
