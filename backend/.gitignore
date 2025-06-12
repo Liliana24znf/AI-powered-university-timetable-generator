@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# VSCode
+.vscode/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Logs
+*.log
+
+# Compiled frontend (dacă folosești vite/react)
+frontend/dist/
+frontend/.vite/
+
+# DB dumps (opțional)
+*.sqlite3
+*.db
+
+# Cache
+*.cache
