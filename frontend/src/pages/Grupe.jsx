@@ -1,4 +1,3 @@
-// Grupe.jsx
 import React from "react";
 import { ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -20,10 +19,86 @@ const Grupe = () => {
     genereazaGrupe, adaugaGrupaIndividuala,
     stergeGrupa, stergeSelectie,
     toggleSelect, grupePeNivelSiAn,
-    fetchGrupe
+    fetchGrupe,
+    handleEditSectiune, handleToggleAll,
   } = useGrupeLogic();
 
   const navigate = useNavigate();
+
+
+  // ✅ Extragem afișarea în funcție de stare (fără ternare)
+  let continutGrupe;
+  if (isLoading) {
+    continutGrupe = (
+      <div className="text-center py-4">
+        <div className="spinner-border text-primary" />
+      </div>
+    );
+  } else if (grupeGenerat.length === 0) {
+    continutGrupe = (
+      <div className="text-center text-muted">
+        <i className="bi bi-folder-x fs-1 d-block mb-2" />
+        <span>Nu există grupe înregistrate momentan.</span>
+      </div>
+    );
+  } else if (grupePeNivelSiAn().length === 0) {
+    continutGrupe = (
+      <div className="text-center text-secondary py-5">
+        <i className="bi bi-emoji-frown fs-1 text-warning mb-3 d-block" />
+        <h5 className="fw-bold">Nicio grupă găsită</h5>
+        <p className="mb-0">Verifică termenul introdus.</p>
+      </div>
+    );
+  } else {
+    continutGrupe = grupePeNivelSiAn().map((sectiune) => {
+      const esteInEditare =
+        editSectiune?.nivel === sectiune.titlu.split(' - ')[0] &&
+        editSectiune?.an === sectiune.titlu.split(' - ')[1].replace('Anul ', '');
+      const toateSelectate = sectiune.grupe.every((gr) => grupeSelectate.includes(gr.denumire));
+      const selectAllLabel = toateSelectate ? "❌ Deselectează toate" : "✅ Selectează toate";
+
+      return (
+        <div key={sectiune.titlu} className="mb-4">
+          <h6 className="fw-bold d-flex justify-content-between align-items-center text-secondary">
+            {sectiune.titlu}
+            <div>
+              <button className="btn btn-sm btn-outline-secondary me-2 rounded-3" onClick={() => handleEditSectiune(sectiune.titlu)}>✏️ Editează</button>
+              <button className="btn btn-sm btn-outline-primary rounded-3" onClick={() => handleToggleAll(sectiune)}>{selectAllLabel}</button>
+            </div>
+          </h6>
+
+          <ul className="list-group">
+            {sectiune.grupe.map((gr) => (
+              <li key={gr.denumire} className="list-group-item d-flex align-items-center border-0 border-bottom py-2">
+                <input type="checkbox" className="form-check-input me-3" checked={grupeSelectate.includes(gr.denumire)} onChange={() => toggleSelect(gr.denumire)} />
+                <div className="d-flex flex-column">
+                  <span className="fw-bold text-dark">🧑‍🎓 {gr.denumire}</span>
+                  <div className="small text-muted">
+                    <span className="badge bg-primary me-1">{gr.nivel}</span>
+                    <span className="badge bg-secondary me-1">An {gr.an}</span>
+                    <span className="badge bg-success me-1">Grupa {gr.grupa}</span>
+                    {gr.subgrupa && <span className="badge bg-info text-dark">Subgrupa {gr.subgrupa}</span>}
+                  </div>
+                </div>
+                <button className="btn btn-sm btn-outline-danger ms-auto rounded-3" onClick={() => stergeGrupa(gr.denumire)}>🗑️</button>
+              </li>
+            ))}
+          </ul>
+
+          {esteInEditare && (
+            <div className="card bg-light p-3 mt-3 border-0 rounded-3">
+              <h6 className="fw-bold mb-3">➕ Adaugă o grupă nouă (ex: 2b)</h6>
+              <div className="input-group">
+                <input className="form-control" value={grupaNoua} onChange={(e) => setGrupaNoua(e.target.value)} placeholder="ex: 2b" />
+                <button className="btn btn-success" onClick={adaugaGrupaIndividuala}>Adaugă</button>
+                <button className="btn btn-outline-secondary" onClick={() => { setEditSectiune(null); setGrupaNoua(""); }}>Anulează</button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    });
+  }
 
   return (
     <div className="container-fluid pt-4 px-4">
@@ -108,113 +183,34 @@ const Grupe = () => {
           <div className="card border-0 shadow rounded-4 p-4 bg-white">
             <h4 className="mb-4 text-primary fw-bold text-center">⚙️ Configurare Grupe</h4>
 
-            <label className="form-label fw-semibold">Nivel:</label>
-            <select className="form-select rounded-3 mb-3" value={nivel} onChange={(e) => setNivel(e.target.value)}>
+            <label className="form-label fw-semibold" htmlFor="nivel-select">Nivel:</label>
+            <select id="nivel-select" className="form-select rounded-3 mb-3" value={nivel} onChange={(e) => setNivel(e.target.value)}>
               <option value="Licenta">Licență</option>
               <option value="Master">Master</option>
             </select>
 
-            <label className="form-label fw-semibold">An:</label>
-            <select className="form-select rounded-3 mb-3" value={an} onChange={(e) => setAn(e.target.value)}>
+            <label className="form-label fw-semibold" htmlFor="an-select">An:</label>
+            <select id="an-select" className="form-select rounded-3 mb-3" value={an} onChange={(e) => setAn(e.target.value)}>
               <option value="I">I</option><option value="II">II</option><option value="III">III</option><option value="IV">IV</option>
             </select>
 
-            <label className="form-label fw-semibold">Număr Grupe:</label>
-            <input type="number" className="form-control rounded-3 mb-3" min="1" value={nrGrupe} onChange={(e) => setNrGrupe(parseInt(e.target.value) || 1)} />
+            <label className="form-label fw-semibold" htmlFor="nrGrupe-input">Număr Grupe:</label>
+            <input id="nrGrupe-input" type="number" className="form-control rounded-3 mb-3" min="1" value={nrGrupe} onChange={(e) => setNrGrupe(parseInt(e.target.value) || 1)} />
 
-            <label className="form-label fw-semibold">Subgrupe / Grupa:</label>
-            <input type="number" className="form-control rounded-3 mb-4" min="1" value={nrSubgrupe} onChange={(e) => setNrSubgrupe(parseInt(e.target.value) || 1)} />
+            <label className="form-label fw-semibold" htmlFor="nrSubgrupe-input">Subgrupe / Grupa:</label>
+            <input id="nrSubgrupe-input" type="number" className="form-control rounded-3 mb-4" min="1" value={nrSubgrupe} onChange={(e) => setNrSubgrupe(parseInt(e.target.value) || 1)} />
 
             <button className="btn btn-primary w-100 rounded-3 fw-bold" onClick={genereazaGrupe}>✅ Generează Grupe</button>
           </div>
         </div>
 
-        {/* Afișare grupe existente */}
+
+        {/* 📋 Afișare grupe */}
         <div className="col-md-7">
           <div className="card border-0 shadow rounded-4 p-4 bg-white">
             <h5 className="mb-4 text-primary fw-bold">📋 Grupe existente</h5>
-
             <input type="text" className="form-control rounded-3 mb-3" placeholder="🔍 Caută după denumire..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-
-            {isLoading ? (
-              <div className="text-center py-4"><div className="spinner-border text-primary" /></div>
-            ) : grupeGenerat.length === 0 ? (
-              <div className="text-center text-muted">
-                <i className="bi bi-folder-x fs-1 d-block mb-2" />
-                <span>Nu există grupe înregistrate momentan.</span>
-              </div>
-            ) : grupePeNivelSiAn().length === 0 ? (
-              <div className="text-center text-secondary py-5">
-                <i className="bi bi-emoji-frown fs-1 text-warning mb-3 d-block" />
-                <h5 className="fw-bold">Nicio grupă găsită</h5>
-                <p className="mb-0">Verifică termenul introdus.</p>
-              </div>
-            ) : (
-              grupePeNivelSiAn().map((sectiune) => {
-                const esteInEditare =
-                  editSectiune?.nivel === sectiune.titlu.split(' - ')[0] &&
-                  editSectiune?.an === sectiune.titlu.split(' - ')[1].replace('Anul ', '');
-
-                const toateSelectate = sectiune.grupe.every((gr) => grupeSelectate.includes(gr.denumire));
-                const selectAllLabel = toateSelectate ? "❌ Deselectează toate" : "✅ Selectează toate";
-
-                return (
-                  <div key={sectiune.titlu} className="mb-4">
-                    <h6 className="fw-bold d-flex justify-content-between align-items-center text-secondary">
-                      {sectiune.titlu}
-                      <div>
-                        <button className="btn btn-sm btn-outline-secondary me-2 rounded-3" onClick={() =>
-                          setEditSectiune({
-                            nivel: sectiune.titlu.split(' - ')[0],
-                            an: sectiune.titlu.split(' - ')[1].replace('Anul ', '')
-                          })
-                        }>✏️ Editează</button>
-
-                        <button className="btn btn-sm btn-outline-primary rounded-3" onClick={() => {
-                          if (toateSelectate) {
-                            setGrupeSelectate((prev) => prev.filter((cod) => !sectiune.grupe.some((g) => g.denumire === cod)));
-                          } else {
-                            setGrupeSelectate((prev) => [
-                              ...prev,
-                              ...sectiune.grupe.map((g) => g.denumire).filter((cod) => !prev.includes(cod))
-                            ]);
-                          }
-                        }}>{selectAllLabel}</button>
-                      </div>
-                    </h6>
-
-                    <ul className="list-group">
-                      {sectiune.grupe.map((gr) => (
-                        <li key={gr.denumire} className="list-group-item d-flex align-items-center border-0 border-bottom py-2">
-                          <input type="checkbox" className="form-check-input me-3" checked={grupeSelectate.includes(gr.denumire)} onChange={() => toggleSelect(gr.denumire)} />
-                          <div className="d-flex flex-column">
-                            <span className="fw-bold text-dark">🧑‍🎓 {gr.denumire}</span>
-                            <div className="small text-muted">
-                              <span className="badge bg-primary me-1">{gr.nivel}</span>
-                              <span className="badge bg-secondary me-1">An {gr.an}</span>
-                              <span className="badge bg-success me-1">Grupa {gr.grupa}</span>
-                              {gr.subgrupa && <span className="badge bg-info text-dark">Subgrupa {gr.subgrupa}</span>}
-                            </div>
-                          </div>
-                          <button className="btn btn-sm btn-outline-danger ms-auto rounded-3" onClick={() => stergeGrupa(gr.denumire)}>🗑️</button>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {esteInEditare && (
-                      <div className="card bg-light p-3 mt-3 border-0 rounded-3">
-                        <h6 className="fw-bold mb-3">➕ Adaugă o grupă nouă (ex: 2b)</h6>
-                        <div className="input-group">
-                          <input className="form-control" value={grupaNoua} onChange={(e) => setGrupaNoua(e.target.value)} placeholder="ex: 2b" />
-                          <button className="btn btn-success" onClick={adaugaGrupaIndividuala}>Adaugă</button>
-                          <button className="btn btn-outline-secondary" onClick={() => { setEditSectiune(null); setGrupaNoua(""); }}>Anulează</button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
+            {continutGrupe}
           </div>
         </div>
       </div>

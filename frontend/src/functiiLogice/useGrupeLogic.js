@@ -203,6 +203,32 @@ const useGrupeLogic = () => {
       }));
   };
 
+
+    // 🔁 Funcții extrase (evită nesting excesiv)
+  const handleEditSectiune = (titlu) => {
+    const [nivel, an] = titlu.split(" - Anul ");
+    setEditSectiune({ nivel, an });
+  };
+const isGroupInSection = (cod, grupeSectiune) => {
+  return grupeSectiune.some((gr) => gr.denumire === cod);
+};
+
+  const handleToggleAll = (sectiune) => {
+    const toateSelectate = sectiune.grupe.every((gr) => grupeSelectate.includes(gr.denumire));
+    if (toateSelectate) {
+      setGrupeSelectate((prev) =>
+        prev.filter((cod) => !isGroupInSection(cod, sectiune.grupe))
+      );
+    } else {
+      setGrupeSelectate((prev) => [
+        ...prev,
+        ...sectiune.grupe.map((g) => g.denumire).filter((cod) => !prev.includes(cod))
+      ]);
+    }
+  };
+
+
+
   return {
     nivel, setNivel,
     an, setAn,
@@ -215,7 +241,8 @@ const useGrupeLogic = () => {
     genereazaGrupe, adaugaGrupaIndividuala,
     stergeGrupa, stergeSelectie,
     toggleSelect, grupePeNivelSiAn,
-    fetchGrupe
+    fetchGrupe,
+    handleEditSectiune, handleToggleAll,
   };
 };
 
