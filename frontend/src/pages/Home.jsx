@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import useHomeLogic from "../functiiLogice/useHomeLogic";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -171,22 +170,19 @@ const Home = () => {
       </section>
 
       {/* Buton final */}
-   <div className="text-center mt-4">
-  <Link
-    to="/dashboard"
-    onClick={() => window.scrollTo(0, 0)}
-    className="btn btn-primary btn-lg rounded-pill px-5"
-  >
-    🚀 Începe generarea orarului
-  </Link>
-
-  <p className="text-muted mt-2" style={{ fontSize: "0.95rem" }}>
-    Vei fi redirecționat către platforma unde poți seta reguli, selecta datele și lansa generarea orarului complet.
-  </p>
-</div>
-
-
-      {/* Footer */}
+      <div className="text-center mt-4">
+        <Link
+          to="/dashboard"
+          onClick={() => window.scrollTo(0, 0)}
+          className="btn btn-primary btn-lg rounded-pill px-5"
+        >
+          🚀 Începe generarea orarului
+        </Link>
+        <p className="text-muted mt-2" style={{ fontSize: "0.95rem" }}>
+          Vei fi redirecționat către platforma unde poți seta reguli, selecta datele și lansa generarea orarului complet.
+        </p>
+      </div>
+      
       <footer className="text-center py-4 bg-light mt-5">
         <p className="mb-0">&copy; 2025 Generator Orare. Toate drepturile rezervate.</p>
       </footer>
