@@ -5,7 +5,50 @@ from openai import OpenAI
 from db_connection import get_connection
 
 orar_bp = Blueprint("orar_bp", __name__)
-client = OpenAI(api_key="API_TA")
+client = OpenAI(api_key="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")
+
+def completeaza_grupe_lipsa(orar_json, grupe_licenta=None, grupe_master=None):
+    grupe_licenta = grupe_licenta or []
+    grupe_master = grupe_master or []
+    zile = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"]
+
+    if "Licenta" not in orar_json:
+        orar_json["Licenta"] = {}
+    for grupa in grupe_licenta:
+        if grupa not in orar_json["Licenta"]:
+            orar_json["Licenta"][grupa] = {}
+        for zi in zile:
+            if zi not in orar_json["Licenta"][grupa]:
+                orar_json["Licenta"][grupa][zi] = {}
+
+    if "Master" not in orar_json:
+        orar_json["Master"] = {}
+    for grupa in grupe_master:
+        if grupa not in orar_json["Master"]:
+            orar_json["Master"][grupa] = {}
+        for zi in zile:
+            if zi not in orar_json["Master"][grupa]:
+                orar_json["Master"][grupa][zi] = {}
+
+    return orar_json
+
+def completeaza_ani_lipsa(orar_json):
+    nivele = {
+        "Licenta": ["Anul I", "Anul II", "Anul III", "Anul IV"],
+        "Master": ["Anul I", "Anul II"]
+    }
+    zile = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"]
+    for nivel, ani in nivele.items():
+        if nivel not in orar_json:
+            orar_json[nivel] = {}
+        for an in ani:
+            if an not in orar_json[nivel]:
+                orar_json[nivel][an] = {}
+            for zi in zile:
+                if zi not in orar_json[nivel][an]:
+                    orar_json[nivel][an][zi] = {}
+    return orar_json
+
 
 @orar_bp.route('/genereaza_orar', methods=['POST'])
 def genereaza_orar():
