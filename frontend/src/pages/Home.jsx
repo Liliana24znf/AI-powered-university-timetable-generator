@@ -1,28 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { Link } from "react-router-dom";
+import useHomeLogic from "../functiiLogice/useHomeLogic";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Home = () => {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    try {
-      const userStored = localStorage.getItem("user");
-      if (userStored) {
-        setUser(JSON.parse(userStored));
-      }
-    } catch (err) {
-      console.error("Failed to parse user from localStorage:", err);
-      localStorage.removeItem("user");
-    }
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    navigate("/");
-  };
+  const { user, handleLogout } = useHomeLogic();
 
 
   return (

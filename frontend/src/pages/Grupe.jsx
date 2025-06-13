@@ -51,6 +51,9 @@ const fetchGrupe = async (silent = false) => {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [editSectiune]);
 
+
+
+  
 const genereazaGrupe = async () => {
   const existente = new Set(grupeGenerat.map((gr) => gr.denumire));
   const noiGrupe = [];
@@ -207,6 +210,10 @@ const genereazaGrupe = async () => {
         ),
       }));
   };
+
+
+
+
   return (
     <div className="container-fluid pt-4 px-4">
       <ToastContainer />

@@ -27,7 +27,6 @@ function App() {
         <Route path="/sali" element={<Sali />} />
         <Route path="/grupe" element={<Grupe />} />
         <Route path="/setare-reguli" element={<SetareReguli />} />
-        {/* Adaugă alte rute după cum este necesar */}
        
       </Routes>
 
