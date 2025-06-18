@@ -52,6 +52,7 @@ const { valideazaOrarGenerat } = useValidareOrar(
 
     incarcaDate();
   }, []);
+  
 
   const genereazaOrar = async () => {
     setLoadingGPT(true);
@@ -242,7 +243,8 @@ try {
     body: JSON.stringify({
       nivel: nivelSelectat,
       an: anSelectat,
-      orar: data
+      orar: data,
+      
     })
   });
 } catch (err) {

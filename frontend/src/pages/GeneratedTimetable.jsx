@@ -91,6 +91,9 @@ useEffect(() => {
   }
 }, [orar, nivelSelectat, anSelectat, grupe]);
 
+useEffect(() => {
+  setRaportValidare("");
+}, [nivelSelectat, anSelectat]);
 
 usePreventBack();
 
@@ -311,7 +314,7 @@ usePreventBack();
       Se generează...
     </>
   ) : (
-    "🚀 Generează orar"
+    "🚀 Generează orar cu AI"
   )}
 </button>
 
@@ -439,11 +442,32 @@ usePreventBack();
 </button>
 
                 <button
-                  className="btn btn-sm btn-outline-danger"
-                  onClick={() => stergeOrar(orar.id)}
-                >
-                  🗑️ Șterge
-                </button>
+  className="btn btn-sm btn-outline-danger"
+  onClick={() => {
+    Swal.fire({
+      title: "Sigur vrei să ștergi acest orar?",
+      text: `Orarul: ${orar.nume || `${orar.nivel} – ${orar.an}`}`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Da, șterge",
+      cancelButtonText: "Anulează"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        stergeOrar(orar.id);
+        Swal.fire({
+          icon: "success",
+          title: "Șters!",
+          text: "Orarul a fost șters cu succes.",
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    });
+  }}
+>
+  🗑️ Șterge
+</button>
+
               </div>
             </li>
           ))}

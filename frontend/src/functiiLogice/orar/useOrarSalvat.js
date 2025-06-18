@@ -99,7 +99,7 @@ const incarcaOrarSalvat = async (id) => {
 
 
 const stergeOrar = async (id) => {
-  if (!window.confirm("Sigur dorești să ștergi acest orar?")) return;
+ 
 
   try {
     const res = await fetch(`http://localhost:5000/sterge_orar/${id}`, {
