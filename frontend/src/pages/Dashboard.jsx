@@ -84,15 +84,15 @@ usePreventBack();
         <div className="row g-4">
           {/* Grupe */}
           <SectiuneCard
-    icon="bi-people-fill"
-    culoare="primary"
-    titlu="Gestionare Grupe"
-    descriere="Introduceți grupele și subgrupele pentru fiecare an de studiu."
-    link="/grupe"
-    onClick={() => window.scrollTo(0, 0)}
-    btn="Mergi la Grupe"
-    btnClass="btn btn-primary btn-lg rounded-pill px-5"
-  />
+            icon="bi-people-fill"
+            culoare="primary"
+            titlu="Gestionare Grupe"
+            descriere="Introduceți grupele și subgrupele pentru fiecare an de studiu."
+            link="/grupe"
+            onClick={() => window.scrollTo(0, 0)}
+          className="btn btn-primary btn-lg rounded-pill px-5"
+            btn="Mergi la Grupe"
+          />
           {/* Săli */}
           <SectiuneCard
             icon="bi-door-open-fill"

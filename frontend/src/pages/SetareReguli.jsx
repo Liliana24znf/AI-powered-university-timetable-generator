@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 import useSetariReguli from "../functiiLogice/useSetariReguli";
 import usePreventBack from "../functiiLogice/usePreventBack";
+import useScrollToTop from "../functiiLogice/useScrollToTop";
 
 
 const SetareReguli = () => {
@@ -23,7 +24,7 @@ const SetareReguli = () => {
   } = useSetariReguli();
 
 usePreventBack();
-
+useScrollToTop();
   return (
     <div className="container-fluid pt-4 px-4">
       {/* NAVBAR */}

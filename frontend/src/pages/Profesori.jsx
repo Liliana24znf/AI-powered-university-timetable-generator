@@ -3,6 +3,8 @@ import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
 import useProfesoriLogic from "../functiiLogice/useProfesoriLogic";
 import usePreventBack from "../functiiLogice/usePreventBack";
+import useScrollToTop from "../functiiLogice/useScrollToTop";
+
 
 const Profesori = () => {
   const {
@@ -31,8 +33,8 @@ const Profesori = () => {
     resetFormular,
     fetchProfesori
   } = useProfesoriLogic();
-usePreventBack();
-
+  usePreventBack();
+  useScrollToTop();
   return (
     <div className="container-fluid pt-4 px-4">
       <ToastContainer />

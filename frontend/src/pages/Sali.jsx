@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
 import useSaliLogic from "../functiiLogice/useSaliLogic";
 import usePreventBack from "../functiiLogice/usePreventBack";
+import useScrollToTop from "../functiiLogice/useScrollToTop";
 
 const Sali = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const Sali = () => {
     getTitluSala, fetchSali
   } = useSaliLogic();
 
-
+useScrollToTop();
 usePreventBack();
 
   return (
