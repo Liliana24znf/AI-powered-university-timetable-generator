@@ -196,7 +196,29 @@ useEffect(() => {
       <span className="text-primary fw-bold fs-4">📅 Orar Generat</span>
     </div>
 
-    {/* Dropdown meniu utilizator */}
+              <div className="position-absolute end-0 d-flex gap-2">
+                <button className="btn btn-outline-danger" onClick={() => {
+                  Swal.fire({
+                    title: "Revenire la Setarea regulilor?",
+                    text: "Datele nesalvate vor fi pierdute.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Da",
+                    cancelButtonText: "Nu"
+                  }).then((r) => { if (r.isConfirmed) navigate("/setare-reguli"); });
+                }}>🔙 Înapoi</button>
+    
+                <button className="btn btn-outline-secondary" onClick={() => {
+                  Swal.fire({
+                    title: "Reîncarcă grupele?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Da",
+                    cancelButtonText: "Nu"
+                  }).then((r) => { if (r.isConfirmed) fetchGrupe(); });
+                }}>🔄 Reîncarcă</button>
+
+                    {/* Dropdown meniu utilizator */}
     <div className="dropdown">
       <button
         className="btn btn-outline-dark dropdown-toggle"
@@ -225,6 +247,9 @@ useEffect(() => {
         </li>
       </ul>
     </div>
+                </div>
+
+
     
   </div>
 </nav>
