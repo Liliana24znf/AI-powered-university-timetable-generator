@@ -37,23 +37,19 @@ usePreventBack();
             style={{ cursor: "pointer" }}
             onClick={() => {
               Swal.fire({
-                title: "Revii la profesori?",
-                text: "Datele nesalvate vor fi pierdute. Vrei să revii la pagina profesori?",
+                title: "Părăsești această pagină?",
+                text: "Datele nesalvate despre reguli vor fi pierdute.",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: "Da, revino",
-                cancelButtonText: "Rămân aici"
+                confirmButtonText: "Da",
+                cancelButtonText: "Rămân"
               }).then((result) => {
-                if (result.isConfirmed) {
-                  navigate("/profesori");
-                }
+                if (result.isConfirmed) navigate("/dashboard");
               });
             }}
           >
             <span className="fs-6 fw-bold">Aplicație pentru planificare inteligentă</span>
-            <span className="fs-6 m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none">
-              utilizând tehnici de A.I.
-            </span>
+            <span className="fs-6 m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none">utilizând tehnici de A.I.</span>
           </button>
 
           {/* Titlu Centrat */}
