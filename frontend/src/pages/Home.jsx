@@ -44,24 +44,25 @@ const Home = () => {
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6 mb-4 mb-lg-0 text-center text-lg-start">
-              <h1 className="fw-bold display-5 text-dark">
-                Generare automată de orare<br />
-                prin <span className="text-primary">inteligență artificială</span>
-              </h1>
-              <p className="lead text-muted mt-3">
-                Soluție modernă pentru planificarea academică, bazată pe algoritmi avansați
-                și reguli personalizabile, adaptată cerințelor reale.
-              </p>
-              {user ? (
-                <Link to="/dashboard" className="btn btn-success btn-lg mt-3 rounded-pill px-5">
-                  Mergi la orar
-                </Link>
-              ) : (
-                <Link to="/login" className="btn btn-primary btn-lg mt-3 rounded-pill px-5">
-                  Autentificare
-                </Link>
-              )}
-            </div>
+  <h1 className="fw-bold display-5 text-dark">
+    Planificare inteligentă a orarului<br />
+    cu ajutorul <span className="text-primary">inteligenței artificiale</span>
+  </h1>
+  <p className="lead text-muted mt-3">
+    O soluție inovatoare pentru generarea automată a orarelor universitare, 
+    construită pe algoritmi avansați și reguli complet personalizabile – totul într-o singură platformă.
+  </p>
+  {user ? (
+    <Link to="/dashboard" className="btn btn-success btn-lg mt-3 rounded-pill px-5">
+      Accesează aplicația
+    </Link>
+  ) : (
+    <Link to="/login" className="btn btn-primary btn-lg mt-3 rounded-pill px-5">
+      Autentifică-te
+    </Link>
+  )}
+</div>
+
             <div className="col-lg-6 text-center">
               <div className="p-3 bg-white rounded-4 shadow-lg d-inline-block" style={{ maxInlineSize: "100%", border: "1px solid #e0e0e0" }}>
                 <img
