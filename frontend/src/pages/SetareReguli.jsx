@@ -104,51 +104,54 @@ usePreventBack();
 
             {/* Continuă */}
             <button
-              className="btn btn-outline-primary"
-              onClick={() => {
-                Swal.fire({
-                  title: "Continui spre generare?",
-                  text: `Vei genera orarul pe baza regulii: ${numeRegula}`,
-                  icon: "info",
-                  showCancelButton: true,
-                  confirmButtonText: "Da, continuă",
-                  cancelButtonText: "Rămân aici",
-                }).then((result) => {
-                  if (result.isConfirmed) {
-                    if (!idRegulaEditata) {
-                      Swal.fire({
-                        icon: "info",
-                        title: "Regulă neselectată",
-                        text: "Pentru a continua, te rog selectează sau salvează o regulă.",
-                      });
-                      return;
-                    }
+  className="btn btn-outline-primary"
+  onClick={() => {
+    // 🔍 Verificare regulă înainte de confirmare
+    if (!idRegulaEditata) {
+      Swal.fire({
+        icon: "info",
+        title: "Regulă neselectată",
+        text: "Pentru a continua, te rog selectează sau salvează o regulă.",
+      });
+      return;
+    }
 
-                    navigate("/orar-generat", {
-                      state: {
-                        regula_id: idRegulaEditata,
-                        denumire: numeRegula,
-                        continut: reguli,
-                      },
-                    });
-                  }
-                });
-              }}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <span
-                    className="spinner-border spinner-border-sm me-2"
-                    role="status"
-                    aria-hidden="true"
-                  ></span>
-                  Se salvează...
-                </>
-              ) : (
-                "✅ Continuă"
-              )}
-            </button>
+    // ✅ Confirmare dacă regula este selectată
+    Swal.fire({
+      title: "Continui spre generare?",
+      html: `Vei genera orarul pe baza regulii:<br><strong>${numeRegula}</strong>`,
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonText: "Da, continuă",
+      cancelButtonText: "Rămân aici",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/orar-generat", {
+          state: {
+            regula_id: idRegulaEditata,
+            denumire: numeRegula,
+            continut: reguli,
+          },
+        });
+      }
+    });
+  }}
+  disabled={loading}
+>
+  {loading ? (
+    <>
+      <span
+        className="spinner-border spinner-border-sm me-2"
+        role="status"
+        aria-hidden="true"
+      ></span>
+      Se salvează...
+    </>
+  ) : (
+    "✅ Continuă"
+  )}
+</button>
+
 
           </div>
         </div>
