@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import * as XLSX from "xlsx";
-import html2pdf from "html2pdf.js";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
@@ -8,6 +6,8 @@ import useOrarGenerator from "../functiiLogice/orar/useOrarGenerator";
 import useOrarSalvat from "../functiiLogice/orar/useOrarSalvat";
 import useValidareOrar from "../functiiLogice/orar/useValidareOrar";
 import useExportOrar from "../functiiLogice/orar/useExportOrar";
+import usePreventBack from "../functiiLogice/usePreventBack";
+
 
 const GeneratedTimetable = () => {
   const location = useLocation();
@@ -91,20 +91,8 @@ useEffect(() => {
   }
 }, [orar, nivelSelectat, anSelectat, grupe]);
 
-useEffect(() => {
-  const handlePopState = (e) => {
-    e.preventDefault();
-    window.history.pushState(null, "", window.location.href);
-  };
 
-  window.history.pushState(null, "", window.location.href);
-  window.addEventListener("popstate", handlePopState);
-
-  return () => {
-    window.removeEventListener("popstate", handlePopState);
-  };
-}, []);
-
+usePreventBack();
 
   const renderOrar = () => {
     if (!orar) return null;
