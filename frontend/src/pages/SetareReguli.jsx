@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 import useSetariReguli from "../functiiLogice/useSetariReguli";
-import { useEffect } from "react";
+import usePreventBack from "../functiiLogice/usePreventBack";
+
 
 const SetareReguli = () => {
   const {
@@ -21,20 +22,7 @@ const SetareReguli = () => {
     setLoading
   } = useSetariReguli();
 
-
-useEffect(() => {
-  const handlePopState = (e) => {
-    e.preventDefault();
-    window.history.pushState(null, "", window.location.href);
-  };
-
-  window.history.pushState(null, "", window.location.href);
-  window.addEventListener("popstate", handlePopState);
-
-  return () => {
-    window.removeEventListener("popstate", handlePopState);
-  };
-}, []);
+usePreventBack();
 
   return (
     <div className="container-fluid pt-4 px-4">
