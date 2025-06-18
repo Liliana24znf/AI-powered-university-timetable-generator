@@ -2,6 +2,7 @@ import { toast, ToastContainer } from "react-toastify";
 import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
 import useProfesoriLogic from "../functiiLogice/useProfesoriLogic";
+import usePreventBack from "../functiiLogice/usePreventBack";
 
 const Profesori = () => {
   const {
@@ -30,6 +31,7 @@ const Profesori = () => {
     resetFormular,
     fetchProfesori
   } = useProfesoriLogic();
+usePreventBack();
 
   return (
     <div className="container-fluid pt-4 px-4">
