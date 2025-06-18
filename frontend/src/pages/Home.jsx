@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import useHomeLogic from "../functiiLogice/useHomeLogic";
 import "bootstrap/dist/css/bootstrap.min.css";
+import usePreventBack from "../functiiLogice/usePreventBack";
+import useScrollToTop from "../functiiLogice/useScrollToTop";
 
 const Home = () => {
   const { user, handleLogout } = useHomeLogic();
-
+  usePreventBack();
+  useScrollToTop();
 
   return (
     <div style={{ minBlockSize: "100vh", inlineSize: "100%", display: "flex", flexDirection: "column" }}>
