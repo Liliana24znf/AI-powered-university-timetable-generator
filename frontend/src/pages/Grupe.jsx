@@ -5,6 +5,10 @@ import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
 import usePreventBack from "../functiiLogice/usePreventBack";
 import useGrupeLogic from "../functiiLogice/useGrupeLogic";
+import useScrollToTop from "../functiiLogice/useScrollToTop";
+
+
+
 
 const Grupe = () => {
   const {
@@ -25,8 +29,8 @@ const Grupe = () => {
 
   const navigate = useNavigate();
 
-
-usePreventBack();
+  useScrollToTop();
+  usePreventBack();
   // ✅ Extragem afișarea în funcție de stare (fără ternare)
   let continutGrupe;
   if (isLoading) {
