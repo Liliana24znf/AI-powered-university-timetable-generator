@@ -12,12 +12,16 @@ import usePreventBack from "../functiiLogice/usePreventBack";
 const GeneratedTimetable = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const {
-    regula_id,
-    denumire: denumireRegulaSelectata,
-    continut: continutRegula,
-    orar_id_selectat,
-  } = location.state || {};
+const storedRegula = localStorage.getItem("regula_generare");
+const parsedRegula = storedRegula ? JSON.parse(storedRegula) : {};
+
+const {
+  regula_id = parsedRegula.regula_id,
+  denumire: denumireRegulaSelectata = parsedRegula.denumire,
+  continut: continutRegula = parsedRegula.continut,
+  orar_id_selectat,
+} = location.state || parsedRegula;
+
 
   const [orar, setOrar] = useState(null);
   const [nivelSelectat, setNivelSelectat] = useState("Licenta");
@@ -94,6 +98,18 @@ useEffect(() => {
 useEffect(() => {
   setRaportValidare("");
 }, [nivelSelectat, anSelectat]);
+
+useEffect(() => {
+  if (regula_id && continutRegula && denumireRegulaSelectata) {
+    const regula = {
+      regula_id,
+      continut: continutRegula,
+      denumire: denumireRegulaSelectata,
+    };
+    localStorage.setItem("regula_generare", JSON.stringify(regula));
+  }
+}, [regula_id, continutRegula, denumireRegulaSelectata]);
+
 
 usePreventBack();
 
