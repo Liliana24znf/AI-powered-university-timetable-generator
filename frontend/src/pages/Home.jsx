@@ -39,43 +39,57 @@ const Home = () => {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="hero py-5 bg-light">
-        <div className="container">
-          <div className="row align-items-center">
-            <div className="col-lg-6 mb-4 mb-lg-0 text-center text-lg-start">
-  <h1 className="fw-bold display-5 text-dark">
-    Planificare inteligentă a orarului<br />
-    cu ajutorul <span className="text-primary">inteligenței artificiale</span>
-  </h1>
-  <p className="lead text-muted mt-3">
-    O soluție inovatoare pentru generarea automată a orarelor universitare, 
-    construită pe algoritmi avansați și reguli complet personalizabile – totul într-o singură platformă.
-  </p>
-  {user ? (
-    <Link to="/dashboard" className="btn btn-success btn-lg mt-3 rounded-pill px-5">
-      Accesează aplicația
-    </Link>
-  ) : (
-    <Link to="/login" className="btn btn-primary btn-lg mt-3 rounded-pill px-5">
-      Autentifică-te
-    </Link>
-  )}
-</div>
+      {/* Hero Section */}
+<section className="hero py-5 bg-light">
+  <div className="container">
+    <div className="row align-items-center">
+      
+      {/* Text Left */}
+      <div className="col-lg-6 mb-4 mb-lg-0 text-center text-lg-start">
+        <h1 className="fw-bold display-5 text-dark mb-3">
+          Planificare inteligentă a orarului<br />
+          cu ajutorul <span className="text-primary">Inteligenței Artificiale</span>
+        </h1>
+        <p className="lead text-muted mb-4">
+          O platformă inovatoare pentru generarea automată a orarelor universitare – 
+          bazată pe algoritmi avansați și reguli complet personalizabile.
+        </p>
 
-            <div className="col-lg-6 text-center">
-              <div className="p-3 bg-white rounded-4 shadow-lg d-inline-block" style={{ maxInlineSize: "100%", border: "1px solid #e0e0e0" }}>
-                <img
-                  src="/images/hero-timetable.png"
-                  alt="Vizualizare orar generat automat"
-                  className="img-fluid rounded-4"
-                  style={{ maxBlockSize: "360px", objectFit: "contain" }}
-                />
-              </div>
-            </div>
-          </div>
+        {user ? (
+          <Link
+            to="/dashboard"
+            className="btn btn-success btn-lg rounded-pill px-5 shadow-sm"
+          >
+            Accesează aplicația
+          </Link>
+        ) : (
+          <Link
+            to="/login"
+            className="btn btn-primary btn-lg rounded-pill px-5 shadow-sm"
+          >
+            Autentifică-te
+          </Link>
+        )}
+      </div>
+
+      {/* Image Right */}
+      <div className="col-lg-6 text-center">
+        <div
+          className="p-3 bg-white rounded-4 shadow d-inline-block border"
+          style={{ maxWidth: "100%" }}
+        >
+          <img
+            src="/images/hero-timetable.png"
+            alt="Vizualizare orar generat automat"
+            className="img-fluid rounded-4"
+            style={{ maxHeight: "360px", objectFit: "contain" }}
+          />
         </div>
-      </section>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       {/* Cum funcționează */}
       <section className="container py-5">
