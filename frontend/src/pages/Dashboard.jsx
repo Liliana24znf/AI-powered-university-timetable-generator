@@ -84,6 +84,7 @@ usePreventBack();
       {/* Secțiuni */}
       <div className="container mb-5">
         <div className="row g-4">
+          
           {/* Grupe */}
           <SectiuneCard
             icon="bi-people-fill"
@@ -122,7 +123,30 @@ usePreventBack();
             link="/setare-reguli"
             btn="Mergi la Reguli"
           />
+
         </div>
+
+        <div className="col-12 mt-4"> 
+  <div className="card border-info shadow-sm text-center py-3 px-4">
+    <div className="d-flex align-items-center justify-content-center flex-wrap gap-3">
+      <h5 className="fw-bold mb-0 text-info">
+        <i className="bi bi-sliders2 me-2"></i>
+        Generare Orar:
+      </h5>
+      <span className="text-muted">
+        🔒 Pentru a putea genera un orar, asigură-te că toate secțiunile sunt completate:
+      </span>
+      <div className="d-flex flex-wrap align-items-center gap-3 ms-3">
+        <span className="text-success"><i className="bi bi-check-square-fill me-1"></i> Grupe</span>
+        <span className="text-success"><i className="bi bi-check-square-fill me-1"></i> Săli</span>
+        <span className="text-success"><i className="bi bi-check-square-fill me-1"></i> Profesori</span>
+        <span className="text-success"><i className="bi bi-check-square-fill me-1"></i> Reguli</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+        
 
         <div className="text-center mt-5">
           <h4 className="mb-4 fw-semibold text-dark">
