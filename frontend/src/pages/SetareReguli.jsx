@@ -22,9 +22,11 @@ const SetareReguli = () => {
     regulaVizibila,
     setLoading
   } = useSetariReguli();
-
-usePreventBack();
+  
 useScrollToTop();
+usePreventBack();
+
+
   return (
     <div className="container-fluid pt-4 px-4">
       {/* NAVBAR */}
