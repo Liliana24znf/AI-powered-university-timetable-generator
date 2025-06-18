@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { useEffect } from "react";
 import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
 import useSaliLogic from "../functiiLogice/useSaliLogic";
+import usePreventBack from "../functiiLogice/usePreventBack";
 
 const Sali = () => {
   const navigate = useNavigate();
@@ -19,19 +19,8 @@ const Sali = () => {
     getTitluSala, fetchSali
   } = useSaliLogic();
 
-useEffect(() => {
-  const handlePopState = (e) => {
-    e.preventDefault();
-    window.history.pushState(null, "", window.location.href);
-  };
 
-  window.history.pushState(null, "", window.location.href);
-  window.addEventListener("popstate", handlePopState);
-
-  return () => {
-    window.removeEventListener("popstate", handlePopState);
-  };
-}, []);
+usePreventBack();
 
   return (
     <div className="container-fluid pt-4 px-4">
