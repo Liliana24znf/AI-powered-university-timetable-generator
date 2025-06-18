@@ -177,7 +177,7 @@ usePreventBack();
    <div className="container-fluid pt-4 px-4">
 <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
   <div className="container-fluid position-relative d-flex align-items-center justify-content-between">
-<Link to="/" className="fs-6 fw-bold fs-6 m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none">
+<Link to="/dashboard" className="fs-6 fw-bold fs-6 m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none">
   <span>Aplicație pentru planificare inteligentă</span>
   <span className="small">utilizând tehnici de A.I.</span>
 </Link>
