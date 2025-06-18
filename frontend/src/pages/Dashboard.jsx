@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import useDashboardLogic from "../functiiLogice/useDashboardLogic";
 import usePreventBack from "../functiiLogice/usePreventBack";
+import useScrollToTop from "../functiiLogice/useScrollToTop";
 
 
 const Dashboard = () => {
   const { user, handleLogout } = useDashboardLogic();
 
 usePreventBack();
+  useScrollToTop();
   return (
     <div className="bg-light min-vh-100 d-flex flex-column">
       {/* Navbar */}
