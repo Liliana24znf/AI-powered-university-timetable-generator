@@ -2,10 +2,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import useDashboardLogic from "../functiiLogice/useDashboardLogic";
+import usePreventBack from "../functiiLogice/usePreventBack";
+
 
 const Dashboard = () => {
   const { user, handleLogout } = useDashboardLogic();
 
+usePreventBack();
   return (
     <div className="bg-light min-vh-100 d-flex flex-column">
       {/* Navbar */}
@@ -112,7 +115,7 @@ const Dashboard = () => {
             culoare="info"
             titlu="Reguli de Generare"
             descriere="Definește reguli personalizate pentru generarea orarului."
-            link="/reguli"
+            link="/setare-reguli"
             btn="Mergi la Reguli"
           />
         </div>
