@@ -3,7 +3,7 @@ import { ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
-
+import usePreventBack from "../functiiLogice/usePreventBack";
 import useGrupeLogic from "../functiiLogice/useGrupeLogic";
 
 const Grupe = () => {
@@ -26,6 +26,7 @@ const Grupe = () => {
   const navigate = useNavigate();
 
 
+usePreventBack();
   // ✅ Extragem afișarea în funcție de stare (fără ternare)
   let continutGrupe;
   if (isLoading) {
