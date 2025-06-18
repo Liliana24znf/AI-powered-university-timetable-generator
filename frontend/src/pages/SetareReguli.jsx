@@ -20,9 +20,10 @@ const SetareReguli = () => {
     loading,
     salveazaReguli,
     regulaVizibila,
-    setLoading
+    setLoading,
+  reincarcaUltimeleReguli 
   } = useSetariReguli();
-  
+
 useScrollToTop();
 usePreventBack();
 
@@ -326,6 +327,8 @@ usePreventBack();
                           const refresh = await fetch("http://localhost:5000/ultimele_reguli");
                           const noi = await refresh.json();
                           setUltimeleReguli(noi);
+                          await reincarcaUltimeleReguli();
+
 
                           const regulaActualizata = noi.find(r => r.id === idRegulaEditata);
                           if (regulaActualizata) {
@@ -380,6 +383,8 @@ usePreventBack();
                           const refresh = await fetch("http://localhost:5000/ultimele_reguli");
                           const noi = await refresh.json();
                           setUltimeleReguli(noi);
+                          await reincarcaUltimeleReguli();
+
                           window.scrollTo(0, 0);
                         } else {
                           throw new Error(data.error || "Eroare necunoscută");
@@ -426,6 +431,8 @@ usePreventBack();
                               const refresh = await fetch("http://localhost:5000/ultimele_reguli");
                               const noi = await refresh.json();
                               setUltimeleReguli(noi);
+                              await reincarcaUltimeleReguli();
+
                             } else {
                               throw new Error(data.error || "Eroare necunoscută");
                             }
@@ -470,6 +477,7 @@ usePreventBack();
                 className="btn btn-success d-flex align-items-center"
                 onClick={salveazaReguli}
                 disabled={loading}
+                
               >
                 {loading ? (
                   <>

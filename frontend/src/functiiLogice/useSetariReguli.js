@@ -83,6 +83,8 @@ Se vor genera orare complete pentru fiecare NIVEL (Licență/Master) și fiecare
         const reload = await fetch("http://localhost:5000/ultimele_reguli");
         const reguliNoi = await reload.json();
         setUltimeleReguli(reguliNoi);
+        await reincarcaUltimeleReguli();
+        
         const regulaNoua = reguliNoi.find(r => r.denumire.trim() === numeRegula.trim());
         if (regulaNoua) {
           setIdRegulaEditata(regulaNoua.id);
@@ -97,6 +99,18 @@ Se vor genera orare complete pentru fiecare NIVEL (Licență/Master) și fiecare
       setLoading(false);
     }
   };
+
+  const reincarcaUltimeleReguli = async () => {
+  try {
+    const response = await fetch("http://localhost:5000/ultimele_reguli");
+    const data = await response.json();
+    setUltimeleReguli(data);
+    setReguliFiltrate(data);
+  } catch (err) {
+    console.error("Eroare la reîncărcare reguli:", err);
+  }
+};
+
 
   return {
     navigate,
@@ -113,7 +127,8 @@ Se vor genera orare complete pentru fiecare NIVEL (Licență/Master) și fiecare
     setNumeRegula,
     loading,
     setLoading,
-    salveazaReguli
+    salveazaReguli,
+  reincarcaUltimeleReguli 
   };
 };
 
