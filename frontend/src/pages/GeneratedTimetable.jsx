@@ -124,19 +124,21 @@ useEffect(() => {
 }, [regula_id, continutRegula, denumireRegulaSelectata]);
 
 
-useEffect(() => {
-  if (generatClasicUltimul && anSelectat && nivelSelectat) {
+<button
+  className="btn btn-primary"
+  onClick={() => {
     Swal.fire({
-      title: "Regenerare automată",
-      text: "Se regenerează orarul clasic pentru noul an.",
+      title: "Generare orar clasic",
+      text: "Se generează orarul pentru anul și nivelul selectat.",
       icon: "info",
-      timer: 2500,
+      timer: 2000,
       showConfirmButton: false,
     });
     genereazaOrarClasic();
-  }
-}, [anSelectat, nivelSelectat]);
-
+  }}
+>
+  Generează orar clasic
+</button>
 
 usePreventBack();
 

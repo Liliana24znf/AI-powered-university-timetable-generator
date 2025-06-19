@@ -174,7 +174,8 @@ class AlgoritmClasic:
                                 else:
                                     continue
                                 break
-
+                    
+                    
                     elif tip_activitate == "laborator":
                         for grupa in self.grupe:
                             for zi_l in self.zile:
@@ -490,7 +491,10 @@ class AlgoritmClasic:
                 if interval not in disponibilitate.get(zi, []):
                     continue  # ⛔ nu este disponibil
 
-                for sala in self._get_sali_tip(prefix):
+                sali_disponibile = self._get_sali_tip(prefix)
+                random.shuffle(sali_disponibile)  # 👈 astfel încât sala GC5 să nu fie mereu prima
+
+                for sala in sali_disponibile:
                     key = f"{zi}-{interval}"
                     if (
                         sala not in used_slots["sali"][key]
@@ -500,6 +504,7 @@ class AlgoritmClasic:
                         if profesor:
                             used_slots["profesori"][key].add(profesor)
                         return zi, interval, sala
+
 
                 return "Luni", "08:00-10:00", "FaraSala"
 
