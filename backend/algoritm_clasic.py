@@ -34,18 +34,20 @@ class AlgoritmClasic:
             "08:00-10:00", "10:00-12:00", "12:00-14:00",
             "14:00-16:00", "16:00-18:00", "18:00-20:00"
         ]
-
-        
-
-
-    
-
     
     def genereaza(self):
-        
+
+        # 🎯 Setăm limitele pentru numărul de cursuri
+        if self.nivel.lower() == "master":
+            max_pe_zi = 2
+            nr_max_cursuri = 4
+        else:
+            max_pe_zi = 4
+            nr_max_cursuri = 8
+
+        cursuri_generate = set()
         cursuri_per_an = defaultdict(lambda: defaultdict(int))
         proiecte_per_an = defaultdict(lambda: defaultdict(int))
-
         orar = defaultdict(lambda: defaultdict(dict))
         profesori = self._get_profesori()
 
@@ -53,16 +55,9 @@ class AlgoritmClasic:
             "sali": defaultdict(set),
             "profesori": defaultdict(set)
         }
-        if self.nivel.lower() == "master":
-            max_pe_zi = 2
-        else:
-            max_pe_zi = 4
 
-
-
-
+        # === ETAPA 1: Generare cursuri ===
         for prof in profesori:
-            # 🔁 Grupăm disciplinele după denumire
             discipline_grupate = defaultdict(list)
             for disc in prof["discipline"]:
                 discipline_grupate[disc["denumire"]].append(disc)
@@ -72,179 +67,191 @@ class AlgoritmClasic:
                 acronim = ''.join([w[0] for w in denumire.split()]).lower()
                 profesor = prof["nume"]
 
-                # ⚠️ Etapă 1: plasăm cursurile
-                if "curs" in tipuri:
-                    prefix = self._prefix_grupa()  # ✅ L, II, III, IV
-                    grupe_an = [g for g in self.grupe if g.startswith(prefix)]
+                if "curs" not in tipuri:
+                    continue
 
-                    if cursuri_per_an[self.nivel][self.an] >= 9:
-                        continue
+                prefix = self._prefix_grupa()
+                grupe_an = [g for g in self.grupe if g.startswith(prefix)]
 
-                    if any(
-                        f"{denumire} ({acronim})" in [
-                            v.get("activitate", "")
-                            for zi in orar[self.nivel][g].values()
-                            for v in zi.values()
-                        ]
-                        for g in grupe_an
-                    ):
-                        continue
+                if cursuri_per_an[self.nivel][self.an] >= nr_max_cursuri:
+                    continue
 
-                    # 🟦 CURS
-                    zi, interval, sala = self._slot_valid("GC", used_slots, profesor, disponibilitate=prof.get("disponibilitate_parsata"))
-                    # Evită depășirea numărului maxim de activități
-                    if any(len(orar[self.nivel][g].get(zi, {})) >= max_pe_zi for g in grupe_an):
-                        continue
-
-                    for g in grupe_an:
-                        orar[self.nivel][g].setdefault(zi, {})[interval] = {
-                            "activitate": f"{denumire} ({acronim})",
-                            "tip": "Curs",
-                            "profesor": profesor,
-                            "sala": sala
-                        }
-                    cursuri_per_an[self.nivel][self.an] += 1
-                    print(f"📌 Curs sincronizat {denumire} pentru {grupe_an} → {zi}, {interval}, sala: {sala}")
-
-
-               
-                # 🟨 Etapă 2: plasăm proiectele sincronizate pe GRUPĂ (ex: LI1a + LI1b)
-                prefixuri_grupe = set(g[:-1] for g in self.grupe if len(g) >= 3)
-                for prefix in prefixuri_grupe:
-                    grupe_grupa = [g for g in self.grupe if g.startswith(prefix)]
-
-                    # opțional: maxim 3 proiecte per an
-                    if proiecte_per_an[self.nivel][self.an] >= 3:
-                        continue
-
-                    # verificăm dacă proiectul deja a fost plasat
-                    if any(
-                        acronim.upper() in v.get("activitate", "") and v.get("tip", "").lower() == "proiect"
-                        for g in grupe_grupa
+                if any(
+                    f"{denumire} ({acronim})" in [
+                        v.get("activitate", "")
                         for zi in orar[self.nivel][g].values()
                         for v in zi.values()
-                    ):
+                    ]
+                    for g in grupe_an
+                ):
+                    continue
+
+                zi, interval, sala = self._slot_valid("GC", used_slots, profesor, disponibilitate=prof.get("disponibilitate_parsata"))
+                if any(len(orar[self.nivel][g].get(zi, {})) >= max_pe_zi for g in grupe_an):
+                    continue
+
+                for g in grupe_an:
+                    orar[self.nivel][g].setdefault(zi, {})[interval] = {
+                        "activitate": f"{denumire} ({acronim})",
+                        "tip": "Curs",
+                        "profesor": profesor,
+                        "sala": sala
+                    }
+
+                cursuri_generate.add((denumire.lower(), acronim.lower()))
+
+                cursuri_per_an[self.nivel][self.an] += 1
+                print(f"📌 Curs sincronizat {denumire} pentru {grupe_an} → {zi}, {interval}, sala: {sala}")
+
+        # === ETAPA 2: Activități practice (doar pentru cursurile generate) ===
+        for prof in profesori:
+            discipline_grupate = defaultdict(list)
+            for disc in prof["discipline"]:
+                discipline_grupate[disc["denumire"]].append(disc)
+
+            for denumire, variante in discipline_grupate.items():
+                acronim = ''.join([w[0] for w in denumire.split()]).lower()
+                if (denumire.lower(), acronim.lower()) not in cursuri_generate:
+                    continue
+
+
+                tipuri = [d["tip"].lower() for d in variante]
+                tipuri_unice = set(tipuri)
+                profesor = prof["nume"]
+                prefixuri_grupe = set(g[:-1] for g in self.grupe if len(g) >= 3)
+
+                for tip_activitate in ["proiect", "laborator", "seminar"]:
+                    if tip_activitate not in tipuri_unice:
                         continue
 
-                    for zi_p in self.zile:
-                        for interval_p in self.intervale:
-                            if zi_p == "Miercuri" and interval_p == "14:00-16:00":
-                                continue
-                            if interval_p not in prof.get("disponibilitate_parsata", {}).get(zi_p, []):
-                                continue
-                            if any(interval_p in orar[self.nivel][g].get(zi_p, {}) for g in grupe_grupa):
-                                continue
+                    if tip_activitate == "proiect":
+                        for prefix in prefixuri_grupe:
+                            grupe_grupa = [g for g in self.grupe if g.startswith(prefix)]
 
-                            sala_p = None
-                            for s in self._get_sali_tip("GP"):
-                                key_p = f"{zi_p}-{interval_p}"
-                                if s not in used_slots["sali"][key_p] and profesor not in used_slots["profesori"][key_p]:
-                                    sala_p = s
-                                    used_slots["sali"][key_p].add(sala_p)
-                                    used_slots["profesori"][key_p].add(profesor)
-                                    break
-
-                            # Verifică dacă în ziua respectivă grupele au deja prea multe activități
-                            if any(len(orar[self.nivel][g].get(zi_p, {})) >= max_pe_zi for g in grupe_grupa):
-                                continue
-
-
-                            if sala_p:
-                                for g in grupe_grupa:
-                                    orar[self.nivel][g].setdefault(zi_p, {})[interval_p] = {
-                                        "activitate": acronim.upper(),
-                                        "tip": "Proiect",
-                                        "profesor": profesor,
-                                        "sala": sala_p
-                                    }
-                                proiecte_per_an[self.nivel][self.an] += 1
-                                print(f"📒 Proiect {acronim.upper()} sincronizat pentru {grupe_grupa} → {zi_p} {interval_p} {sala_p}")
+                            if proiecte_per_an[self.nivel][self.an] >= 3:
                                 break
-                        else:
-                            continue
-                        break
 
-
-                # 🟩 Etapă 3: plasăm laboratoarele
-                for grupa in self.grupe:
-                    for zi_l in self.zile:
-                        for interval_l in self.intervale:
-                            if zi_l == "Miercuri" and interval_l == "14:00-16:00":
-                                continue
-                            if interval_l not in prof.get("disponibilitate_parsata", {}).get(zi_l, []):
-                                continue
-                            if interval_l in orar[self.nivel][grupa].get(zi_l, {}):
+                            if any(
+                                acronim.upper() in v.get("activitate", "") and v.get("tip", "").lower() == "proiect"
+                                for g in grupe_grupa
+                                for zi in orar[self.nivel][g].values()
+                                for v in zi.values()
+                            ):
                                 continue
 
-                            sala_l = None
-                            for s in self._get_sali_tip("GL"):
-                                key_l = f"{zi_l}-{interval_l}"
-                                if s not in used_slots["sali"][key_l] and profesor not in used_slots["profesori"][key_l]:
-                                    sala_l = s
-                                    used_slots["sali"][key_l].add(sala_l)
-                                    used_slots["profesori"][key_l].add(profesor)
-                                    break
-                            
-                            # Blochează suprasarcina pe zi
-                            if len(orar[self.nivel][grupa].get(zi_l, {})) >= max_pe_zi:
-                                continue
+                            for zi_p in self.zile:
+                                for interval_p in self.intervale:
+                                    if zi_p == "Miercuri" and interval_p == "14:00-16:00":
+                                        continue
+                                    if interval_p not in prof.get("disponibilitate_parsata", {}).get(zi_p, []):
+                                        continue
+                                    if any(interval_p in orar[self.nivel][g].get(zi_p, {}) for g in grupe_grupa):
+                                        continue
 
-                            
-                            if sala_l:
-                                orar[self.nivel][grupa].setdefault(zi_l, {})[interval_l] = {
-                                    "activitate": acronim.upper(),
-                                    "tip": "Laborator",
-                                    "profesor": profesor,
-                                    "sala": sala_l
-                                }
-                                print(f"📗 Laborator {acronim.upper()} → grupa {grupa} → {zi_l} {interval_l} {sala_l}")
+                                    sala_p = None
+                                    for s in self._get_sali_tip("GP"):
+                                        key_p = f"{zi_p}-{interval_p}"
+                                        if s not in used_slots["sali"][key_p] and profesor not in used_slots["profesori"][key_p]:
+                                            sala_p = s
+                                            used_slots["sali"][key_p].add(sala_p)
+                                            used_slots["profesori"][key_p].add(profesor)
+                                            break
+
+                                    if any(len(orar[self.nivel][g].get(zi_p, {})) >= max_pe_zi for g in grupe_grupa):
+                                        continue
+
+                                    if sala_p:
+                                        for g in grupe_grupa:
+                                            orar[self.nivel][g].setdefault(zi_p, {})[interval_p] = {
+                                                "activitate": acronim.upper(),
+                                                "tip": "Proiect",
+                                                "profesor": profesor,
+                                                "sala": sala_p
+                                            }
+                                        proiecte_per_an[self.nivel][self.an] += 1
+                                        print(f"📒 Proiect {acronim.upper()} sincronizat pentru {grupe_grupa} → {zi_p} {interval_p} {sala_p}")
+                                        break
+                                else:
+                                    continue
                                 break
-                        else:
-                            continue
-                        break   
-                
-               # 🟪 Etapă 4: plasăm seminariile sincronizate pe GRUPĂ (ex: LI1a + LI1b)
-                prefixuri_grupe = set(g[:-1] for g in self.grupe if len(g) >= 3)
-                for prefix in prefixuri_grupe:
-                    grupe_grupa = [g for g in self.grupe if g.startswith(prefix)]
-                    for zi_s in self.zile:
-                        for interval_s in self.intervale:
-                            if zi_s == "Miercuri" and interval_s == "14:00-16:00":
-                                continue
-                            if interval_s not in prof.get("disponibilitate_parsata", {}).get(zi_s, []):
-                                continue
-                            if any(interval_s in orar[self.nivel][g].get(zi_s, {}) for g in grupe_grupa):
-                                continue
 
-                            sala_s = None
-                            for s in self._get_sali_tip("GS"):
-                                key_s = f"{zi_s}-{interval_s}"
-                                if s not in used_slots["sali"][key_s] and profesor not in used_slots["profesori"][key_s]:
-                                    sala_s = s
-                                    used_slots["sali"][key_s].add(sala_s)
-                                    used_slots["profesori"][key_s].add(profesor)
-                                    break
+                    elif tip_activitate == "laborator":
+                        for grupa in self.grupe:
+                            for zi_l in self.zile:
+                                for interval_l in self.intervale:
+                                    if zi_l == "Miercuri" and interval_l == "14:00-16:00":
+                                        continue
+                                    if interval_l not in prof.get("disponibilitate_parsata", {}).get(zi_l, []):
+                                        continue
+                                    if interval_l in orar[self.nivel][grupa].get(zi_l, {}):
+                                        continue
 
-                            if any(len(orar[self.nivel][g].get(zi_s, {})) >= max_pe_zi for g in grupe_grupa):
-                                continue
+                                    sala_l = None
+                                    for s in self._get_sali_tip("GL"):
+                                        key_l = f"{zi_l}-{interval_l}"
+                                        if s not in used_slots["sali"][key_l] and profesor not in used_slots["profesori"][key_l]:
+                                            sala_l = s
+                                            used_slots["sali"][key_l].add(sala_l)
+                                            used_slots["profesori"][key_l].add(profesor)
+                                            break
 
-                            
-                            if sala_s:
-                                for g in grupe_grupa:
-                                    orar[self.nivel][g].setdefault(zi_s, {})[interval_s] = {
-                                        "activitate": acronim.upper(),
-                                        "tip": "Seminar",
-                                        "profesor": profesor,
-                                        "sala": sala_s
-                                    }
-                                print(f"📘 Seminar {acronim.upper()} sincronizat pentru {grupe_grupa} → {zi_s} {interval_s} {sala_s}")
+                                    if len(orar[self.nivel][grupa].get(zi_l, {})) >= max_pe_zi:
+                                        continue
+
+                                    if sala_l:
+                                        orar[self.nivel][grupa].setdefault(zi_l, {})[interval_l] = {
+                                            "activitate": acronim.upper(),
+                                            "tip": "Laborator",
+                                            "profesor": profesor,
+                                            "sala": sala_l
+                                        }
+                                        print(f"📗 Laborator {acronim.upper()} → grupa {grupa} → {zi_l} {interval_l} {sala_l}")
+                                        break
+                                else:
+                                    continue
                                 break
-                        else:
-                            continue
-                        break
 
-                # 🟧 Etapă 5:
+                    elif tip_activitate == "seminar":
+                        for prefix in prefixuri_grupe:
+                            grupe_grupa = [g for g in self.grupe if g.startswith(prefix)]
+                            for zi_s in self.zile:
+                                for interval_s in self.intervale:
+                                    if zi_s == "Miercuri" and interval_s == "14:00-16:00":
+                                        continue
+                                    if interval_s not in prof.get("disponibilitate_parsata", {}).get(zi_s, []):
+                                        continue
+                                    if any(interval_s in orar[self.nivel][g].get(zi_s, {}) for g in grupe_grupa):
+                                        continue
 
+                                    sala_s = None
+                                    for s in self._get_sali_tip("GS"):
+                                        key_s = f"{zi_s}-{interval_s}"
+                                        if s not in used_slots["sali"][key_s] and profesor not in used_slots["profesori"][key_s]:
+                                            sala_s = s
+                                            used_slots["sali"][key_s].add(sala_s)
+                                            used_slots["profesori"][key_s].add(profesor)
+                                            break
+
+                                    if any(len(orar[self.nivel][g].get(zi_s, {})) >= max_pe_zi for g in grupe_grupa):
+                                        continue
+
+                                    if sala_s:
+                                        for g in grupe_grupa:
+                                            orar[self.nivel][g].setdefault(zi_s, {})[interval_s] = {
+                                                "activitate": acronim.upper(),
+                                                "tip": "Seminar",
+                                                "profesor": profesor,
+                                                "sala": sala_s
+                                            }
+                                        print(f"📘 Seminar {acronim.upper()} sincronizat pentru {grupe_grupa} → {zi_s} {interval_s} {sala_s}")
+                                        break
+                                else:
+                                    continue
+                                break
+
+
+
+        # 🔍 Validări și final
         self._raport_validare(orar)
         self._echilibrare_activitati_pe_zi(orar)
         self.valideaza_cursuri_sincronizate(orar)
@@ -252,14 +259,13 @@ class AlgoritmClasic:
 
         return orar
 
-
     def _echilibrare_activitati_pe_zi(self, orar):
         print("\n🔄 ECHILIBRARE activități / zi")
         if self.nivel.lower() == "master":
-            min_pe_zi = 0
+            min_pe_zi = 1
             max_pe_zi = 2
         else:
-            min_pe_zi = 2  # echivalent cu 4 ore
+            min_pe_zi = 3  # echivalent cu 6 ore
             max_pe_zi = 4  # echivalent cu 8 ore
 
 
@@ -308,10 +314,10 @@ class AlgoritmClasic:
     def valideaza_cursuri_sincronizate(self, orar):
         print("\n🧪 VALIDARE CURSURI SINCRONIZATE PE AN")
         if self.nivel.lower() == "master":
-            min_pe_zi = 0
+            min_pe_zi = 1
             max_pe_zi = 2
         else:
-            min_pe_zi = 2  # echivalent cu 4 ore
+            min_pe_zi = 3  # echivalent cu 6 ore
             max_pe_zi = 4  # echivalent cu 8 ore
 
         cursuri_an = defaultdict(lambda: defaultdict(list))  # {prefix_an: {activitate: [grupe]}}
@@ -407,25 +413,46 @@ class AlgoritmClasic:
             print(d)
 
         prof_map = []
+
+        # 🔀 Amestecăm lista totală de profesori
+        random.shuffle(profesori)
+
         for prof in profesori:
-            disc = [d for d in discipline if d["profesor_id"] == prof["id"] and d["nivel"] == self.nivel]
+            disc_tot = [d for d in discipline if d["profesor_id"] == prof["id"] and d["nivel"] == self.nivel]
+            random.shuffle(disc_tot)
+
+            if len(disc_tot) >= 2:
+                nr_discipline = random.randint(2, min(6, len(disc_tot)))
+                disc = disc_tot[:nr_discipline]
+            else:
+                disc = disc_tot
+
+            if not disc:
+                continue  # ⛔ sărim profesorii fără discipline relevante
+
             disponibilitate = prof.get("disponibilitate", "{}")
             try:
                 import json
                 disponibilitate = json.loads(disponibilitate)
             except Exception:
                 disponibilitate = {}
+
             prof_map.append({
                 **prof,
                 "discipline": disc,
                 "disponibilitate_parsata": disponibilitate
             })
 
-        print("\n🔍 PROFESORI PARSAȚI COMPLET:")
+        # 🎯 Selectăm aleator un subset din profesori (ex: 5–8)
+        nr_profesori = random.randint(5, min(8, len(prof_map)))
+        prof_map = prof_map[:nr_profesori]
+
+        print("\n🔍 PROFESORI ALEȘI LA GENERARE:")
         for p in prof_map:
-            print(p)
+            print(f"{p['nume']} → {[d['denumire'] for d in p['discipline']]}")
 
         return prof_map
+
 
     def _get_sali(self):
         self.cursor.execute("SELECT * FROM sali")
