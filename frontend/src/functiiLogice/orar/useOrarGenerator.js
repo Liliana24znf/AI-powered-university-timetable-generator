@@ -36,11 +36,27 @@ const { valideazaOrarGenerat } = useValidareOrar(
         const discipline = data.discipline || [];
 
         const profesoriCuDiscipline = (data.profesori || []).map((prof) => {
-          const disciplineProf = discipline
-            .filter((d) => d.profesor_id === prof.id)
-            .map((d) => `${d.denumire} (${d.nivel}, ${d.tip})`);
-          return { ...prof, discipline: disciplineProf };
-        });
+        const disciplineProf = discipline
+          .filter((d) => d.profesor_id === prof.id)
+          .map((d) => `${d.denumire} (${d.nivel}, ${d.tip})`);
+
+        const disponibilitateParsed = (() => {
+          try {
+            return typeof prof.disponibilitate === "string"
+              ? JSON.parse(prof.disponibilitate)
+              : prof.disponibilitate;
+          } catch {
+            return {};
+          }
+        })();
+
+        return {
+          ...prof,
+          discipline: disciplineProf,
+          disponibilitate: disponibilitateParsed
+        };
+      });
+
 
         setProfesori(profesoriCuDiscipline);
         setSali(data.sali || []);
@@ -58,6 +74,7 @@ const { valideazaOrarGenerat } = useValidareOrar(
   const genereazaOrar = async () => {
     setLoadingGPT(true);
     setGeneratClasicUltimul(false);
+    setLoadingClasic(false);
 
 
 const instructiuniProfesori = profesori.map((p) => {
@@ -120,8 +137,15 @@ const instructiuniGPT = `
     }
   }
 }
-
 ---
+
+
+✏️ FORMAT DENUMIRI ACTIVITĂȚI:
+- La toate **cursurile (C)** se scrie denumirea completă a disciplinei + tipul (ex: "Programare Orientată pe Obiect (C)").
+- La toate **seminarele, proiectele și laboratoarele** se scrie DOAR prescurtarea disciplinei + tipul (ex: "POO").
+- NU scrie denumirea completă la activitățile practice.
+- NU inversa aceste formate! Este obligatoriu.
+
 
 📚 1. **CURSURI (pe AN)**
 - Cursurile se organizează O SINGURĂ DATĂ pentru întregul AN (ex: LI2a, LI2b, LI2c).
@@ -184,6 +208,7 @@ const promptFinal = `
 - Cursurile trebuie să fie IDENTICE (zi, oră, sală, profesor) pentru TOATE grupele din același an.  
 - Seminarele și proiectele trebuie să fie planificate SEPARAT pentru fiecare GRUPĂ.  
 - Laboratoarele trebuie să fie planificate SEPARAT pentru fiecare SUBGRUPĂ, în intervale diferite.  
+
 
 
 ✅ LISTA COMPLETĂ de profesori și discipline (nu inventa altele):
