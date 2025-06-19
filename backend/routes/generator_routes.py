@@ -1,4 +1,5 @@
 # routes/generator_routes.py
+import json
 from flask import Blueprint, request, render_template_string, jsonify
 from orar_generator import OrarGenerator, genereaza_html, genereaza_formular_criterii, valideaza_orar
 from algoritm_clasic import AlgoritmClasic
@@ -47,16 +48,27 @@ def genereaza_orar_propriu():
 
     return render_template_string(html)
 
+
+
 @generator_bp.route("/genereaza_algoritm_propriu", methods=["POST"])
 def genereaza_algoritm_propriu():
-    from algoritm_clasic import AlgoritmClasic
-
     data = request.get_json()
     nivel = data.get("nivel_selectat")
     an = data.get("an_selectat")
     grupe_selectate = data.get("grupe_selectate", [])
 
+    if not nivel or not an:
+        return jsonify({"error": "Parametri lipsă (nivel/an)"}), 400
+
     generator = AlgoritmClasic(nivel, an, grupe_selectate)
     orar = generator.genereaza()
 
-    return jsonify(orar)
+    # Convertim defaultdict în dict normal înainte de return
+    import json
+    from flask import Response
+
+    return Response(
+        response=json.dumps({"orar": orar}, default=dict),
+        status=200,
+        mimetype="application/json"
+    )

@@ -16,6 +16,7 @@ const useOrarGenerator = (
   const [reguli, setReguli] = useState("");
   const [loadingGPT, setLoadingGPT] = useState(false);
   const [loadingClasic, setLoadingClasic] = useState(false);
+  const [generatClasicUltimul, setGeneratClasicUltimul] = useState(false);
 
 const { valideazaOrarGenerat } = useValidareOrar(
   nivelSelectat,
@@ -56,6 +57,8 @@ const { valideazaOrarGenerat } = useValidareOrar(
 
   const genereazaOrar = async () => {
     setLoadingGPT(true);
+    setGeneratClasicUltimul(false);
+
 
 const instructiuniProfesori = profesori.map((p) => {
   const discipline = Array.isArray(p.discipline) && p.discipline.length > 0
@@ -263,6 +266,7 @@ try {
   };
 
 const genereazaOrarClasic = async () => {
+  setGeneratClasicUltimul(true);
   setLoadingClasic(true);
   try {
     const response = await fetch("http://127.0.0.1:5000/genereaza_algoritm_propriu", {
@@ -274,18 +278,17 @@ const genereazaOrarClasic = async () => {
         nivel_selectat: nivelSelectat,
         an_selectat: anSelectat,
         grupe_selectate: grupe
-          .filter((g) => g.nivel === nivelSelectat && g.an === anSelectat)
-          .map((g) => g.denumire),
+          .filter((g) => g.nivel === nivelSelectat && String(g.an) === String(anSelectat))
+          .map((g) => g.denumire)
+
       }),
     });
 
     const data = await response.json();
 
-    try {
-      JSON.stringify(data);
-      setOrar(data);
-      valideazaOrarGenerat(data);
-      //setEsteOrarSalvat(false);
+    if (data.orar) {
+      setOrar(data.orar);
+      valideazaOrarGenerat(data.orar);
 
       await fetch("http://127.0.0.1:5000/salveaza_orar", {
         method: "POST",
@@ -293,11 +296,11 @@ const genereazaOrarClasic = async () => {
         body: JSON.stringify({
           nivel: nivelSelectat,
           an: anSelectat,
-          orar: data,
+          orar: data.orar,
         }),
       });
-    } catch (err) {
-      console.error("Răspunsul nu este JSON valid:", err);
+    } else {
+      console.error("⚠️ Răspunsul nu conține câmpul 'orar'");
     }
   } catch (error) {
     console.error("Eroare la generare clasică:", error);
@@ -305,6 +308,7 @@ const genereazaOrarClasic = async () => {
 
   setLoadingClasic(false);
 };
+
 
 
 
@@ -316,7 +320,9 @@ const genereazaOrarClasic = async () => {
     loadingGPT,
     loadingClasic,
     genereazaOrar,
-    genereazaOrarClasic
+    genereazaOrarClasic,
+    generatClasicUltimul,
+    setGeneratClasicUltimul
   };
 };
 

@@ -33,6 +33,8 @@ const {
   const [profesori, setProfesori] = useState([]);
   const [sali, setSali] = useState([]);
   const [grupe, setGrupe] = useState([]);
+
+
   
 
 const {
@@ -51,7 +53,7 @@ const {
   setSali,
   setReguli,
   setNivelSelectat,
-  anSelectat,            // ✅ Adăugat aici
+  anSelectat,
   setAnSelectat,
   orar_id_selectat,
   cautareOrar,
@@ -65,12 +67,23 @@ const { valideazaOrarGenerat } = useValidareOrar(
   grupe,
   setRaportValidare
 );
-  const {
-    loadingGPT,
-    loadingClasic,
-    genereazaOrar,
-    genereazaOrarClasic
-  } = useOrarGenerator(nivelSelectat, anSelectat, setOrar, setRaportValidare, regula_id, continutRegula);
+const {
+
+  genereazaOrar,
+  genereazaOrarClasic,
+  generatClasicUltimul,
+  setGeneratClasicUltimul,
+  loadingGPT,
+  loadingClasic
+} = useOrarGenerator(
+  nivelSelectat,
+  anSelectat,
+  setOrar,
+  setRaportValidare,
+  regula_id,
+  continutRegula
+);
+
 
   const { exportExcel, exportPDF } = useExportOrar(orar);
 
@@ -109,6 +122,20 @@ useEffect(() => {
     localStorage.setItem("regula_generare", JSON.stringify(regula));
   }
 }, [regula_id, continutRegula, denumireRegulaSelectata]);
+
+
+useEffect(() => {
+  if (generatClasicUltimul && anSelectat && nivelSelectat) {
+    Swal.fire({
+      title: "Regenerare automată",
+      text: "Se regenerează orarul clasic pentru noul an.",
+      icon: "info",
+      timer: 2500,
+      showConfirmButton: false,
+    });
+    genereazaOrarClasic();
+  }
+}, [anSelectat, nivelSelectat]);
 
 
 usePreventBack();

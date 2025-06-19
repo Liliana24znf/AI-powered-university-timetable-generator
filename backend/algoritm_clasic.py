@@ -1,10 +1,18 @@
 import mysql.connector
 from collections import defaultdict
+import random
 
 class AlgoritmClasic:
     def __init__(self, nivel, an, grupe=None):
         self.nivel = nivel
         self.an = an
+
+        def _prefix_grupa(self):
+            sufix = self.an  # nu transformi în cifră, păstrezi literele exact
+            return f"{self.nivel[0]}{sufix}"  # ex: "LIV"
+
+
+                
 
         # ❗ Conectare la baza de date trebuie făcută înainte de orice apel la metode
         self.conn = mysql.connector.connect(
@@ -30,8 +38,9 @@ class AlgoritmClasic:
         
 
 
+    
 
-
+    
     def genereaza(self):
         
         cursuri_per_an = defaultdict(lambda: defaultdict(int))
@@ -65,7 +74,7 @@ class AlgoritmClasic:
 
                 # ⚠️ Etapă 1: plasăm cursurile
                 if "curs" in tipuri:
-                    prefix = f"{self.nivel[0]}{self.an[-1]}"  # Ex: "L2" pentru LI2a
+                    prefix = self._prefix_grupa()  # ✅ L, II, III, IV
                     grupe_an = [g for g in self.grupe if g.startswith(prefix)]
 
                     if cursuri_per_an[self.nivel][self.an] >= 9:
@@ -380,6 +389,9 @@ class AlgoritmClasic:
         # Presupunem că ai un câmp „denumire” în tabelul grupe
         return [g["denumire"] for g in rezultate]
 
+    def _prefix_grupa(self):
+        return f"{self.nivel[0]}{self.an}"
+
 
     def _get_profesori(self):
         self.cursor.execute("SELECT * FROM profesori")
@@ -421,6 +433,12 @@ class AlgoritmClasic:
 
     def _get_sali_tip(self, prefix):
         return [s["cod"] for s in self._get_sali() if s["cod"].startswith(prefix)]
+    
+    def _get_discipline(self):
+        self.cursor.execute("SELECT * FROM discipline_profesori WHERE nivel = %s", (self.nivel,))
+        discipline = self.cursor.fetchall()
+        random.shuffle(discipline)
+        return discipline
 
     def _slot_valid(self, prefix, used_slots, profesor=None, disponibilitate=None):
         if self.nivel.lower() == "master":
@@ -456,17 +474,17 @@ class AlgoritmClasic:
                             used_slots["profesori"][key].add(profesor)
                         return zi, interval, sala
 
-        return "Luni", "08:00-10:00", "FaraSala"
+                return "Luni", "08:00-10:00", "FaraSala"
 
 
-        self.cursor.execute("SELECT * FROM grupe WHERE nivel = %s AND an = %s", (self.nivel, self.an))
-        rezultate = self.cursor.fetchall()
-        print("\n👥 GRUPE DIN BAZA DE DATE:")
-        for g in rezultate:
-            print(g)
+            self.cursor.execute("SELECT * FROM grupe WHERE nivel = %s AND an = %s", (self.nivel, self.an))
+            rezultate = self.cursor.fetchall()
+            print("\n👥 GRUPE DIN BAZA DE DATE:")
+            for g in rezultate:
+                print(g)
 
-        # Presupunem că ai un câmp „denumire” în tabelul grupe
-        return [g["denumire"] for g in rezultate]
+            # Presupunem că ai un câmp „denumire” în tabelul grupe
+            return [g["denumire"] for g in rezultate]
 
     def _verifica_pauze(self, orar):
         for grupa in self.grupe:

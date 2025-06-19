@@ -308,43 +308,44 @@ def valideaza_orar(orar):
     print(raport_text)
     return raport_html
 
-
 def genereaza_formular_criterii(criterii, nivel_selectat="Licenta", an_selectat="I"):
     return f"""
-    <form method="post" action="/genereaza_orar_propriu" style="margin-block-end: 30px;">
+    <form method="post" action="/genereaza_orar_propriu" style="margin-bottom: 30px; font-family: sans-serif; max-width: 500px;">
 
-        <h3>Modifică criteriile de generare:</h3>
+        <h3 style="color: #333;">🔧 Modifică criteriile de generare</h3>
 
-        <label>Selectează nivel:</label>
-        <select name="nivel">
+        <label for="nivel">🎓 Nivel de studii:</label><br>
+        <select name="nivel" id="nivel" required>
             <option value="Licenta" {"selected" if nivel_selectat == "Licenta" else ""}>Licență</option>
             <option value="Master" {"selected" if nivel_selectat == "Master" else ""}>Master</option>
         </select><br><br>
 
-        <label>Selectează anul:</label>
-        <select name="an">
+        <label for="an">📘 Anul de studiu:</label><br>
+        <select name="an" id="an" required>
             <option value="I" {"selected" if an_selectat == "I" else ""}>Anul I</option>
             <option value="II" {"selected" if an_selectat == "II" else ""}>Anul II</option>
             <option value="III" {"selected" if an_selectat == "III" else ""}>Anul III</option>
             <option value="IV" {"selected" if an_selectat == "IV" else ""}>Anul IV</option>
         </select><br><br>
 
-        <label>Pauză miercuri:</label>
-        <input type="text" name="pauza_miercuri" value="{criterii['pauza_miercuri']}"><br><br>
+        <label for="pauza_miercuri">⏰ Pauză miercuri (ex: 14:00–16:00):</label><br>
+        <input type="text" id="pauza_miercuri" name="pauza_miercuri" value="{criterii['pauza_miercuri']}" required><br><br>
 
-        <label>Număr maxim de ore pe zi:</label>
-        <input type="number" name="max_ore_zi" value="{criterii['max_ore_zi']}"><br><br>
+        <label for="max_ore_zi">📅 Număr maxim de ore pe zi:</label><br>
+        <input type="number" id="max_ore_zi" name="max_ore_zi" value="{criterii['max_ore_zi']}" min="1" max="12" required><br><br>
 
-        <label>Pauză după 6 ore:</label>
-        <select name="pauza_dupa_6">
+        <label for="pauza_dupa_6">☕ Pauză după 6 ore de activitate?</label><br>
+        <select name="pauza_dupa_6" id="pauza_dupa_6" required>
             <option value="True" {"selected" if criterii['pauza_dupa_6'] else ""}>Da</option>
             <option value="False" {"selected" if not criterii['pauza_dupa_6'] else ""}>Nu</option>
         </select><br><br>
 
-        <label>Intervale orare master (virgulă):</label>
-        <input type="text" name="ore_master" value="{", ".join(criterii['ore_master'])}"><br><br>
+        <label for="ore_master">📈 Intervalele orare pentru master (separate prin virgulă):</label><br>
+        <input type="text" id="ore_master" name="ore_master" value="{", ".join(criterii['ore_master'])}" placeholder="ex: 16:00-18:00, 18:00-20:00" required><br><br>
 
-        <button type="submit">Generează orarul</button>
+        <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px;">
+            Generează orarul
+        </button>
     </form>
     """
 
