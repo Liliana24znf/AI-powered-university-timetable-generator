@@ -5,10 +5,10 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-
+import Grupe from "./pages/Grupe.jsx";
 import Profesori from "./pages/Profesori.jsx";
 import Sali from "./pages/Sali.jsx";
-import Grupe from "./pages/Grupe.jsx";
+
 import SetareReguli from "./pages/SetareReguli.jsx";
 import GeneratedTimetable from "./pages/GeneratedTimetable";
 
