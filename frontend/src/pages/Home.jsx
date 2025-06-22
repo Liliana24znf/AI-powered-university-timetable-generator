@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import useHomeLogic from "../functiiLogice/useHomeLogic";
+import useHomeLogic from "../functiiLogice/dashboard/useHomeLogic";
 import "bootstrap/dist/css/bootstrap.min.css";
-import usePreventBack from "../functiiLogice/usePreventBack";
-import useScrollToTop from "../functiiLogice/useScrollToTop";
+import usePreventBack from "../functiiLogice/utils/usePreventBack";
+import useScrollToTop from "../functiiLogice/utils/useScrollToTop";
 
 const Home = () => {
   const { user, handleLogout } = useHomeLogic();

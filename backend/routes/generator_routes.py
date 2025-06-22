@@ -1,8 +1,8 @@
 # routes/generator_routes.py
 import json
 from flask import Blueprint, request, render_template_string, jsonify
-from orar_generator import OrarGenerator, genereaza_html, genereaza_formular_criterii, valideaza_orar
-from algoritm_clasic import AlgoritmClasic
+from logica.orar_generator import OrarGenerator, genereaza_html, genereaza_formular_criterii, valideaza_orar
+from logica.algoritm_clasic import AlgoritmClasic
 
 generator_bp = Blueprint("generator_bp", __name__)
 

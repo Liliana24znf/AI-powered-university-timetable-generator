@@ -2,9 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
-import useSaliLogic from "../functiiLogice/useSaliLogic";
-import usePreventBack from "../functiiLogice/usePreventBack";
-import useScrollToTop from "../functiiLogice/useScrollToTop";
+import useSaliLogic from "../functiiLogice/dashboard/useSaliLogic";
+import usePreventBack from "../functiiLogice/utils/usePreventBack";
+import useScrollToTop from "../functiiLogice/utils/useScrollToTop";
 
 const Sali = () => {
   const navigate = useNavigate();

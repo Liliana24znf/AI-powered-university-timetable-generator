@@ -1,7 +1,7 @@
 import Swal from "sweetalert2";
-import useSetariReguli from "../functiiLogice/useSetariReguli";
-import usePreventBack from "../functiiLogice/usePreventBack";
-import useScrollToTop from "../functiiLogice/useScrollToTop";
+import useSetariReguli from "../functiiLogice/dashboard/useSetariReguli";
+import usePreventBack from "../functiiLogice/utils/usePreventBack";
+import useScrollToTop from "../functiiLogice/utils/useScrollToTop";
 
 
 const SetareReguli = () => {

@@ -4,7 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
-import useLoginLogic from "../functiiLogice/useLoginLogic";
+import useLoginLogic from "../functiiLogice/auth/useLoginLogic";
 
 const Login = () => {
   const {

@@ -1,9 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import useDashboardLogic from "../functiiLogice/useDashboardLogic";
-import usePreventBack from "../functiiLogice/usePreventBack";
-import useScrollToTop from "../functiiLogice/useScrollToTop";
+import useDashboardLogic from "../functiiLogice/dashboard/useDashboardLogic";
+import usePreventBack from "../functiiLogice/utils/usePreventBack";
+import useScrollToTop from "../functiiLogice/utils/useScrollToTop";
 
 
 const Dashboard = () => {

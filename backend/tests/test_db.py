@@ -1,4 +1,4 @@
-from db_connection import Database  # asigură-te că fișierul clasei tale se numește db_connection.py
+from database.db_connection import Database  # asigură-te că fișierul clasei tale se numește db_connection.py
 
 db = Database()
 

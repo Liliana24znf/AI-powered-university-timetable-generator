@@ -1,9 +1,9 @@
 import { toast, ToastContainer } from "react-toastify";
 import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
-import useProfesoriLogic from "../functiiLogice/useProfesoriLogic";
-import usePreventBack from "../functiiLogice/usePreventBack";
-import useScrollToTop from "../functiiLogice/useScrollToTop";
+import useProfesoriLogic from "../functiiLogice/dashboard/useProfesoriLogic";
+import usePreventBack from "../functiiLogice/utils/usePreventBack";
+import useScrollToTop from "../functiiLogice/utils/useScrollToTop";
 
 
 const Profesori = () => {

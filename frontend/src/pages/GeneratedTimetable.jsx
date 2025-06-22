@@ -6,7 +6,7 @@ import useOrarGenerator from "../functiiLogice/orar/useOrarGenerator";
 import useOrarSalvat from "../functiiLogice/orar/useOrarSalvat";
 import useValidareOrar from "../functiiLogice/orar/useValidareOrar";
 import useExportOrar from "../functiiLogice/orar/useExportOrar";
-import usePreventBack from "../functiiLogice/usePreventBack";
+import usePreventBack from "../functiiLogice/utils/usePreventBack";
 
 
 const GeneratedTimetable = () => {

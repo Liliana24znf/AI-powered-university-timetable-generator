@@ -3,9 +3,9 @@ import { ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
-import usePreventBack from "../functiiLogice/usePreventBack";
-import useGrupeLogic from "../functiiLogice/useGrupeLogic";
-import useScrollToTop from "../functiiLogice/useScrollToTop";
+import usePreventBack from "../functiiLogice/utils/usePreventBack";
+import useGrupeLogic from "../functiiLogice/dashboard/useGrupeLogic";
+import useScrollToTop from "../functiiLogice/utils/useScrollToTop";
 
 
 

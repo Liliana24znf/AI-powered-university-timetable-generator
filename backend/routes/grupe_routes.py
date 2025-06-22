@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from db_connection import get_connection
+from database.db_connection import get_connection
 import mysql.connector
 
 grupe_bp = Blueprint("grupe", __name__)

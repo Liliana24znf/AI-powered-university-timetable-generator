@@ -4,7 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { FaEye, FaEyeSlash, FaEnvelope, FaUser, FaLock } from "react-icons/fa";
-import useRegisterLogic from "../functiiLogice/useRegisterLogic";
+import useRegisterLogic from "../functiiLogice/auth/useRegisterLogic";
 
 const Register = () => {
   const {

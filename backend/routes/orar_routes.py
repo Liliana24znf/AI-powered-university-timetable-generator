@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import json
 import re
 from openai import OpenAI
-from db_connection import get_connection
+from database.db_connection import get_connection
 
 orar_bp = Blueprint("orar_bp", __name__)
 client = OpenAI(api_key="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")

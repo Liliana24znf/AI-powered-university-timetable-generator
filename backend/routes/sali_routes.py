@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from db_connection import get_connection
+from database.db_connection import get_connection
 
 sali_bp = Blueprint("sali", __name__)
 

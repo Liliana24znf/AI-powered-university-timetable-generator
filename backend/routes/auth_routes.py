@@ -1,6 +1,6 @@
 # routes/auth_routes.py
 from flask import Blueprint, request, jsonify
-from db_connection import get_connection
+from database.db_connection import get_connection
 import bcrypt
 
 auth_bp = Blueprint("auth_bp", __name__)
