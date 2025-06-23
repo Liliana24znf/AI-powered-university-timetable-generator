@@ -9,7 +9,8 @@ class Database:
             database="licenta",
             port=3306
         )
-        self.cursor = self.connection.cursor()
+        self.cursor = self.connection.cursor(dictionary=True)
+
 
     def show_tables(self):
         self.cursor.execute("SHOW TABLES")

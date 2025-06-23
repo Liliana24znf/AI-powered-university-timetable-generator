@@ -285,8 +285,6 @@ usePreventBack();
     </div>
                 </div>
 
-
-    
   </div>
 </nav>
 
