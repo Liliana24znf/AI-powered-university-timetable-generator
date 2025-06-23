@@ -189,16 +189,34 @@ const Home = () => {
 
       {/* Buton final */}
       <div className="text-center mt-4">
-        <Link
-          to="/dashboard"
-          onClick={() => window.scrollTo(0, 0)}
-          className="btn btn-primary btn-lg rounded-pill px-5"
-        >
-          🚀 Începe generarea orarului
-        </Link>
-        <p className="text-muted mt-2" style={{ fontSize: "0.95rem" }}>
-          Vei fi redirecționat către platforma unde poți seta reguli, selecta datele și lansa generarea orarului complet.
-        </p>
+       {user ? (
+  <>
+    <Link
+      to="/dashboard"
+      onClick={() => window.scrollTo(0, 0)}
+      className="btn btn-primary btn-lg rounded-pill px-5"
+    >
+      🚀 Începe generarea orarului
+    </Link>
+    <p className="text-muted mt-2" style={{ fontSize: "0.95rem" }}>
+      Vei fi redirecționat către platforma unde poți seta reguli, selecta datele și lansa generarea orarului complet.
+    </p>
+  </>
+) : (
+  <>
+    <button
+      className="btn btn-secondary btn-lg rounded-pill px-5"
+      disabled
+      style={{ cursor: "not-allowed", opacity: 0.7 }}
+    >
+      🚀 Începe generarea orarului
+    </button>
+    <p className="text-muted mt-2" style={{ fontSize: "0.95rem" }}>
+      Autentifică-te pentru a accesa funcționalitatea de generare a orarului.
+    </p>
+  </>
+)}
+
       </div>
       
       <footer className="text-center py-4 bg-light mt-5">

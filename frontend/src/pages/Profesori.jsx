@@ -321,8 +321,10 @@ const Profesori = () => {
               className="btn btn-success"
               onClick={adaugaProfesor}
               disabled={loading}
+              
             >
               {loading ? "Salvare..." : "✅ Salvează profesor"}
+              
             </button>
 
             <button
