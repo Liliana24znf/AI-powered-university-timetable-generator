@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import React from "react";
+
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";

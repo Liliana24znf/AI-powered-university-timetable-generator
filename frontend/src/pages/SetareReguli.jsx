@@ -2,6 +2,7 @@ import Swal from "sweetalert2";
 import useSetariReguli from "../functiiLogice/dashboard/useSetariReguli";
 import usePreventBack from "../functiiLogice/utils/usePreventBack";
 import useScrollToTop from "../functiiLogice/utils/useScrollToTop";
+import React from "react";
 
 
 const SetareReguli = () => {

@@ -11,6 +11,7 @@ from logica.validare import ValidatorOrar, valideaza_orar
 
 class OrarGenerator:
     def __init__(self):
+        
         self.conn = mysql.connector.connect(
             host="localhost",
             user="root",
@@ -23,10 +24,17 @@ class OrarGenerator:
             "14:00-16:00", "16:00-18:00", "18:00-20:00"
         ]
         self.criterii = self.get_criterii_default()
+        self.nivel = "Licenta"
+        self.an = "I"
+        self.grupe = [] 
+        self.profesori = []
+        self.sali = []
+        self.mapare_grupe = {}  # va conține denumirea grupei
+        self.grupa_si_subgrupa = {}  # va conține informații despre grupa de bază și subgrupă
+        self.incarca_date()
+        self.nivel = "Licenta"  # sau "Master"
 
-        validator = ValidatorOrar(nivel=self.nivel, grupe=self.grupe, zile=self.zile, intervale=self.intervale)
-        validator.valideaza_cursuri_sincronizate(orar)
-        raport_html = valideaza_orar(orar[nivel][grupa])
+        
     
     def get_criterii_default(self):
         return {
@@ -36,11 +44,20 @@ class OrarGenerator:
             "ore_master": ["16:00-18:00", "18:00-20:00"]
         }
 
+        
     def actualizeaza_criterii(self, form_data):
-        self.criterii["pauza_miercuri"] = form_data.get("pauza_miercuri", "14:00-16:00")
-        self.criterii["max_ore_zi"] = int(form_data.get("max_ore_zi", 8))
-        self.criterii["pauza_dupa_6"] = form_data.get("pauza_dupa_6", "True") == "True"
-        self.criterii["ore_master"] = [s.strip() for s in form_data.get("ore_master", "").split(",") if s.strip()]
+        # Actualizează criteriile pe baza datelor din formular
+        if "pauza_miercuri" in form_data:
+            self.criterii["pauza_miercuri"] = form_data["pauza_miercuri"]
+            self.pauza_miercuri = form_data["pauza_miercuri"]
+        if "max_ore_zi" in form_data:
+            self.criterii["max_ore_zi"] = form_data["max_ore_zi"]
+            self.max_ore_zi = form_data["max_ore_zi"]
+        if "pauza_dupa_6" in form_data:
+            self.criterii["pauza_dupa_6"] = form_data["pauza_dupa_6"]
+            self.pauza_dupa_6 = form_data["pauza_dupa_6"]
+        if "ore_master" in form_data:
+            self.criterii["ore_master"] = [form_data["ore_master"]]
 
     def incarca_date(self):
         cursor = self.conn.cursor(dictionary=True)
@@ -102,8 +119,19 @@ class OrarGenerator:
 
 
 
-    def extrage_an_si_nivel(self, grupa):
-        return self.mapare_grupe.get(grupa, ("Necunoscut", "?"))
+    def extrage_an_si_nivel(self, cod_grupa):
+        # Exemplu: LM2a -> Master, II
+        nivel = "Necunoscut"
+        an = "?"
+        if cod_grupa.startswith("LM"):
+            nivel = "Master"
+            if len(cod_grupa) > 2 and cod_grupa[2].isdigit():
+                an = { "1": "I", "2": "II", "3": "III" }.get(cod_grupa[2], "?")
+        elif cod_grupa.startswith("L"):
+            nivel = "Licenta"
+            if len(cod_grupa) > 1 and cod_grupa[1].isdigit():
+                an = { "1": "I", "2": "II", "3": "III" }.get(cod_grupa[1], "?")
+        return nivel, an
 
 
     def genereaza_orar(self):
@@ -206,7 +234,7 @@ class OrarGenerator:
 
         return orar
 
-    def genereaza_activitate(self, tip_grupa, zi=None, interval=None):
+    def genereaza_activitate(self, tip_grupa, zi=None, interval=None, tip=None):
         profesori_potriviti = []
 
         for profesor in self.profesori:

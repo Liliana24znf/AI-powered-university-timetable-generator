@@ -218,6 +218,9 @@ usePreventBack();
   const aniDisponibili = Array.from(
     new Set(grupe.filter(g => g.nivel === nivelSelectat).map((g) => g.an))
   ).sort();
+  
+  
+  
   return (
    <div className="container-fluid pt-4 px-4">
 <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
