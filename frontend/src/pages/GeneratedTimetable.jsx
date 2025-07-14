@@ -227,7 +227,7 @@ usePreventBack();
   <div className="container-fluid position-relative d-flex align-items-center justify-content-between">
 <Link to="/dashboard" className="fs-6 fw-bold fs-6 m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none">
   <span>Aplicație pentru planificare inteligentă</span>
-  <span className="small">utilizând tehnici de A.I.</span>
+  <span className="small">utilizând tehnici de AI</span>
 </Link>
 
     {/* Centru: Titlu orar, poziționat absolut pentru centrare perfectă */}

@@ -22,7 +22,7 @@ describe("Pagina Home - NEautentificat", () => {
     );
 
     expect(
-      screen.getByText("Aplicație pentru planificare inteligentă utilizând tehnici de A.I.")
+      screen.getByText("Aplicație pentru planificare inteligentă utilizând tehnici de AI")
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Autentificare/i })).toBeInTheDocument();
   });

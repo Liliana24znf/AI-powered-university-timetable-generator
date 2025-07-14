@@ -17,7 +17,7 @@ usePreventBack();
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4">
         <div className="container-fluid d-flex justify-content-between align-items-center">
           <Link to="/" className="navbar-brand fw-bold fs-5 text-primary">
-            Aplicație pentru planificare inteligentă utilizând tehnici de A.I.
+            Aplicație pentru planificare inteligentă utilizând tehnici de AI
           </Link>
 
           {/* Dropdown meniu utilizator */}

@@ -54,7 +54,7 @@ usePreventBack();
             }}
           >
             <span className="fs-6 fw-bold">Aplicație pentru planificare inteligentă</span>
-            <span className="fs-6 m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none">utilizând tehnici de A.I.</span>
+            <span className="fs-6 m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none">utilizând tehnici de AI</span>
           </button>
 
           {/* Titlu Centrat */}
