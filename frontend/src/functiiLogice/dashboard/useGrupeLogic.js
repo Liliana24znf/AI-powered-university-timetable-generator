@@ -19,6 +19,7 @@ const useGrupeLogic = () => {
 
   const fetchGrupe = async () => {
     setIsLoading(true);
+    setEditSectiune(null); 
     setGrupeSelectate([]);
     try {
       const res = await fetch("http://localhost:5000/toate_grupe");

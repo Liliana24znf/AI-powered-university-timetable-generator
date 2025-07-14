@@ -43,7 +43,7 @@ usePreventBack();
             onClick={() => {
               Swal.fire({
                 title: "Părăsești această pagină?",
-                text: "Datele nesalvate despre reguli vor fi pierdute.",
+                text: "Datele nesalvate despre reguli vor fi pierdute. Ești sigur că vrei să revii la pagina de început?",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Da",
@@ -69,7 +69,7 @@ usePreventBack();
               onClick={() => {
                 Swal.fire({
                   title: "Revenire la profesori?",
-                  text: "Datele nesalvate vor fi pierdute.",
+                  text: "Datele nesalvate despre reguli vor fi pierdute. Ești sigur că vrei să revii?",
                   icon: "warning",
                   showCancelButton: true,
                   confirmButtonText: "Da, revin",
@@ -87,8 +87,8 @@ usePreventBack();
               className="btn btn-outline-secondary"
               onClick={() => {
                 Swal.fire({
-                  title: "Reîncarci pagina?",
-                  text: "Toate modificările nesalvate vor fi pierdute.",
+                  title: "Reîncarci regulile?",
+                  text: "Regulile actuale vor fi reîncărcate din baza de date. Modificările nesalvate vor fi pierdute.",
                   icon: "question",
                   showCancelButton: true,
                   confirmButtonText: "Da, reîncarcă",
@@ -120,7 +120,7 @@ usePreventBack();
     // ✅ Confirmare dacă regula este selectată
     Swal.fire({
       title: "Continui spre generare?",
-      html: `Vei genera orarul pe baza regulii:<br><strong>${numeRegula}</strong>`,
+      html: `Vei genera orarul pe baza regulii:<br><strong>${numeRegula}</strong>. <br> Asigură-te că ai salvat toate modificările înainte de a continua.`,
       icon: "info",
       showCancelButton: true,
       confirmButtonText: "Da, continuă",
@@ -166,7 +166,7 @@ usePreventBack();
               În această secțiune poți introduce <strong>regulile care guvernează generarea orarului</strong> pentru toate grupele și subgrupele din învățământul de <strong>Licență</strong> și <strong>Masterat</strong>.
             </p>
             <p className="text-secondary mb-2">
-              Regulile trebuie să includă informații clare despre <strong>structura activităților</strong> (curs, seminar, laborator), <strong>intervalele orare permise</strong>, <strong>restricții de săli</strong> și <strong>programul zilnic</strong> pentru fiecare nivel.
+              Regulile trebuie să includă informații clare despre <strong>structura activităților</strong> (curs, seminar, proiect, laborator), <strong>intervalele orare permise</strong>, <strong>restricții de săli</strong> și <strong>programul zilnic</strong> pentru fiecare nivel.
             </p>
             <p className="text-secondary mb-2">
               După completare, apasă <strong>"Salvează și continuă"</strong> pentru a înregistra regulile în baza de date și a trece la generarea orarului.

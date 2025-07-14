@@ -26,7 +26,7 @@ const Home = () => {
                   👋 Bine ai revenit, {user.nume || user.username}!
                 </span>
                 <Link to="/dashboard" className="btn btn-outline-success">
-                  Orarul meu
+                  Generează orarul
                 </Link>
                 <button className="btn btn-outline-danger" onClick={handleLogout}>
                   Logout
@@ -156,7 +156,7 @@ const Home = () => {
             {
               icon: "📚",
               title: "Vizualizare pe grupe și profesori",
-              desc: "Orarul este afișat pe ani, grupe și subgrupe, cu opțiune de vizualizare pentru fiecare profesor."
+              desc: "Orarul este afișat pe ani, grupe și subgrupe."
             },
             {
               icon: "📤",

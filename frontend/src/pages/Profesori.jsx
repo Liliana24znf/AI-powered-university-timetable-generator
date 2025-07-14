@@ -1,4 +1,4 @@
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
 import useProfesoriLogic from "../functiiLogice/dashboard/useProfesoriLogic";
@@ -33,7 +33,8 @@ const Profesori = () => {
     actualizeazaProfesor,
     stergeProfesor,
     resetFormular,
-    fetchProfesori
+    fetchProfesori,
+    isInvalid
   } = useProfesoriLogic();
   usePreventBack();
   useScrollToTop();
@@ -80,7 +81,7 @@ const Profesori = () => {
                   confirmButtonText: "Da, revin",
                   cancelButtonText: "Rămân aici"
                 }).then((result) => {
-                  if (result.isConfirmed) navigate("/grupe");
+                  if (result.isConfirmed) navigate("/sali");
                 });
               }}
             >
@@ -107,7 +108,6 @@ const Profesori = () => {
                       nume: false,
                       discipline: Array(formular.discipline.length).fill(false)
                     });
-                    toast.info("🔄 Lista profesorilor a fost reîncărcată.");
                   }
                 });
               }}
@@ -120,14 +120,13 @@ const Profesori = () => {
               onClick={() => {
                 Swal.fire({
                   title: "Continui către reguli?",
-                  text: "Asigură-te că ai salvat toți profeosrii înainte de a continua.",
+                  text: "Asigură-te că ai salvat toți profesorii înainte de a continua.",
                   icon: "info",
                   showCancelButton: true,
                   confirmButtonText: "Da, continuă",
                   cancelButtonText: "Rămân aici"
                 }).then((result) => {
                   if (result.isConfirmed) navigate("/setare-reguli");
-                  else toast.info("🔄 Rămâi aici pentru a adăuga sau modifica profesori.");
                 });
               }}
             >
@@ -144,7 +143,7 @@ const Profesori = () => {
             
             <p className="text-secondary mb-2">
               În această secțiune poți introduce <strong>profesorii disponibili</strong> pentru activitățile didactice:
-              {" "} <strong>cursuri</strong>,{" "} <strong>seminarii</strong> și <strong>laboratoare</strong>.
+              {" "} <strong>cursuri</strong>,{" "} <strong>seminarii, proiecte</strong> și <strong>laboratoare</strong>.
             </p>
 
             <p className="text-secondary mb-2">
@@ -426,7 +425,7 @@ const Profesori = () => {
                             disponibilitate: prof.disponibilitate || {}
                           });
 
-                          window.scrollTo({ insetBlockStart: 0, behavior: "smooth" });
+                          window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                       >
                         <span className="text-warning">✏️</span> Editează

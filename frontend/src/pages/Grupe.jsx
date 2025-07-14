@@ -150,6 +150,7 @@ const Grupe = () => {
             <button className="btn btn-outline-secondary" onClick={() => {
               Swal.fire({
                 title: "Reîncarcă grupele?",
+                text: "Grupele actuale vor fi reîncărcate din baza de date. Modificările nesalvate vor fi pierdute.",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "Da",
@@ -160,7 +161,7 @@ const Grupe = () => {
             <button className="btn btn-outline-primary" onClick={() => {
               Swal.fire({
                 title: "Continui către săli?",
-                text: "Asigură-te că ai salvat grupele.",
+                text: "Asigură-te că ai salvat grupele înainte de a continua.",
                 icon: "info",
                 showCancelButton: true,
                 confirmButtonText: "Da",

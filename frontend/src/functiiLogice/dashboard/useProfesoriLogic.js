@@ -245,7 +245,8 @@ const useProfesoriLogic = () => {
     actualizeazaProfesor,
     stergeProfesor,
     resetFormular,
-    fetchProfesori
+    fetchProfesori,
+    isInvalid
   };
 };
 

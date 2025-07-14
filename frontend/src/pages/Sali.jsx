@@ -117,7 +117,7 @@ usePreventBack();
           <div className="bg-white border-start border-4 border-primary p-4 rounded shadow-sm">
             <h4 className="fw-bold text-primary mb-3">ℹ️ Despre gestionarea sălilor</h4>
             <p className="text-secondary mb-2">
-              În această secțiune poți introduce <strong>numărul de săli necesare</strong> pentru desfășurarea activităților didactice: <strong>cursuri</strong>, <strong>laboratoare</strong> și <strong>seminarii</strong>.
+              În această secțiune poți introduce <strong>numărul de săli necesare</strong> pentru desfășurarea activităților didactice: <strong>cursuri</strong>, <strong>laboratoare</strong>, <strong>proiecte</strong> și <strong>seminarii</strong>.
             </p>
             <p className="text-secondary mb-2">
               Asigură-te că toate sălile sunt completate corect înainte de a genera orarul.
