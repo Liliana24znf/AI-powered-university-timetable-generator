@@ -59,7 +59,7 @@ describe("Pagina Home - AUTENTIFICAT", () => {
     });
   });
 
-  test("afișează mesaj de bun venit și butoanele 'Orarul meu' și 'Logout'", () => {
+  test("afișează mesaj de bun venit și butoanele 'Generează orarul' și 'Logout'", () => {
     render(
       <BrowserRouter>
         <Home />
@@ -67,7 +67,7 @@ describe("Pagina Home - AUTENTIFICAT", () => {
     );
 
     expect(screen.getByText(/Bine ai revenit, Liliana/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Orarul meu/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Generează orarul/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Logout/i })).toBeInTheDocument();
   });
 
