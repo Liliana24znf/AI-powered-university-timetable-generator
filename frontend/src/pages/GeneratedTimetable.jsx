@@ -225,10 +225,29 @@ usePreventBack();
    <div className="container-fluid pt-4 px-4">
 <nav className="navbar navbar-expand-lg bg-white shadow-sm px-4 py-3 mb-4">
   <div className="container-fluid position-relative d-flex align-items-center justify-content-between">
-<Link to="/dashboard" className="fs-6 fw-bold fs-6 m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none">
-  <span>Aplicație pentru planificare inteligentă</span>
-  <span className="small">utilizând tehnici de AI</span>
-</Link>
+<Link
+      to="/dashboard"
+      onClick={(e) => {
+        e.preventDefault(); // împiedică Link-ul să navigheze instant
+        Swal.fire({
+          title: "Vrei să revii la Dashboard?",
+          text: "Toate datele nesalvate vor fi pierdute.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Da, mergi",
+          cancelButtonText: "Rămân aici"
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate("/dashboard");
+          }
+        });
+      }}
+      className="fs-6 fw-bold m-0 d-flex flex-column align-items-start justify-content-center text-decoration-none"
+      style={{ cursor: "pointer" }}
+    >
+      <span>Aplicație pentru planificare inteligentă</span>
+      <span className="small">utilizând tehnici de AI</span>
+    </Link>
 
     {/* Centru: Titlu orar, poziționat absolut pentru centrare perfectă */}
     <div className="position-absolute top-50 start-50 translate-middle">
@@ -247,15 +266,26 @@ usePreventBack();
                   }).then((r) => { if (r.isConfirmed) navigate("/setare-reguli"); });
                 }}>🔙 Înapoi</button>
     
-                <button className="btn btn-outline-secondary" onClick={() => {
-                  Swal.fire({
-                    title: "Reîncarcă grupele?",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonText: "Da",
-                    cancelButtonText: "Nu"
-                  }).then((r) => { if (r.isConfirmed) fetchGrupe(); });
-                }}>🔄 Reîncarcă</button>
+                {/* Reîncarcă */}
+                            <button
+                              className="btn btn-outline-secondary"
+                              onClick={() => {
+                                Swal.fire({
+                                  title: "Reîncarci pagina?",
+                                  text: "Orarele generate vor fi reîncărcate din baza de date. Modificările nesalvate vor fi pierdute.",
+                                  icon: "question",
+                                  showCancelButton: true,
+                                  confirmButtonText: "Da, reîncarcă",
+                                  cancelButtonText: "Nu",
+                                }).then((result) => {
+                                  if (result.isConfirmed) {
+                                    window.location.reload();
+                                  }
+                                });
+                              }}
+                            >
+                              🔄 Reîncarcă
+                            </button>
 
                     {/* Dropdown meniu utilizator */}
     <div className="dropdown">
@@ -477,15 +507,22 @@ usePreventBack();
       </button>
 
               
-               <button
+<button
   className="btn btn-sm btn-outline-primary"
   onClick={() => {
-    incarcaOrarSalvat(orar.id);
+  incarcaOrarSalvat(orar.id);
+  setTimeout(() => {
+    const orarCurent = orar.orar_json || orar.orar || orar;
+    const raport = valideazaOrarGenerat(orarCurent);
+    setRaportValidare(raport);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }}
+  }, 100);
+}}
+
 >
   🔄 Încarcă
 </button>
+
 
                 <button
   className="btn btn-sm btn-outline-danger"
