@@ -40,7 +40,7 @@ class AlgoritmClasic:
             nr_max_cursuri = 4
         else:
             max_pe_zi = 3
-            nr_max_cursuri = 10
+            nr_max_cursuri = 6
 
         # 📝 Seturi și dicționare pentru urmărirea generării orarului
 
@@ -49,7 +49,7 @@ class AlgoritmClasic:
         cursuri_generate = set()
 
         # Dicționar cu contor pentru numărul de cursuri deja alocate pe nivel și an
-        # Ex: cursuri_per_an["Licenta"]["I"] = 5
+        # Ex: cursuri_per_an["Licenta"]["I"] = 7
         cursuri_per_an = defaultdict(lambda: defaultdict(int))
 
         # Similar, contor pentru numărul de proiecte deja alocate pe nivel și an
@@ -352,7 +352,6 @@ class AlgoritmClasic:
         # Returnează orarul complet generat (sub formă de nested dict)
         return orar
 
-
     def _echilibrare_activitati_pe_zi(self, orar):
         print("\n🔄 ECHILIBRARE activități / zi")
 
@@ -401,7 +400,6 @@ class AlgoritmClasic:
                                 break  # o mutare per zi e suficientă
                         break  # ieșim după o mutare pentru această zi subîncărcată
 
-
     def _get_grupe(self):
         # 🔍 Executăm un SELECT în tabela 'grupe' pentru nivelul și anul curent
         self.cursor.execute(
@@ -421,11 +419,9 @@ class AlgoritmClasic:
         # presupunând că în tabela grupe există o coloană numită „denumire”
         return [g["denumire"] for g in rezultate]
 
-
     def _prefix_grupa(self):
         # Returnează un prefix format din prima literă a nivelului și anul
         return f"{self.nivel[0]}{self.an}"
-
 
     def _get_profesori(self):
         # 🔍 Selectăm toți profesorii din tabelul 'profesori'
@@ -590,7 +586,6 @@ class AlgoritmClasic:
                     # Dacă diferența dintre poziții este mai mare decât 1, înseamnă că există o pauză
                     if ora2 - ora1 > 1:
                         print(f"⚠️ Pauză mare între {sloturi[i]} și {sloturi[i+1]} pentru {grupa} în {zi}")
-
 
     def _raport_validare(self, orar):
         print("\n📋 RAPORT VALIDARE ORAR")

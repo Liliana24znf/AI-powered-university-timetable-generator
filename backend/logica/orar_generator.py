@@ -6,36 +6,46 @@ from collections import defaultdict
 import copy
 from logica.validare import ValidatorOrar, valideaza_orar
 
-
-
-
 class OrarGenerator:
     def __init__(self):
-        
+        # 🔌 Conectare la baza de date MySQL
         self.conn = mysql.connector.connect(
             host="localhost",
             user="root",
             password="",
             database="licenta"
         )
+
+        # 📅 Zilele săptămânii în orar
         self.zile = ["Luni", "Marti", "Miercuri", "Joi", "Vineri"]
+
+        # ⏰ Intervalele orare standard (2 ore fiecare)
         self.intervale = [
             "08:00-10:00", "10:00-12:00", "12:00-14:00",
             "14:00-16:00", "16:00-18:00", "18:00-20:00"
         ]
+
+        # ⚙️ Criterii implicite de generare a orarului
         self.criterii = self.get_criterii_default()
+
+        # 🎓 Setări implicite pentru nivel și an (pot fi schimbate ulterior)
         self.nivel = "Licenta"
         self.an = "I"
-        self.grupe = [] 
-        self.profesori = []
-        self.sali = []
-        self.mapare_grupe = {}  # va conține denumirea grupei
-        self.grupa_si_subgrupa = {}  # va conține informații despre grupa de bază și subgrupă
-        self.incarca_date()
-        self.nivel = "Licenta"  # sau "Master"
 
-        
-    
+        # 📚 Liste și dicționare pentru datele preluate din baza de date
+        self.grupe = []           # toate grupele încărcate din DB
+        self.profesori = []       # lista profesorilor încărcați
+        self.sali = []            # lista sălilor disponibile
+
+        self.mapare_grupe = {}    # ex: {"LI1a": ("Licenta", "I")}
+        self.grupa_si_subgrupa = {}  # ex: {"LI1a": {"grupa_baza": "LI1", "subgrupa": "a"}}
+
+        # 🚀 Încarcă imediat toate datele din DB în aceste structuri
+        self.incarca_date()
+
+        # 📝 Asigură-te că nivelul rămâne implicit "Licenta" după inițializare
+        self.nivel = "Licenta"  # sau poate fi setat ulterior la "Master"
+
     def get_criterii_default(self):
         return {
             "pauza_miercuri": "14:00-16:00",
@@ -44,7 +54,6 @@ class OrarGenerator:
             "ore_master": ["16:00-18:00", "18:00-20:00"]
         }
 
-        
     def actualizeaza_criterii(self, form_data):
         # Actualizează criteriile pe baza datelor din formular
         if "pauza_miercuri" in form_data:
@@ -117,8 +126,6 @@ class OrarGenerator:
             for g in self.grupe
         }
 
-
-
     def extrage_an_si_nivel(self, cod_grupa):
         # Exemplu: LM2a -> Master, II
         nivel = "Necunoscut"
@@ -132,7 +139,6 @@ class OrarGenerator:
             if len(cod_grupa) > 1 and cod_grupa[1].isdigit():
                 an = { "1": "I", "2": "II", "3": "III" }.get(cod_grupa[1], "?")
         return nivel, an
-
 
     def genereaza_orar(self):
         from collections import defaultdict
@@ -289,17 +295,13 @@ class OrarGenerator:
         else:
             return f"{acronim} (Lab) - {nume_prof} - {sala}"
         
-
-
     def inchide_conexiunea(self):
         self.conn.close()
-
-# 🔽 Adaugă asta la finalul fișierului orar_generator.py
 
 
 def genereaza_formular_criterii(criterii, nivel_selectat="Licenta", an_selectat="I"):
     return f"""
-    <form method="post" action="/genereaza_orar_propriu" style="margin-bottom: 30px; font-family: sans-serif; max-width: 500px;">
+    <form method="post" action="/genereaza_orar_propriu" style="margin-bottom: 30px; font-family: sans-serif; max-inline-size: 500px;">
 
         <h3 style="color: #333;">🔧 Modifică criteriile de generare</h3>
 
@@ -338,13 +340,11 @@ def genereaza_formular_criterii(criterii, nivel_selectat="Licenta", an_selectat=
     </form>
     """
 
-
-
-def genereaza_html(orar, criterii, formular_html):
+def genereaza_html(orar, formular_html):
     html = "<html><head><meta charset='utf-8'><title>Orar Generat</title><style>"
     html += """
     body { font-family: Arial; margin: 20px; background: #f9f9f9; }
-    table { border-collapse: collapse; inline-size: 100%; margin-block-end: 30px; }
+    table { border-collapse: collapse; inline-size: 100%; margin-bottom: 30px; }
     th, td { border: 1px solid #aaa; padding: 8px; text-align: center; font-size: 14px; }
     th { background-color: #e0e0e0; }
     h2 { background-color: #333; color: white; padding: 10px; }

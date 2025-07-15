@@ -1,11 +1,16 @@
 from flask import Blueprint, request, jsonify
 import json
 import re
+import os
 from openai import OpenAI
 from database.db_connection import get_connection
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
 
 orar_bp = Blueprint("orar_bp", __name__)
-client = OpenAI(api_key="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")
+client = OpenAI(api_key=api_key)
 
 def completeaza_grupe_lipsa(orar_json, grupe_licenta=None, grupe_master=None):
     grupe_licenta = grupe_licenta or []
@@ -53,7 +58,7 @@ def completeaza_ani_lipsa(orar_json):
 @orar_bp.route('/genereaza_orar', methods=['POST'])
 def genereaza_orar():
     data = request.get_json()
-    prompt_frontend = data.get("prompt")  # 👈 Preia promptul exact din frontend
+    prompt_frontend = data.get("prompt")  
     regula_id = data.get("regula_id")
     nivel_selectat = data.get("nivel_selectat")
     grupe_selectate = data.get("grupe_selectate", [])

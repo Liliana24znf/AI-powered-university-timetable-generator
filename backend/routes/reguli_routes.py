@@ -23,7 +23,6 @@ def salveaza_reguli():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
 @reguli_bp.route("/ultimele_reguli", methods=["GET"])
 def ultimele_reguli():
     try:
@@ -36,9 +35,6 @@ def ultimele_reguli():
         return jsonify(reguli)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
-
-
 
 @reguli_bp.route("/actualizeaza_regula", methods=["PUT"])
 def actualizeaza_regula():
@@ -57,7 +53,6 @@ def actualizeaza_regula():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
 @reguli_bp.route("/sterge_regula", methods=["DELETE"])
 def sterge_regula():
     data = request.get_json()
@@ -72,18 +67,3 @@ def sterge_regula():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
-
-
-# @reguli_bp.route("/regula/<int:id>", methods=["GET"])
-# def get_regula_by_id(id):
-#     try:
-#         conn = get_connection()
-#         cursor = conn.cursor(dictionary=True)
-#         cursor.execute("SELECT * FROM reguli WHERE id = %s", (id,))
-#         regula = cursor.fetchone()
-#         cursor.close()
-#         conn.close()
-#         return jsonify(regula if regula else {"error": "Nu s-a găsit regula"})
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
