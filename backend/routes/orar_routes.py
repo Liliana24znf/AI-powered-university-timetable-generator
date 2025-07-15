@@ -78,7 +78,8 @@ def genereaza_orar():
                     "role": "user",
                     "content": prompt_frontend  # 👈 promptFinal de la frontend
                 }
-            ]
+            ],
+            temperature=0
         )
 
         orar_raw = response.choices[0].message.content.strip()

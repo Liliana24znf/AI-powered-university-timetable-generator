@@ -173,6 +173,7 @@ const orareFiltrate = orareSalvate.filter((orar) =>
     stergeOrar,
     editeazaDenumire,
     orareFiltrate
+    
   };
 };
 

@@ -168,29 +168,38 @@ const eroriActivitati = {
   proiect: []
 };
 
-[ "seminar", "proiect"].forEach((tipActivitate) => {
-  const sloturi = {};
+["seminar", "proiect"].forEach((tipActivitate) => {
+  const activitati = activitatiDeSincronizat[tipActivitate] || {};
 
-  Object.entries(activitatiDeSincronizat[tipActivitate] || {}).forEach(([cheie, aparitii]) => {
+  Object.entries(activitati).forEach(([cheie, aparitii]) => {
+    // grupare pe GRUPĂ (ex: 1, 2, 3)
+    const sloturiPerGrupa = {};
+
     aparitii.forEach((a) => {
-      const grupCheie = {
-        seminar: grupe.find(g => g.denumire === a.grupa).grupa,
-        proiect: grupe.find(g => g.denumire === a.grupa).grupa
-      }[tipActivitate];
+      const grupaObj = grupe.find(g => g.denumire === a.grupa);
+      const grupa = grupaObj ? grupaObj.grupa : "?";
 
-      const slot = `${grupCheie}|${a.zi}|${a.interval}`;
-      const fullCheie = `${cheie}|${slot}`;
+      if (!sloturiPerGrupa[grupa]) sloturiPerGrupa[grupa] = {};
+      if (!sloturiPerGrupa[grupa][a.subgrupa]) sloturiPerGrupa[grupa][a.subgrupa] = new Set();
 
-      if (!sloturi[fullCheie]) sloturi[fullCheie] = [];
-      sloturi[fullCheie].push(a.grupa);
+      sloturiPerGrupa[grupa][a.subgrupa].add(`${a.zi}|${a.interval}`);
     });
-  });
 
-  Object.entries(sloturi).forEach(([fullCheie, grupeGasite]) => {
-    if (grupeGasite.length > 1) {
-      const [activitate, profesor, grup, zi, interval] = fullCheie.split("|").map(capitalize);
-      eroriActivitati[tipActivitate].push(`❌ ${tipActivitate} ${activitate} – ${profesor} apare simultan la mai multe grupe (${grupeGasite.join(", ")}) în ${zi}, ${interval}`);
-    }
+    // verificăm pentru fiecare GRUPĂ dacă toate subgrupele au aceleași sloturi
+    Object.entries(sloturiPerGrupa).forEach(([grupa, subgrupeSlots]) => {
+      const sloturiArray = Object.values(subgrupeSlots).map(s => Array.from(s).sort().join(","));
+      const toateLaFel = sloturiArray.every(s => s === sloturiArray[0]);
+
+      if (!toateLaFel) {
+        const subgrupeInfo = Object.entries(subgrupeSlots)
+          .map(([subgrupa, slots]) => `${subgrupa}: [${Array.from(slots).join(", ")}]`)
+          .join("; ");
+        
+        eroriActivitati[tipActivitate].push(
+          `❌ ${capitalize(tipActivitate)} ${cheie} NU este sincronizat pe grupă ${grupa}: ${subgrupeInfo}`
+        );
+      }
+    });
   });
 });
 

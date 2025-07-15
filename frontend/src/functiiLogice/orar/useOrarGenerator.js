@@ -87,7 +87,6 @@ const instructiuniProfesori = profesori.map((p) => {
 
 
 const instructiuniSali = `
-🏫 Săli disponibile:
 
 Folosește EXCLUSIV codurile de săli de mai jos. NU inventa denumiri, NU modifica formatul!
 
@@ -115,6 +114,8 @@ const instructiuniGrupe = grupe
 
 const instructiuniGPT = `
 🔒 REGULI GPT PENTRU GENERAREA ORARULUI:
+Dacă în orar găsești că același seminar sau proiect apare în ore diferite pentru grupe, corectează automat pentru a le sincroniza pe toate grupele în același interval, aceeași sală, același profesor.
+Laboratoarele trebuie să fie în intervale orare diferite pentru fiecare subgrupă, NU le suprapune, să aibă oră și sală diferite.
 
 📌 Structura generală:
 - NU include chei globale precum "luni", "marti" etc.

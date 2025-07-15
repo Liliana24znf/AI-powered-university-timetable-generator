@@ -67,6 +67,9 @@ const { valideazaOrarGenerat } = useValidareOrar(
   grupe,
   setRaportValidare
 );
+
+
+
 const {
 
   genereazaOrar,
@@ -510,18 +513,16 @@ usePreventBack();
 <button
   className="btn btn-sm btn-outline-primary"
   onClick={() => {
-  incarcaOrarSalvat(orar.id);
-  setTimeout(() => {
-    const orarCurent = orar.orar_json || orar.orar || orar;
-    const raport = valideazaOrarGenerat(orarCurent);
-    setRaportValidare(raport);
+    incarcaOrarSalvat(orar.id);
+    setNivelSelectat(orar.nivel); 
+    setAnSelectat(orar.an);       
+    setRaportValidare(""); // goli anteriorul până vine useEffect
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, 100);
-}}
-
+  }}
 >
   🔄 Încarcă
 </button>
+
 
 
                 <button
