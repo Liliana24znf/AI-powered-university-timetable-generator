@@ -9,10 +9,6 @@ class AlgoritmClasic:
         self.nivel = nivel
         self.an = an
 
-        # Funcție locală care calculează prefixul grupei (ex: "LIV")
-        def _prefix_grupa(self):
-            sufix = self.an  # nu transformi în cifră, păstrezi literele exact
-            return f"{self.nivel[0]}{sufix}"  # ex: "LIV"
 
         # Conectare la baza de date
         self.conn = mysql.connector.connect(
@@ -43,7 +39,7 @@ class AlgoritmClasic:
             max_pe_zi = 2
             nr_max_cursuri = 4
         else:
-            max_pe_zi = 4
+            max_pe_zi = 3
             nr_max_cursuri = 10
 
         # 📝 Seturi și dicționare pentru urmărirea generării orarului
@@ -362,8 +358,8 @@ class AlgoritmClasic:
 
         # Stabilim limitele minime și maxime pe zi, în funcție de nivel
         if self.nivel.lower() == "master":
-            min_pe_zi = 1  # minim o activitate pe zi pentru master
-            max_pe_zi = 2  # maxim două activități pe zi pentru master
+            min_pe_zi = 2  # minim 2 activități pe zi pentru master
+            max_pe_zi = 2  # maxim 2 activități pe zi pentru master
         else:
             min_pe_zi = 3  # minim 3 activități pe zi pentru licență (aprox. 6 ore)
             max_pe_zi = 4  # maxim 4 activități pe zi pentru licență (8 ore)
@@ -460,9 +456,9 @@ class AlgoritmClasic:
             ]
             random.shuffle(disc_tot)
 
-            # Alegem între 2 și maxim 6 discipline (sau câte sunt disponibile)
-            if len(disc_tot) >= 2:
-                nr_discipline = random.randint(2, min(6, len(disc_tot)))
+            # Alegem între 3 și maxim 8 discipline (sau câte sunt disponibile)
+            if len(disc_tot) >= 3:
+                nr_discipline = random.randint(3, min(8, len(disc_tot)))
                 disc = disc_tot[:nr_discipline]
             else:
                 disc = disc_tot
@@ -486,8 +482,8 @@ class AlgoritmClasic:
                 "disponibilitate_parsata": disponibilitate
             })
 
-        # 🎯 Alegem aleator între 5 și 8 profesori pentru generarea orarului
-        nr_profesori = random.randint(5, min(8, len(prof_map)))
+        # 🎯 Alegem aleator între 8 și 10 profesori pentru generarea orarului
+        nr_profesori = random.randint(8, min(10, len(prof_map)))
         prof_map = prof_map[:nr_profesori]
 
         # Afișăm în consolă profesorii aleși și disciplinele lor
@@ -633,7 +629,7 @@ class AlgoritmClasic:
                     if nr > 2:
                         print(f"⚠️ {zi} are {nr} activități (maxim admis pentru master: 2)")
                 else:
-                    if nr < 2:
-                        print(f"⚠️ {zi} are doar {nr} activități (minim necesar pentru licență: 2)")
+                    if nr < 3:
+                        print(f"⚠️ {zi} are doar {nr} activități (minim necesar pentru licență: 3)")
                     if nr > 4:
                         print(f"⚠️ {zi} are {nr} activități (maxim admis pentru licență: 4)")
