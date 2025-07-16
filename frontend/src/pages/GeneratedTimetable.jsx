@@ -538,6 +538,8 @@ usePreventBack();
     }).then((result) => {
       if (result.isConfirmed) {
         stergeOrar(orar.id);
+        setOrar(null);
+        setRaportValidare("");
         Swal.fire({
           icon: "success",
           title: "Șters!",
@@ -545,6 +547,7 @@ usePreventBack();
           timer: 1500,
           showConfirmButton: false
         });
+        
       }
     });
   }}

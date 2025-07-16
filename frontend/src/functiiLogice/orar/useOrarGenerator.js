@@ -114,8 +114,6 @@ const instructiuniGrupe = grupe
 
 const instructiuniGPT = `
 🔒 REGULI GPT PENTRU GENERAREA ORARULUI:
-Dacă în orar găsești că același seminar sau proiect apare în ore diferite pentru grupe, corectează automat pentru a le sincroniza pe toate grupele în același interval, aceeași sală, același profesor.
-Laboratoarele trebuie să fie în intervale orare diferite pentru fiecare subgrupă, NU le suprapune, să aibă oră și sală diferite.
 
 📌 Structura generală:
 - NU include chei globale precum "luni", "marti" etc.
@@ -205,10 +203,9 @@ const promptFinal = `
 🔒 GENEREAZĂ DOAR PENTRU NIVELUL: **${nivelSelectat}**, anul: **${anSelectat}**.
 ‼️ NU include date din alt nivel. Dacă este Master, NU include Licență.
 
-‼️ IMPORTANT:
-- Cursurile trebuie să fie IDENTICE (zi, oră, sală, profesor) pentru TOATE grupele din același an.  
-- Seminarele și proiectele trebuie să fie planificate SEPARAT pentru fiecare GRUPĂ.  
-- Laboratoarele trebuie să fie planificate SEPARAT pentru fiecare SUBGRUPĂ, în intervale diferite.  
+
+Dacă în orar găsești că același seminar sau proiect apare în ore diferite pentru subgrupe de la aceeași grupă, corectează automat pentru a le sincroniza pe toate subgrupele de la aceeași grupă în același interval, aceeași sală, același profesor.
+Laboratoarele trebuie să fie în intervale orare diferite pentru fiecare subgrupă de la fiecare grupă, NU le suprapune, să aibă oră și sală diferite.
 
 
 

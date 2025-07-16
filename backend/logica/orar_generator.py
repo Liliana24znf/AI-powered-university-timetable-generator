@@ -340,7 +340,7 @@ def genereaza_formular_criterii(criterii, nivel_selectat="Licenta", an_selectat=
     </form>
     """
 
-def genereaza_html(orar, formular_html):
+def genereaza_html(orar,criterii, formular_html):
     html = "<html><head><meta charset='utf-8'><title>Orar Generat</title><style>"
     html += """
     body { font-family: Arial; margin: 20px; background: #f9f9f9; }

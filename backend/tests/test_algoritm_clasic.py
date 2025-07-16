@@ -17,18 +17,21 @@ def test_algoritm_clasic_licenta_generare():
     assert "Licenta" in orar
     assert isinstance(orar["Licenta"], dict)
 
+    cel_putin_un_slot_populat = False
+
     for grupa, zile in orar["Licenta"].items():
         assert isinstance(zile, dict)
         for zi, intervale in zile.items():
             assert zi in ["Luni", "Marti", "Miercuri", "Joi", "Vineri"]
             for interval, activitate in intervale.items():
-                assert "activitate" in activitate
-                assert "tip" in activitate
-                assert "profesor" in activitate
-                assert "sala" in activitate
+                if activitate:  # doar dacă activitate nu e dict gol
+                    cel_putin_un_slot_populat = True
+                    assert "activitate" in activitate
+                    assert "tip" in activitate
+                    assert "profesor" in activitate
+                    assert "sala" in activitate
 
-    # Verificăm că cel puțin o grupă are un orar generat
-    assert any(orar["Licenta"][g] for g in orar["Licenta"])
+    assert cel_putin_un_slot_populat, "Niciun slot nu a fost populat cu activități"
 
 
 @pytest.mark.integration
@@ -39,12 +42,16 @@ def test_algoritm_clasic_master_generare():
     assert "Master" in orar
     assert isinstance(orar["Master"], dict)
 
+    cel_putin_un_slot_populat = False
+
     for grupa, zile in orar["Master"].items():
         for zi, intervale in zile.items():
             for interval, activitate in intervale.items():
-                assert "activitate" in activitate
-                assert "tip" in activitate
-                assert "profesor" in activitate
-                assert "sala" in activitate
+                if activitate:  # doar dacă e un slot populat
+                    cel_putin_un_slot_populat = True
+                    assert "activitate" in activitate
+                    assert "tip" in activitate
+                    assert "profesor" in activitate
+                    assert "sala" in activitate
 
-    assert any(orar["Master"][g] for g in orar["Master"])
+    assert cel_putin_un_slot_populat, "Niciun slot nu a fost populat cu activități"

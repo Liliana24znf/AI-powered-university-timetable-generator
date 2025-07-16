@@ -48,8 +48,6 @@ def genereaza_orar_propriu():
 
     return render_template_string(html)
 
-
-
 @generator_bp.route("/genereaza_algoritm_propriu", methods=["POST"])
 def genereaza_algoritm_propriu():
     data = request.get_json()
