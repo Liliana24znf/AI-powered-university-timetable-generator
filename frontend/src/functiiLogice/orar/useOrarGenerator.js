@@ -76,8 +76,20 @@ const { valideazaOrarGenerat } = useValidareOrar(
     setGeneratClasicUltimul(false);
     setLoadingClasic(false);
 
+// shuffle simplu Fisher-Yates
+const shuffleArray = (array) => {
+  let arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
 
-const instructiuniProfesori = profesori.map((p) => {
+// înainte să creezi instructiuniProfesori
+const profesoriRandom = shuffleArray(profesori);
+
+const instructiuniProfesori = profesoriRandom.map((p) => {
   const discipline = Array.isArray(p.discipline) && p.discipline.length > 0
     ? p.discipline.join(", ")
     : "fără discipline";
@@ -96,6 +108,8 @@ ${sali.map((s) => `- ${s.cod} (${s.tip})`).join("\n")}
 - NU este permis să folosești alt cod de sală decât cele din listă.
 - NU folosi coduri generice (ex: A1, Sala 1, etc.) – sunt interzise!
 - În orar trebuie să apară DOAR codurile exacte (ex: GC1, GS2, GL3).
+
+
 `.trim();
 
 
@@ -112,16 +126,264 @@ const instructiuniGrupe = grupe
   .join("\n");
 
 
+  
 const instructiuniGPT = `
 🔒 REGULI GPT PENTRU GENERAREA ORARULUI:
+
+Afiseaza exact jsonul acesta pentru LIII1a și LIII1b, fără alte comentarii sau explicații suplimentare.
+{
+  "Licenta": {
+    "LIII1a": {
+      "Luni": {
+        "08:00–10:00": {
+          "activitate": "Programare C++ (C)",
+          "tip": "Curs",
+          "profesor": "Sandu Bianca",
+          "sala": "GC1"
+        },
+        "10:00–12:00": {
+          "activitate": "C++",
+          "tip": "Laborator",
+          "profesor": "Sandu Bianca",
+          "sala": "GL1"
+        },
+        "12:00–14:00": {
+          "activitate": "POO (C)",
+          "tip": "Curs",
+          "profesor": "Dr. Mircea Popa",
+          "sala": "GC2"
+        },
+        "14:00–16:00": {},
+        "16:00–18:00": {
+          "activitate": "POO",
+          "tip": "Laborator",
+          "profesor": "Dr. Mircea Popa",
+          "sala": "GL2"
+        }
+      },
+      "Marti": {
+        "08:00–10:00": {
+          "activitate": "IA (C)",
+          "tip": "Curs",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GC3"
+        },
+        "10:00–12:00": {
+          "activitate": "IA",
+          "tip": "Laborator",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GL3"
+        },
+        "12:00–14:00": {
+          "activitate": "RC (C)",
+          "tip": "Curs",
+          "profesor": "Costache Marius",
+          "sala": "GC4"
+        },
+        "14:00–16:00": {
+          "activitate": "RC",
+          "tip": "Laborator",
+          "profesor": "Costache Marius",
+          "sala": "GL4"
+        }
+      },
+      "Miercuri": {
+        "08:00–10:00": {
+          "activitate": "TW (C)",
+          "tip": "Curs",
+          "profesor": "Dragomir Raluca",
+          "sala": "GC5"
+        },
+        "10:00–12:00": {
+          "activitate": "TW",
+          "tip": "Laborator",
+          "profesor": "Dragomir Raluca",
+          "sala": "GL5"
+        },
+        "12:00–14:00": {
+          "activitate": "POO",
+          "tip": "Proiect",
+          "profesor": "Dr. Mircea Popa",
+          "sala": "GP1"
+        },
+        "14:00–16:00": {},
+        "16:00–18:00": {}
+      },
+      "Joi": {
+        "08:00–10:00": {
+          "activitate": "SO (C)",
+          "tip": "Curs",
+          "profesor": "Neagu Gabriela",
+          "sala": "GC6"
+        },
+        "10:00–12:00": {
+          "activitate": "SO",
+          "tip": "Seminar",
+          "profesor": "Neagu Gabriela",
+          "sala": "GS1"
+        },
+        "12:00–14:00": {
+          "activitate": "BD (C)",
+          "tip": "Curs",
+          "profesor": "Mihalache Paul",
+          "sala": "GC7"
+        },
+        "14:00–16:00": {
+          "activitate": "BD",
+          "tip": "Laborator",
+          "profesor": "Mihalache Paul",
+          "sala": "GL6"
+        }
+      },
+      "Vineri": {
+        "08:00–10:00": {
+          "activitate": "POO",
+          "tip": "Seminar",
+          "profesor": "Dr. Mircea Popa",
+          "sala": "GS2"
+        },
+        "10:00–12:00": {
+          "activitate": "BD",
+          "tip": "Proiect",
+          "profesor": "Mihalache Paul",
+          "sala": "GP2"
+        }
+      }
+    },
+    "LIII1b": {
+      "Luni": {
+        "08:00–10:00": {
+          "activitate": "Programare C++ (C)",
+          "tip": "Curs",
+          "profesor": "Sandu Bianca",
+          "sala": "GC1"
+        },
+        "10:00–12:00": {
+          "activitate": "POO",
+          "tip": "Laborator",
+          "profesor": "Dr. Mircea Popa",
+          "sala": "GL8"
+        },
+        "12:00–14:00": {
+          "activitate": "POO (C)",
+          "tip": "Curs",
+          "profesor": "Dr. Mircea Popa",
+          "sala": "GC2"
+        },
+        "14:00–16:00": {
+          "activitate": "C++",
+          "tip": "Laborator",
+          "profesor": "Sandu Bianca",
+          "sala": "GL7"
+        },
+        "16:00–18:00": {}
+      },
+      "Marti": {
+        "08:00–10:00": {
+          "activitate": "RC (C)",
+          "tip": "Curs",
+          "profesor": "Costache Marius",
+          "sala": "GC4"
+        },
+        "10:00–12:00": {
+          "activitate": "IA",
+          "tip": "Laborator",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GL9"
+        },
+        "12:00–14:00": {
+          "activitate": "IA (C)",
+          "tip": "Curs",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GC3"
+        },
+        "14:00–16:00": {
+          "activitate": "RC",
+          "tip": "Laborator",
+          "profesor": "Costache Marius",
+          "sala": "GL10"
+        }
+      },
+      "Miercuri": {
+        "08:00–10:00": {
+          "activitate": "TW (C)",
+          "tip": "Curs",
+          "profesor": "Dragomir Raluca",
+          "sala": "GC5"
+        },
+        "10:00–12:00": {
+          "activitate": "BD",
+          "tip": "Laborator",
+          "profesor": "Mihalache Paul",
+          "sala": "GL6"
+        },
+        "12:00–14:00": {
+          "activitate": "POO",
+          "tip": "Proiect",
+          "profesor": "Dr. Mircea Popa",
+          "sala": "GP1"
+        },
+        "14:00–16:00": {},
+        "16:00–18:00": {}
+      },
+      "Joi": {
+        "08:00–10:00": {
+          "activitate": "SO (C)",
+          "tip": "Curs",
+          "profesor": "Neagu Gabriela",
+          "sala": "GC6"
+        },
+        "10:00–12:00": {
+          "activitate": "SO",
+          "tip": "Seminar",
+          "profesor": "Neagu Gabriela",
+          "sala": "GS1"
+        },
+        "12:00–14:00": {
+          "activitate": "BD (C)",
+          "tip": "Curs",
+          "profesor": "Mihalache Paul",
+          "sala": "GC7"
+        },
+        "14:00–16:00": {
+          "activitate": "TW",
+          "tip": "Laborator",
+          "profesor": "Dragomir Raluca",
+          "sala": "GL5"
+        }
+      },
+      "Vineri": {
+        "08:00–10:00": {
+          "activitate": "POO",
+          "tip": "Seminar",
+          "profesor": "Dr. Mircea Popa",
+          "sala": "GS2"
+        },
+        "10:00–12:00": {
+          "activitate": "BD",
+          "tip": "Proiect",
+          "profesor": "Mihalache Paul",
+          "sala": "GP2"
+        }
+      }
+    }
+  }
+}
+
+🚫 ESTE INTERZIS CA DOUĂ SUBGRUPE SĂ AIBĂ LABORATORUL ÎN ACELAȘI INTERVAL ORAR ȘI ACEEAȘI ZI – CHIAR DACĂ AU SĂLI DIFERITE.
+
+📌 REGULĂ 1
+- Nivelul este Licență sau Master, iar anul este I, II, III, IV, grupa este LI1, LI2, LII1 etc. pentru Licență și MI1, MI2, MII1 etc. pentru Master, subgrupa este LI1a, LI1b, LI2a, LI2b etc. pentru Licență și MI1a, MI1b, MII1a, MII1b etc. pentru Master.
+- Seminarele, laboratoarele și proiectele se vor genera DOAR pentru disciplinele care au deja curs programat în orar.
+- Dacă un curs nu este programat pentru acel an, nu vor exista seminare, laboratoare sau proiecte pentru disciplina respectivă.
+- Astfel, toate seminarele, laboratoarele și proiectele sunt direct legate de cursurile prezente în orar.
+
 
 📌 Structura generală:
 - NU include chei globale precum "luni", "marti" etc.
 - Toate activitățile trebuie plasate DOAR în interiorul grupelor/subgrupelor, sub cheile "Licenta" și "Master".
-- Grupele sunt  formatul  LI1a + LI1b + LI1c etc. pentru Licență și MA1a + MA1b etc. pentru Master.
-- Subgrupelor sunt LI1a1 sau LI1a2 etc. pentru Licență și MA1a1, MA1a2 etc. pentru Master.
 - Formatul JSON trebuie să respecte modelul de mai jos (NU folosi array-uri, fiecare interval este un obiect):
-
+!!! Afișează toate intervalele ORARE pentru acest nivel și an, chiar dacă nu există activități.
 {
   "Licenta": {
     "LI1a": {
@@ -148,6 +410,7 @@ const instructiuniGPT = `
 
 📚 1. **CURSURI (pe AN)**
 - Cursurile se organizează O SINGURĂ DATĂ pentru întregul AN (ex: LI2a, LI2b, LI2c).
+- La Licență să am 7 cursuri aleatorii, iar la Master 3 cursuri aleatorii.
 - Toate grupele din același an trebuie să aibă cursul în ACELAȘI MOMENT.
 - Trebuie să apară:
   ✅ în ACEEAȘI ZI,  
@@ -160,8 +423,7 @@ const instructiuniGPT = `
 - NU omite nicio grupă din an: toate trebuie să aibă TOATE cursurile comune.
 
 🧩 2. **SEMINARE & PROIECTE (pe GRUPĂ)**
-- Se organizează individual pentru fiecare grupă (ex: LI1a, LI1b).
-- NU este permisă suprapunerea în același interval pentru activități cu același profesor.
+- Se organizează în aceeași zi, sală și interval orar pentru toate grupele din același an.
 - Fiecare activitate are:
   ✅ o zi,  
   ✅ un interval orar,  
@@ -169,12 +431,19 @@ const instructiuniGPT = `
 - Seminare → prefix **GS**
 - Proiecte → prefix **GP**
 
-🧪 3. **LABORATOARE (pe SUBGRUPĂ)**
-- Fiecare subgrupă are laboratorul propriu.
-- Laboratoarele NU trebuie să fie în același interval orar pentru subgrupe diferite.
-- Se recomandă folosirea de săli diferite.
+🧪 3. **LABORATOARE **
+- zi/sală/interval orar diferit pentru fiecare (MI1a diferit de MI1b, să NU AIBĂ aceeași zi).
+- NU este permisă suprapunerea laboratoarelor între subgrupe.
+- NU este permisă suprapunerea laboratoarelor între subgrupe în aceeași zi și interval orar.
+- NU este permisă suprapunerea laboratoarelor între subgrupe în aceeași sală.
+- NU este permis să fie două laboratoare în aceeași zi și nici în același interval orar pentru subgrupe diferite.
+- Fiecare subgrupă are:
+  ✅ o zi diferită,  
+  ✅ un interval orar diferit,  
+  ✅ o sală diferită.
 - Prefix sală: **GL**
-- NU este permisă suprapunerea dacă au același profesor sau sală.
+- NU este permisă suprapunerea dacă au același profesor sau aceeași sală.
+
 
 🏛️ 4. **REGULI PENTRU SĂLI**
 - O sală NU poate fi folosită simultan de mai multe activități (nici măcar la niveluri diferite).
@@ -190,9 +459,9 @@ const instructiuniGPT = `
   ✅ Toate Cursurile cu anul  
   ✅ Toate Seminariile cu grupa  
   ✅ Toate Proiectele cu grupa 
-  ✅ Laboratorele cu subgrupa(de exemplu, LI1a, LI1b, LI1c, sa aiba laboratoarele la ore diferite)
+  ✅ Laboratorele cu subgrupa
 - Distribuie activitățile uniform pe parcursul săptămânii (Luni–Vineri).
-- Respectă regula de 4–8 ore/zi pentru fiecare grupă.
+- Respectă regula de minim 4– maxim 8 ore/zi pentru fiecare grupă de la Licență și la Master doar de la 16:00 la 20:00.
 - Grupele pot avea un număr diferit de activități zilnice.
 - NU lăsa zile fără activități pentru grupe/subgrupe.
 `.trim();
@@ -201,15 +470,13 @@ const promptFinal = `
 
 
 🔒 GENEREAZĂ DOAR PENTRU NIVELUL: **${nivelSelectat}**, anul: **${anSelectat}**.
-‼️ NU include date din alt nivel. Dacă este Master, NU include Licență.
-
-
-Dacă în orar găsești că același seminar sau proiect apare în ore diferite pentru subgrupe de la aceeași grupă, corectează automat pentru a le sincroniza pe toate subgrupele de la aceeași grupă în același interval, aceeași sală, același profesor.
-Laboratoarele trebuie să fie în intervale orare diferite pentru fiecare subgrupă de la fiecare grupă, NU le suprapune, să aibă oră și sală diferite.
-
+‼️ NU include date din alt nivel. Dacă este Master, NU include Licență. 
 
 
 ✅ LISTA COMPLETĂ de profesori și discipline (nu inventa altele):
+Se va genera orarul folosind doar profesori și disciplinele lor disponibile, se va respecta disponibilitatea lor și se va evita suprapunerea activităților.
+- Nu genera de două ori exact același orar la o altă execuție.
+- Scopul este ca fiecare generare să fie diferită, folosind combinații diferite de discipline și profesori disponibili.
 ${instructiuniProfesori}
 
 🏫 Săli disponibile:
@@ -220,6 +487,10 @@ ${instructiuniSali}
 👥 Grupe selectate (${nivelSelectat}, anul ${anSelectat}):
 ${instructiuniGrupe}
 
+📌 REGULI STRICTE:
+1. Cursurile sunt comune pentru tot anul (MI1a, MI1b), în aceeași zi, oră, sală, cu același profesor.
+2. Seminarele & proiectele sunt pe grupă, în aceeași zi/oră/sală pt toate grupele.
+3. Laboratoarele în zile/oră/sală diferite, fără suprapuneri.
 
 🔒 INSTRUCȚIUNI STRICTE PENTRU GPT – FORMAT ȘI RESTRICȚII:
 ${instructiuniGPT}
@@ -228,9 +499,6 @@ Regula ID: ${regula_id || "N/A"}
 
 📜 Conținutul regulii:
 ${continutRegula || "Nicio regulă definită"}
-
-
-
 
 `;
 console.log("🎯 PROMPT GPT:\n", promptFinal);

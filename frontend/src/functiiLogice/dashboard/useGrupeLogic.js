@@ -151,6 +151,7 @@ const useGrupeLogic = () => {
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Da, șterge!",
+      
     });
     if (!confirm.isConfirmed) return;
 
@@ -165,6 +166,7 @@ const useGrupeLogic = () => {
         toast.success("✅ Grupele selectate au fost șterse.");
         setGrupeSelectate([]);
         fetchGrupe();
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else toast.error("❌ " + result.error);
     } catch {
       toast.error("❌ Eroare la ștergere.");

@@ -117,6 +117,7 @@ const useSaliLogic = () => {
         toast.success("✅ Sălile au fost șterse.");
         setSaliSelectate([]);
         fetchSali();
+        
       } else toast.error("❌ " + result.error);
     } catch (error) {
       toast.error("❌ Eroare la conexiune.");

@@ -39,7 +39,7 @@ class AlgoritmClasic:
             max_pe_zi = 2
             nr_max_cursuri = 4
         else:
-            max_pe_zi = 3
+            max_pe_zi = 4
             nr_max_cursuri = 6
 
         # 📝 Seturi și dicționare pentru urmărirea generării orarului
