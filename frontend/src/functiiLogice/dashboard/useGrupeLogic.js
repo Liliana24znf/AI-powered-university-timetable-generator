@@ -207,7 +207,6 @@ const useGrupeLogic = () => {
   };
 
 
-    // 🔁 Funcții extrase (evită nesting excesiv)
   const handleEditSectiune = (titlu) => {
     const [nivel, an] = titlu.split(" - Anul ");
     setEditSectiune({ nivel, an });

@@ -231,7 +231,7 @@ usePreventBack();
 <Link
       to="/dashboard"
       onClick={(e) => {
-        e.preventDefault(); // împiedică Link-ul să navigheze instant
+        e.preventDefault(); 
         Swal.fire({
           title: "Vrei să revii la Dashboard?",
           text: "Toate datele nesalvate vor fi pierdute.",

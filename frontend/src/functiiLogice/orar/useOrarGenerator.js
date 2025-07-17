@@ -1922,8 +1922,6 @@ const genereazaOrarClasic = async () => {
 };
 
 
-
-
   return {
     profesori,
     sali,

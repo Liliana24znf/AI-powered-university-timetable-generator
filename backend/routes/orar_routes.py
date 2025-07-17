@@ -57,11 +57,11 @@ def completeaza_ani_lipsa(orar_json):
 
 @orar_bp.route('/genereaza_orar', methods=['POST'])
 def genereaza_orar():
-    data = request.get_json()
-    prompt_frontend = data.get("prompt")  
-    regula_id = data.get("regula_id")
-    nivel_selectat = data.get("nivel_selectat")
-    grupe_selectate = data.get("grupe_selectate", [])
+    data = request.get_json() # Obține datele din cererea POST
+    prompt_frontend = data.get("prompt")  # Obține promptul generat de frontend
+    regula_id = data.get("regula_id") # ID-ul regulii selectate
+    nivel_selectat = data.get("nivel_selectat")     # Nivelul selectat (Licenta sau Master)
+    grupe_selectate = data.get("grupe_selectate", []) # Listează grupele selectate
 
     if not regula_id:
         return jsonify({"error": "ID-ul regulii nu a fost transmis."}), 400
@@ -72,7 +72,7 @@ def genereaza_orar():
 
     try:
         # Trimite direct promptul complet la GPT
-        response = client.chat.completions.create(
+        response = client.chat.completions.create( 
             model="gpt-4o",
             messages=[
                 {
@@ -80,26 +80,26 @@ def genereaza_orar():
                     "content": "Răspunde DOAR cu JSON VALID, fără explicații. STRUCTURA OBLIGATORIE: { Licenta: { grupa: { zi: { interval: { activitate, tip, profesor, sala }}}}, Master: { ... } }. NU adăuga chei globale precum 'Luni', 'Marti' etc. Orarul trebuie să fie împărțit exclusiv pe grupe."
                 },
                 {
-                    "role": "user",
-                    "content": prompt_frontend  # 👈 promptFinal de la frontend
+                    "role": "user", # Promptul generat de frontend
+                    "content": prompt_frontend
                 }
             ],
             temperature=0
         )
 
-        orar_raw = response.choices[0].message.content.strip()
+        orar_raw = response.choices[0].message.content.strip() # Obține răspunsul brut de la GPT
 
         # ✅ Parsare JSON
-        start = orar_raw.find('{')
-        end = orar_raw.rfind('}') + 1
-        json_str = orar_raw[start:end]
+        start = orar_raw.find('{') # găsește prima acoladă deschisă
+        end = orar_raw.rfind('}') + 1 # găsește ultima acoladă închisă
+        json_str = orar_raw[start:end] # extrage doar partea JSON
 
-        json_str = json_str.replace("“", "\"").replace("”", "\"").replace("‘", "'").replace("’", "'")
-        lines = json_str.splitlines()
-        clean_lines = [re.sub(r'//.*', '', line) for line in lines if "..." not in line and line.strip()]
-        json_str_cleaned = re.sub(r",\s*([\]})])", r"\1", "\n".join(clean_lines))
+        json_str = json_str.replace("“", "\"").replace("”", "\"").replace("‘", "'").replace("’", "'") # înlocuiește ghilimelele incorecte
+        lines = json_str.splitlines() # elimină liniile goale și comentariile
+        clean_lines = [re.sub(r'//.*', '', line) for line in lines if "..." not in line and line.strip()] # elimină comentariile și liniile goale
+        json_str_cleaned = re.sub(r",\s*([\]})])", r"\1", "\n".join(clean_lines)) # elimină virgulele inutile
 
-        orar_json = json.loads(json_str_cleaned)
+        orar_json = json.loads(json_str_cleaned) # transformă stringul JSON într-un dict
 
         # 🔁 Completează grupele lipsă
         orar_json = completeaza_grupe_lipsa(

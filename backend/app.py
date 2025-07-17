@@ -23,7 +23,11 @@ import os
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
+
+# Activarea CORS pentru a permite cereri de la frontend
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+
+# Înregistrarea blueprint-urilor în aplicația principală 
 app.register_blueprint(grupe_bp)
 app.register_blueprint(sali_bp)
 app.register_blueprint(profesori_bp)

@@ -81,20 +81,23 @@ class ValidatorOrar:
                                 break
                         break  # o mutare per zi e suficientă
 
-
+# 📋 Raport de validare orar
 def valideaza_orar(orar):
     raport_text = "\n📋 Raport de validare orar:\n"
     raport_html = "<div class='card mt-4'><div class='card-header bg-warning text-dark fw-bold'>📋 Raport de validare orar</div><div class='card-body'><ul class='list-group'>"
 
+    # Verificăm fiecare grupă
     for grupa, zile in orar.items():
-        raport_text += f"🔎 Grupa: {grupa}\n"
-        raport_html += f"<li class='list-group-item'><strong>🔎 Grupa: {grupa}</strong><ul>"
-
+        # Verificăm dacă grupa există în orar
+        raport_text += f"🔎 Grupa: {grupa}\n"  
+        # Verificăm dacă grupa are activități
+        raport_html += f"<li class='list-group-item'><strong>🔎 Grupa: {grupa}</strong><ul>" 
         pentru_grupa_valida = True
-
-        for zi, intervale in zile.items():
-            activitati = [val for val in intervale.values() if val and "Pauză" not in val]
-            total_ore = len(activitati) * 2
+        
+        # Verificăm fiecare zi
+        for zi, intervale in zile.items(): # Verificăm dacă ziua are activități
+            activitati = [val for val in intervale.values() if val and "Pauză" not in val] # eliminăm pauzele
+            total_ore = len(activitati) * 2 # fiecare activitate are 2 ore
 
             if not activitati:
                 raport_text += f"   ❌ {zi} este complet goală!\n"
@@ -102,7 +105,7 @@ def valideaza_orar(orar):
                 pentru_grupa_valida = False
                 continue
 
-            if total_ore < 4:
+            if total_ore < 4: # minim 4 ore necesare
                 raport_text += f"   ⚠️ {zi} are doar {total_ore} ore (minim 4h necesare)\n"
                 raport_html += f"<li>⚠️ {zi} are doar {total_ore} ore (minim 4h)</li>"
 
