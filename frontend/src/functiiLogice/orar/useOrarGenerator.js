@@ -130,247 +130,8 @@ const instructiuniGrupe = grupe
 const instructiuniGPT = `
 🔒 REGULI GPT PENTRU GENERAREA ORARULUI:
 
-Afiseaza exact jsonul acesta pentru LIII1a și LIII1b, fără alte comentarii sau explicații suplimentare.
-{
-  "Licenta": {
-    "LIII1a": {
-      "Luni": {
-        "08:00–10:00": {
-          "activitate": "Programare C++ (C)",
-          "tip": "Curs",
-          "profesor": "Sandu Bianca",
-          "sala": "GC1"
-        },
-        "10:00–12:00": {
-          "activitate": "C++",
-          "tip": "Laborator",
-          "profesor": "Sandu Bianca",
-          "sala": "GL1"
-        },
-        "12:00–14:00": {
-          "activitate": "POO (C)",
-          "tip": "Curs",
-          "profesor": "Dr. Mircea Popa",
-          "sala": "GC2"
-        },
-        "14:00–16:00": {},
-        "16:00–18:00": {
-          "activitate": "POO",
-          "tip": "Laborator",
-          "profesor": "Dr. Mircea Popa",
-          "sala": "GL2"
-        }
-      },
-      "Marti": {
-        "08:00–10:00": {
-          "activitate": "IA (C)",
-          "tip": "Curs",
-          "profesor": "Conf. Adrian Ilie",
-          "sala": "GC3"
-        },
-        "10:00–12:00": {
-          "activitate": "IA",
-          "tip": "Laborator",
-          "profesor": "Conf. Adrian Ilie",
-          "sala": "GL3"
-        },
-        "12:00–14:00": {
-          "activitate": "RC (C)",
-          "tip": "Curs",
-          "profesor": "Costache Marius",
-          "sala": "GC4"
-        },
-        "14:00–16:00": {
-          "activitate": "RC",
-          "tip": "Laborator",
-          "profesor": "Costache Marius",
-          "sala": "GL4"
-        }
-      },
-      "Miercuri": {
-        "08:00–10:00": {
-          "activitate": "TW (C)",
-          "tip": "Curs",
-          "profesor": "Dragomir Raluca",
-          "sala": "GC5"
-        },
-        "10:00–12:00": {
-          "activitate": "TW",
-          "tip": "Laborator",
-          "profesor": "Dragomir Raluca",
-          "sala": "GL5"
-        },
-        "12:00–14:00": {
-          "activitate": "POO",
-          "tip": "Proiect",
-          "profesor": "Dr. Mircea Popa",
-          "sala": "GP1"
-        },
-        "14:00–16:00": {},
-        "16:00–18:00": {}
-      },
-      "Joi": {
-        "08:00–10:00": {
-          "activitate": "SO (C)",
-          "tip": "Curs",
-          "profesor": "Neagu Gabriela",
-          "sala": "GC6"
-        },
-        "10:00–12:00": {
-          "activitate": "SO",
-          "tip": "Seminar",
-          "profesor": "Neagu Gabriela",
-          "sala": "GS1"
-        },
-        "12:00–14:00": {
-          "activitate": "BD (C)",
-          "tip": "Curs",
-          "profesor": "Mihalache Paul",
-          "sala": "GC7"
-        },
-        "14:00–16:00": {
-          "activitate": "BD",
-          "tip": "Laborator",
-          "profesor": "Mihalache Paul",
-          "sala": "GL6"
-        }
-      },
-      "Vineri": {
-        "08:00–10:00": {
-          "activitate": "POO",
-          "tip": "Seminar",
-          "profesor": "Dr. Mircea Popa",
-          "sala": "GS2"
-        },
-        "10:00–12:00": {
-          "activitate": "BD",
-          "tip": "Proiect",
-          "profesor": "Mihalache Paul",
-          "sala": "GP2"
-        }
-      }
-    },
-    "LIII1b": {
-      "Luni": {
-        "08:00–10:00": {
-          "activitate": "Programare C++ (C)",
-          "tip": "Curs",
-          "profesor": "Sandu Bianca",
-          "sala": "GC1"
-        },
-        "10:00–12:00": {
-          "activitate": "POO",
-          "tip": "Laborator",
-          "profesor": "Dr. Mircea Popa",
-          "sala": "GL8"
-        },
-        "12:00–14:00": {
-          "activitate": "POO (C)",
-          "tip": "Curs",
-          "profesor": "Dr. Mircea Popa",
-          "sala": "GC2"
-        },
-        "14:00–16:00": {
-          "activitate": "C++",
-          "tip": "Laborator",
-          "profesor": "Sandu Bianca",
-          "sala": "GL7"
-        },
-        "16:00–18:00": {}
-      },
-      "Marti": {
-        "08:00–10:00": {
-          "activitate": "RC (C)",
-          "tip": "Curs",
-          "profesor": "Costache Marius",
-          "sala": "GC4"
-        },
-        "10:00–12:00": {
-          "activitate": "IA",
-          "tip": "Laborator",
-          "profesor": "Conf. Adrian Ilie",
-          "sala": "GL9"
-        },
-        "12:00–14:00": {
-          "activitate": "IA (C)",
-          "tip": "Curs",
-          "profesor": "Conf. Adrian Ilie",
-          "sala": "GC3"
-        },
-        "14:00–16:00": {
-          "activitate": "RC",
-          "tip": "Laborator",
-          "profesor": "Costache Marius",
-          "sala": "GL10"
-        }
-      },
-      "Miercuri": {
-        "08:00–10:00": {
-          "activitate": "TW (C)",
-          "tip": "Curs",
-          "profesor": "Dragomir Raluca",
-          "sala": "GC5"
-        },
-        "10:00–12:00": {
-          "activitate": "BD",
-          "tip": "Laborator",
-          "profesor": "Mihalache Paul",
-          "sala": "GL6"
-        },
-        "12:00–14:00": {
-          "activitate": "POO",
-          "tip": "Proiect",
-          "profesor": "Dr. Mircea Popa",
-          "sala": "GP1"
-        },
-        "14:00–16:00": {},
-        "16:00–18:00": {}
-      },
-      "Joi": {
-        "08:00–10:00": {
-          "activitate": "SO (C)",
-          "tip": "Curs",
-          "profesor": "Neagu Gabriela",
-          "sala": "GC6"
-        },
-        "10:00–12:00": {
-          "activitate": "SO",
-          "tip": "Seminar",
-          "profesor": "Neagu Gabriela",
-          "sala": "GS1"
-        },
-        "12:00–14:00": {
-          "activitate": "BD (C)",
-          "tip": "Curs",
-          "profesor": "Mihalache Paul",
-          "sala": "GC7"
-        },
-        "14:00–16:00": {
-          "activitate": "TW",
-          "tip": "Laborator",
-          "profesor": "Dragomir Raluca",
-          "sala": "GL5"
-        }
-      },
-      "Vineri": {
-        "08:00–10:00": {
-          "activitate": "POO",
-          "tip": "Seminar",
-          "profesor": "Dr. Mircea Popa",
-          "sala": "GS2"
-        },
-        "10:00–12:00": {
-          "activitate": "BD",
-          "tip": "Proiect",
-          "profesor": "Mihalache Paul",
-          "sala": "GP2"
-        }
-      }
-    }
-  }
-}
 
-🚫 ESTE INTERZIS CA DOUĂ SUBGRUPE SĂ AIBĂ LABORATORUL ÎN ACELAȘI INTERVAL ORAR ȘI ACEEAȘI ZI – CHIAR DACĂ AU SĂLI DIFERITE.
+🚫 ESTE INTERZIS CA DOUĂ SUBGRUPE SĂ AIBĂ LABORATORUL ÎN ACELAȘI INTERVAL ORAR ȘI ACEEAȘI ZI!  Laboratoarele trebuie să fie programate în zile și intervale orare diferite pentru fiecare subgrupă.
 
 📌 REGULĂ 1
 - Nivelul este Licență sau Master, iar anul este I, II, III, IV, grupa este LI1, LI2, LII1 etc. pentru Licență și MI1, MI2, MII1 etc. pentru Master, subgrupa este LI1a, LI1b, LI2a, LI2b etc. pentru Licență și MI1a, MI1b, MII1a, MII1b etc. pentru Master.
@@ -384,21 +145,410 @@ Afiseaza exact jsonul acesta pentru LIII1a și LIII1b, fără alte comentarii sa
 - Toate activitățile trebuie plasate DOAR în interiorul grupelor/subgrupelor, sub cheile "Licenta" și "Master".
 - Formatul JSON trebuie să respecte modelul de mai jos (NU folosi array-uri, fiecare interval este un obiect):
 !!! Afișează toate intervalele ORARE pentru acest nivel și an, chiar dacă nu există activități.
+
+
 {
-  "Licenta": {
-    "LI1a": {
+  "Master": {
+    "MI1a": {
       "Luni": {
-        "08:00–10:00": {
-          "activitate": "Algoritmi (AL)",
+        "16:00–18:00": {
+          "activitate": "Cybersecurity (C)",
           "tip": "Curs",
-          "profesor": "Maria Ionescu",
+          "profesor": "Conf. Adrian Ilie",
           "sala": "GC1"
+        },
+        "18:00–20:00": {
+          "activitate": "Cy",
+          "tip": "Seminar",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GS1"
+        }
+      },
+      "Marti": {
+        "16:00–18:00": {
+          "activitate": "Sw",
+          "tip": "Proiect",
+          "profesor": "Prof. Camelia Oprea",
+          "sala": "GP1"
+        },
+        "18:00–20:00": {
+          "activitate": "Ml",
+          "tip": "Laborator",
+          "profesor": "Dr. Laura Petrescu",
+          "sala": "GL1"
+        }
+      },
+      "Miercuri": {
+        "16:00–18:00": {
+          "activitate": "Machine Learning (C)",
+          "tip": "Curs",
+          "profesor": "Dr. Laura Petrescu",
+          "sala": "GC2"
+        },
+        "18:00–20:00": {
+          "activitate": "Ml",
+          "tip": "Seminar",
+          "profesor": "Dr. Laura Petrescu",
+          "sala": "GS2"
+        }
+      },
+      "Joi": {
+        "16:00–18:00": {
+          "activitate": "Bd",
+          "tip": "Laborator",
+          "profesor": "Prof. Camelia Oprea",
+          "sala": "GL2"
+        },
+        "18:00–20:00": {
+          "activitate": "Big Data (C)",
+          "tip": "Curs",
+          "profesor": "Lect. Gabriel Toma",
+          "sala": "GC3"
+        }
+      },
+      "Vineri": {
+        "16:00–18:00": {
+          "activitate": "Bd",
+          "tip": "Proiect",
+          "profesor": "Prof. Camelia Oprea",
+          "sala": "GP2"
+        },
+        "18:00–20:00": {
+          "activitate": "Bd",
+          "tip": "Seminar",
+          "profesor": "Prof. Camelia Oprea",
+          "sala": "GS3"
+        }
+      }
+    },
+    "MI1b": {
+      "Luni": {
+        "16:00–18:00": {
+          "activitate": "Cybersecurity (C)",
+          "tip": "Curs",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GC1"
+        },
+        "18:00–20:00": {
+          "activitate": "Cy",
+          "tip": "Seminar",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GS1"
+        }
+      },
+      "Marti": {
+        "16:00–18:00": {
+          "activitate": "Sw",
+          "tip": "Proiect",
+          "profesor": "Prof. Camelia Oprea",
+          "sala": "GP1"
+        },
+        "18:00–20:00": {
+          "activitate": "Bd",
+          "tip": "Laborator",
+          "profesor": "Prof. Camelia Oprea",
+          "sala": "GL3"
+        }
+      },
+      "Miercuri": {
+        "16:00–18:00": {
+          "activitate": "Machine Learning (C)",
+          "tip": "Curs",
+          "profesor": "Dr. Laura Petrescu",
+          "sala": "GC2"
+        },
+        "18:00–20:00": {
+          "activitate": "Ml",
+          "tip": "Seminar",
+          "profesor": "Dr. Laura Petrescu",
+          "sala": "GS2"
+        }
+      },
+      "Joi": {
+        "16:00–18:00": {
+          "activitate": "Ml",
+          "tip": "Laborator",
+          "profesor": "Dr. Laura Petrescu",
+          "sala": "GL4"
+        },
+        "18:00–20:00": {
+          "activitate": "Big Data (C)",
+          "tip": "Curs",
+          "profesor": "Lect. Gabriel Toma",
+          "sala": "GC3"
+        }
+      },
+      "Vineri": {
+        "16:00–18:00": {
+          "activitate": "Bd",
+          "tip": "Proiect",
+          "profesor": "Prof. Camelia Oprea",
+          "sala": "GP2"
+        },
+        "18:00–20:00": {
+          "activitate": "Bd",
+          "tip": "Seminar",
+          "profesor": "Prof. Camelia Oprea",
+          "sala": "GS3"
         }
       }
     }
   }
 }
----
+
+"Licenta": {
+    "LIV1a": {
+      "Luni": {
+        "08:00–10:00": {
+          "activitate": "Inteligență Artificială (C)",
+          "tip": "Curs",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GC1"
+        },
+        "10:00–12:00": {
+          "activitate": "IA",
+          "tip": "Laborator",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GL1"
+        },
+        "12:00–14:00": {
+          "activitate": "IA",
+          "tip": "Proiect",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GP1"
+        }
+      },
+      "Marti": {
+        "08:00–10:00": {
+          "activitate": "AC (C)",
+          "tip": "Curs",
+          "profesor": "Dr. Nicoleta Anton",
+          "sala": "GC2"
+        },
+        "10:00–12:00": {
+          "activitate": "AC",
+          "tip": "Laborator",
+          "profesor": "Dr. Nicoleta Anton",
+          "sala": "GL2"
+        },
+        "12:00–14:00": {
+          "activitate": "PPy (C)",
+          "tip": "Curs",
+          "profesor": "Dr. Cristian Barbu",
+          "sala": "GC3"
+        },
+        "14:00–16:00": {},
+        "16:00–18:00": {
+          "activitate": "PPy",
+          "tip": "Proiect",
+          "profesor": "Dr. Cristian Barbu",
+          "sala": "GP2"
+        }
+      },
+      "Miercuri": {
+        "08:00–10:00": {
+          "activitate": "C/C++ (C)",
+          "tip": "Curs",
+          "profesor": "Lect. Radu Manole",
+          "sala": "GC4"
+        },
+        "10:00–12:00": {
+          "activitate": "C/C++",
+          "tip": "Laborator",
+          "profesor": "Lect. Radu Manole",
+          "sala": "GL3"
+        },
+        "12:00–14:00": {
+          "activitate": "C/C++",
+          "tip": "Seminar",
+          "profesor": "Lect. Radu Manole",
+          "sala": "GS1"
+        },
+        "14:00–16:00": {},
+        "16:00–18:00": {
+          "activitate": "DA (C)",
+          "tip": "Curs",
+          "profesor": "Lect. Ioana Dobre",
+          "sala": "GC5"
+        }
+      },
+      "Joi": {
+        "08:00–10:00": {
+          "activitate": "DA",
+          "tip": "Seminar",
+          "profesor": "Lect. Ioana Dobre",
+          "sala": "GS2"
+        },
+        "10:00–12:00": {
+          "activitate": "SO (C)",
+          "tip": "Curs",
+          "profesor": "Neagu Gabriela",
+          "sala": "GC6"
+        },
+        "12:00–14:00": {
+          "activitate": "SO",
+          "tip": "Seminar",
+          "profesor": "Neagu Gabriela",
+          "sala": "GS3"
+        },
+        "14:00–16:00": {},
+        "16:00–18:00": {
+          "activitate": "PJ (C)",
+          "tip": "Curs",
+          "profesor": "Iliescu Sorin",
+          "sala": "GC7"
+        }
+      },
+      "Vineri": {
+        "08:00–10:00": {
+          "activitate": "PJ",
+          "tip": "Laborator",
+          "profesor": "Iliescu Sorin",
+          "sala": "GL4"
+        },
+        "10:00–12:00": {
+          "activitate": "PPy",
+          "tip": "Laborator",
+          "profesor": "Dr. Cristian Barbu",
+          "sala": "GL5"
+        },
+        "12:00–14:00": {
+          "activitate": "DA",
+          "tip": "Proiect",
+          "profesor": "Lect. Ioana Dobre",
+          "sala": "GP3"
+        }
+      }
+    },
+    "LIV1b": {
+      "Luni": {
+        "08:00–10:00": {
+          "activitate": "Inteligență Artificială (C)",
+          "tip": "Curs",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GC1"
+        },
+        "10:00–12:00": {
+          "activitate": "AC",
+          "tip": "Laborator",
+          "profesor": "Dr. Nicoleta Anton",
+          "sala": "GL7"
+        },
+        "12:00–14:00": {
+          "activitate": "IA",
+          "tip": "Proiect",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GP1"
+        }
+      },
+      "Marti": {
+        "08:00–10:00": {
+          "activitate": "AC (C)",
+          "tip": "Curs",
+          "profesor": "Dr. Nicoleta Anton",
+          "sala": "GC2"
+        },
+        "10:00–12:00": {
+          "activitate": "IA",
+          "tip": "Laborator",
+          "profesor": "Conf. Adrian Ilie",
+          "sala": "GL6"
+        },
+        "12:00–14:00": {
+          "activitate": "PPy (C)",
+          "tip": "Curs",
+          "profesor": "Dr. Cristian Barbu",
+          "sala": "GC3"
+        },
+        "14:00–16:00": {},
+        "16:00–18:00": {
+          "activitate": "PPy",
+          "tip": "Proiect",
+          "profesor": "Dr. Cristian Barbu",
+          "sala": "GP2"
+        }
+      },
+      "Miercuri": {
+        "08:00–10:00": {
+          "activitate": "C/C++ (C)",
+          "tip": "Curs",
+          "profesor": "Lect. Radu Manole",
+          "sala": "GC4"
+        },
+        "10:00–12:00": {
+          "activitate": "PPy",
+          "tip": "Laborator",
+          "profesor": "Dr. Cristian Barbu",
+          "sala": "GL10"
+
+        },
+        "12:00–14:00": {
+          "activitate": "C/C++",
+          "tip": "Seminar",
+          "profesor": "Lect. Radu Manole",
+          "sala": "GS1"
+        },
+        "14:00–16:00": {},
+        "16:00–18:00": {
+          "activitate": "DA (C)",
+          "tip": "Curs",
+          "profesor": "Lect. Ioana Dobre",
+          "sala": "GC5"
+        }
+      },
+      "Joi": {
+        "08:00–10:00": {
+          "activitate": "DA",
+          "tip": "Seminar",
+          "profesor": "Lect. Ioana Dobre",
+          "sala": "GS2"
+        },
+        "10:00–12:00": {
+          "activitate": "SO (C)",
+          "tip": "Curs",
+          "profesor": "Neagu Gabriela",
+          "sala": "GC6"
+        },
+        "12:00–14:00": {
+          "activitate": "SO",
+          "tip": "Seminar",
+          "profesor": "Neagu Gabriela",
+          "sala": "GS3"
+        },
+        "14:00–16:00": {},
+        "16:00–18:00": {
+          "activitate": "PJ (C)",
+          "tip": "Curs",
+          "profesor": "Iliescu Sorin",
+          "sala": "GC7"
+        }
+      },
+      "Vineri": {
+        "08:00–10:00": {},
+        "10:00–12:00": {
+          "activitate": "C/C++",
+          "tip": "Laborator",
+          "profesor": "Lect. Radu Manole",
+          "sala": "GL8"
+        },
+        "12:00–14:00": {
+          "activitate": "DA",
+          "tip": "Proiect",
+          "profesor": "Lect. Ioana Dobre",
+          "sala": "GP3"
+        },
+        "14:00–16:00": {
+          "activitate": "PJ",
+          "tip": "Laborator",
+          "profesor": "Iliescu Sorin",
+          "sala": "GL9"
+        }
+      }
+    }
+  }
+}
+
+
 
 
 ✏️ FORMAT DENUMIRI ACTIVITĂȚI:
