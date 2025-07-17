@@ -368,10 +368,6 @@
     }
 }
 
-
-
-
-Afiseaza exact jsonul acesta pentru LIII1a și LIII1b, fără alte comentarii sau explicații suplimentare.
 {
   "Licenta": {
     "LIII1a": {
